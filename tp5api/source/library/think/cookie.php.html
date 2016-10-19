@@ -1,0 +1,256 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\Cookie.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\cookie.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\Cookie.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think;
+<a name="line13"></a>
+<a name="line14"></a>class Cookie
+<a name="line15"></a>{
+<a name="line16"></a>    protected static $config = [
+<a name="line17"></a>        // cookie 名称前缀
+<a name="line18"></a>        'prefix'    => '',
+<a name="line19"></a>        // cookie 保存时间
+<a name="line20"></a>        'expire'    => 0,
+<a name="line21"></a>        // cookie 保存路径
+<a name="line22"></a>        'path'      => '/',
+<a name="line23"></a>        // cookie 有效域名
+<a name="line24"></a>        'domain'    => '',
+<a name="line25"></a>        //  cookie 启用安全传输
+<a name="line26"></a>        'secure'    => false,
+<a name="line27"></a>        // httponly设置
+<a name="line28"></a>        'httponly'  => '',
+<a name="line29"></a>        // 是否使用 setcookie
+<a name="line30"></a>        'setcookie' => true,
+<a name="line31"></a>    ];
+<a name="line32"></a>
+<a name="line33"></a>    protected static $init;
+<a name="line34"></a>
+<a name="line35"></a>    /**
+<a name="line36"></a>     * Cookie初始化
+<a name="line37"></a>     * @param array $config
+<a name="line38"></a>     * @return void
+<a name="line39"></a>     */
+<a name="line40"></a>    public static function init(array $config = [])
+<a name="line41"></a>    {
+<a name="line42"></a>        if (empty($config)) {
+<a name="line43"></a>            $config = Config::get('cookie');
+<a name="line44"></a>        }
+<a name="line45"></a>        self::$config = array_merge(self::$config, array_change_key_case($config));
+<a name="line46"></a>        if (!empty(self::$config['httponly'])) {
+<a name="line47"></a>            ini_set('session.cookie_httponly', 1);
+<a name="line48"></a>        }
+<a name="line49"></a>        self::$init = true;
+<a name="line50"></a>    }
+<a name="line51"></a>
+<a name="line52"></a>    /**
+<a name="line53"></a>     * 设置或者获取cookie作用域（前缀）
+<a name="line54"></a>     * @param string $prefix
+<a name="line55"></a>     * @return string|void
+<a name="line56"></a>     */
+<a name="line57"></a>    public static function prefix($prefix = '')
+<a name="line58"></a>    {
+<a name="line59"></a>        if (empty($prefix)) {
+<a name="line60"></a>            return self::$config['prefix'];
+<a name="line61"></a>        }
+<a name="line62"></a>        self::$config['prefix'] = $prefix;
+<a name="line63"></a>    }
+<a name="line64"></a>
+<a name="line65"></a>    /**
+<a name="line66"></a>     * Cookie 设置、获取、删除
+<a name="line67"></a>     *
+<a name="line68"></a>     * @param string $name  cookie名称
+<a name="line69"></a>     * @param mixed  $value cookie值
+<a name="line70"></a>     * @param mixed  $option 可选参数 可能会是 null|integer|string
+<a name="line71"></a>     *
+<a name="line72"></a>     * @return mixed
+<a name="line73"></a>     * @internal param mixed $options cookie参数
+<a name="line74"></a>     */
+<a name="line75"></a>    public static function set($name, $value = '', $option = null)
+<a name="line76"></a>    {
+<a name="line77"></a>        !isset(self::$init) && self::init();
+<a name="line78"></a>        // 参数设置(会覆盖黙认设置)
+<a name="line79"></a>        if (!is_null($option)) {
+<a name="line80"></a>            if (is_numeric($option)) {
+<a name="line81"></a>                $option = ['expire' => $option];
+<a name="line82"></a>            } elseif (is_string($option)) {
+<a name="line83"></a>                parse_str($option, $option);
+<a name="line84"></a>            }
+<a name="line85"></a>            $config = array_merge(self::$config, array_change_key_case($option));
+<a name="line86"></a>        } else {
+<a name="line87"></a>            $config = self::$config;
+<a name="line88"></a>        }
+<a name="line89"></a>        $name = $config['prefix'] . $name;
+<a name="line90"></a>        // 设置cookie
+<a name="line91"></a>        if (is_array($value)) {
+<a name="line92"></a>            array_walk_recursive($value, 'self::jsonFormatProtect', 'encode');
+<a name="line93"></a>            $value = 'think:' . json_encode($value);
+<a name="line94"></a>        }
+<a name="line95"></a>        $expire = !empty($config['expire']) ? $_SERVER['REQUEST_TIME'] + intval($config['expire']) : 0;
+<a name="line96"></a>        if ($config['setcookie']) {
+<a name="line97"></a>            setcookie($name, $value, $expire, $config['path'], $config['domain'], $config['secure'], $config['httponly']);
+<a name="line98"></a>        }
+<a name="line99"></a>        $_COOKIE[$name] = $value;
+<a name="line100"></a>    }
+<a name="line101"></a>
+<a name="line102"></a>    /**
+<a name="line103"></a>     * 判断Cookie数据
+<a name="line104"></a>     * @param string        $name cookie名称
+<a name="line105"></a>     * @param string|null   $prefix cookie前缀
+<a name="line106"></a>     * @return bool
+<a name="line107"></a>     */
+<a name="line108"></a>    public static function has($name, $prefix = null)
+<a name="line109"></a>    {
+<a name="line110"></a>        !isset(self::$init) && self::init();
+<a name="line111"></a>        $prefix = !is_null($prefix) ? $prefix : self::$config['prefix'];
+<a name="line112"></a>        $name   = $prefix . $name;
+<a name="line113"></a>        return isset($_COOKIE[$name]);
+<a name="line114"></a>    }
+<a name="line115"></a>
+<a name="line116"></a>    /**
+<a name="line117"></a>     * Cookie获取
+<a name="line118"></a>     * @param string        $name cookie名称
+<a name="line119"></a>     * @param string|null   $prefix cookie前缀
+<a name="line120"></a>     * @return mixed
+<a name="line121"></a>     */
+<a name="line122"></a>    public static function get($name, $prefix = null)
+<a name="line123"></a>    {
+<a name="line124"></a>        !isset(self::$init) && self::init();
+<a name="line125"></a>        $prefix = !is_null($prefix) ? $prefix : self::$config['prefix'];
+<a name="line126"></a>        $name   = $prefix . $name;
+<a name="line127"></a>        if (isset($_COOKIE[$name])) {
+<a name="line128"></a>            $value = $_COOKIE[$name];
+<a name="line129"></a>            if (0 === strpos($value, 'think:')) {
+<a name="line130"></a>                $value = substr($value, 6);
+<a name="line131"></a>                $value = json_decode($value, true);
+<a name="line132"></a>                array_walk_recursive($value, 'self::jsonFormatProtect', 'decode');
+<a name="line133"></a>            }
+<a name="line134"></a>            return $value;
+<a name="line135"></a>        } else {
+<a name="line136"></a>            return null;
+<a name="line137"></a>        }
+<a name="line138"></a>    }
+<a name="line139"></a>
+<a name="line140"></a>    /**
+<a name="line141"></a>     * Cookie删除
+<a name="line142"></a>     * @param string        $name cookie名称
+<a name="line143"></a>     * @param string|null   $prefix cookie前缀
+<a name="line144"></a>     * @return mixed
+<a name="line145"></a>     */
+<a name="line146"></a>    public static function delete($name, $prefix = null)
+<a name="line147"></a>    {
+<a name="line148"></a>        !isset(self::$init) && self::init();
+<a name="line149"></a>        $config = self::$config;
+<a name="line150"></a>        $prefix = !is_null($prefix) ? $prefix : $config['prefix'];
+<a name="line151"></a>        $name   = $prefix . $name;
+<a name="line152"></a>        if ($config['setcookie']) {
+<a name="line153"></a>            setcookie($name, '', $_SERVER['REQUEST_TIME'] - 3600, $config['path'], $config['domain'], $config['secure'], $config['httponly']);
+<a name="line154"></a>        }
+<a name="line155"></a>        // 删除指定cookie
+<a name="line156"></a>        unset($_COOKIE[$name]);
+<a name="line157"></a>    }
+<a name="line158"></a>
+<a name="line159"></a>    /**
+<a name="line160"></a>     * Cookie清空
+<a name="line161"></a>     * @param string|null $prefix cookie前缀
+<a name="line162"></a>     * @return mixed
+<a name="line163"></a>     */
+<a name="line164"></a>    public static function clear($prefix = null)
+<a name="line165"></a>    {
+<a name="line166"></a>        // 清除指定前缀的所有cookie
+<a name="line167"></a>        if (empty($_COOKIE)) {
+<a name="line168"></a>            return;
+<a name="line169"></a>        }
+<a name="line170"></a>        !isset(self::$init) && self::init();
+<a name="line171"></a>        // 要删除的cookie前缀，不指定则删除config设置的指定前缀
+<a name="line172"></a>        $config = self::$config;
+<a name="line173"></a>        $prefix = !is_null($prefix) ? $prefix : $config['prefix'];
+<a name="line174"></a>        if ($prefix) {
+<a name="line175"></a>            // 如果前缀为空字符串将不作处理直接返回
+<a name="line176"></a>            foreach ($_COOKIE as $key => $val) {
+<a name="line177"></a>                if (0 === strpos($key, $prefix)) {
+<a name="line178"></a>                    if ($config['setcookie']) {
+<a name="line179"></a>                        setcookie($key, '', $_SERVER['REQUEST_TIME'] - 3600, $config['path'], $config['domain'], $config['secure'], $config['httponly']);
+<a name="line180"></a>                    }
+<a name="line181"></a>                    unset($_COOKIE[$key]);
+<a name="line182"></a>                }
+<a name="line183"></a>            }
+<a name="line184"></a>        }
+<a name="line185"></a>        return;
+<a name="line186"></a>    }
+<a name="line187"></a>
+<a name="line188"></a>    private static function jsonFormatProtect(&$val, $key, $type = 'encode')
+<a name="line189"></a>    {
+<a name="line190"></a>        if (!empty($val) && true !== $val) {
+<a name="line191"></a>            $val = 'decode' == $type ? urldecode($val) : urlencode($val);
+<a name="line192"></a>        }
+<a name="line193"></a>    }
+<a name="line194"></a>
+<a name="line195"></a>}
+<a name="line196"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\cookie.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

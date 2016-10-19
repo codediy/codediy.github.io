@@ -1,0 +1,712 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:04 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>Route (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\route.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\Route</div>
+<a href="../source/library/think/route.php.html#line23" class="location">library\think\Route.php at line 23</a>
+
+<h1>Class Route</h1>
+
+<pre class="tree"><strong>Route</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>Route</strong></p>
+
+<hr>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#pattern()">pattern</a>(string|array name, string rule)</p><p class="description">注册变量规则</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#domain()">domain</a>(string|array domain, mixed rule, array option, array pattern)</p><p class="description">注册子域名部署规则</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#bind()">bind</a>(mixed bind, string type)</p><p class="description">设置路由绑定</p></td>
+</tr>
+<tr>
+<td class="type">static  array</td>
+<td class="description"><p class="name"><a href="#name()">name</a>(string|array name, array value)</p><p class="description">设置或者获取路由标识</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#getBind()">getBind</a>(string type)</p><p class="description">读取路由绑定</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#import()">import</a>(array rule, string type)</p><p class="description">导入配置文件的路由规则</p></td>
+</tr>
+<tr>
+<td class="type">protected static  void</td>
+<td class="description"><p class="name"><a href="#registerRules()">registerRules</a>(mixed rules, str type)</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#rule()">rule</a>(string rule, string route, string type, array option, array pattern)</p><p class="description">注册路由规则</p></td>
+</tr>
+<tr>
+<td class="type">protected static  void</td>
+<td class="description"><p class="name"><a href="#setRule()">setRule</a>(string rule, string route, string type, array option, array pattern, string group)</p><p class="description">设置路由规则</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#getGroup()">getGroup</a>(string type)</p><p class="description">获取当前的分组信息</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#setGroup()">setGroup</a>(string name, array option, array pattern)</p><p class="description">设置当前的路由分组</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#group()">group</a>(string|array name, array|\Closure routes, array option, array pattern)</p><p class="description">注册路由分组</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#any()">any</a>(string rule, string route, array option, array pattern)</p><p class="description">注册路由</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#get()">get</a>(string rule, string route, array option, array pattern)</p><p class="description">注册GET路由</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#post()">post</a>(string rule, string route, array option, array pattern)</p><p class="description">注册POST路由</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#put()">put</a>(string rule, string route, array option, array pattern)</p><p class="description">注册PUT路由</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#delete()">delete</a>(string rule, string route, array option, array pattern)</p><p class="description">注册DELETE路由</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#patch()">patch</a>(string rule, string route, array option, array pattern)</p><p class="description">注册PATCH路由</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#resource()">resource</a>(string rule, string route, array option, array pattern)</p><p class="description">注册资源路由</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#controller()">controller</a>(string rule, string route, array option, array pattern)</p><p class="description">注册控制器路由 操作方法对应不同的请求后缀</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#alias()">alias</a>(string|array rule, string route, array option)</p><p class="description">注册别名路由</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#setMethodPrefix()">setMethodPrefix</a>(string method, string prefix)</p><p class="description">设置不同请求类型下面的方法前缀</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#rest()">rest</a>(string name, array resourece, mixed resource)</p><p class="description">rest方法定义和修改</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#miss()">miss</a>(string route, string method, array option)</p><p class="description">注册未匹配路由规则后的处理</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#auto()">auto</a>(string route)</p><p class="description">注册一个自动解析的URL路由</p></td>
+</tr>
+<tr>
+<td class="type">static  array</td>
+<td class="description"><p class="name"><a href="#rules()">rules</a>(mixed rules)</p><p class="description">获取或者批量设置路由定义</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#checkDomain()">checkDomain</a>(<a href="../think/request.html">Request</a> request, array currentRules, string method)</p><p class="description">检测子域名部署</p></td>
+</tr>
+<tr>
+<td class="type">static  false|array</td>
+<td class="description"><p class="name"><a href="#check()">check</a>(<a href="../think/request.html">Request</a> request, string url, string depr, bool checkDomain)</p><p class="description">检测URL路由</p></td>
+</tr>
+<tr>
+<td class="type">static  array</td>
+<td class="description"><p class="name"><a href="#bindToClass()">bindToClass</a>(string url, string class, string depr)</p><p class="description">绑定到类</p></td>
+</tr>
+<tr>
+<td class="type">static  array</td>
+<td class="description"><p class="name"><a href="#bindToNamespace()">bindToNamespace</a>(string url, string namespace, string depr)</p><p class="description">绑定到命名空间</p></td>
+</tr>
+<tr>
+<td class="type">static  array</td>
+<td class="description"><p class="name"><a href="#bindToController()">bindToController</a>(string url, string controller, string depr)</p><p class="description">绑定到控制器类</p></td>
+</tr>
+<tr>
+<td class="type">static  array</td>
+<td class="description"><p class="name"><a href="#bindToModule()">bindToModule</a>(string url, string class, string depr, mixed controller)</p><p class="description">绑定到模块/控制器</p></td>
+</tr>
+<tr>
+<td class="type">static  array</td>
+<td class="description"><p class="name"><a href="#parseUrl()">parseUrl</a>(string url, string depr, bool autoSearch)</p><p class="description">解析模块的URL地址 [模块/控制器/操作?]参数1=值1&参数2=值2...</p></td>
+</tr>
+</table>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../source/library/think/route.php.html#line53" class="location">library\think\Route.php at line 53</a>
+
+<h3 id="pattern()">pattern</h3>
+<code class="signature">public static  void <strong>pattern</strong>(string|array name, string rule)</code>
+<div class="details">
+<p>注册变量规则</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 变量名</dd>
+<dd>rule - 变量规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line71" class="location">library\think\Route.php at line 71</a>
+
+<h3 id="domain()">domain</h3>
+<code class="signature">public static  void <strong>domain</strong>(string|array domain, mixed rule, array option, array pattern)</code>
+<div class="details">
+<p>注册子域名部署规则</p><dl>
+<dt>Parameters:</dt>
+<dd>domain - 子域名</dd>
+<dd>rule - 路由规则</dd>
+<dd>option - 路由参数</dd>
+<dd>pattern - 变量规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line106" class="location">library\think\Route.php at line 106</a>
+
+<h3 id="bind()">bind</h3>
+<code class="signature">public static  mixed <strong>bind</strong>(mixed bind, string type)</code>
+<div class="details">
+<p>设置路由绑定</p><dl>
+<dt>Parameters:</dt>
+<dd>bind - 绑定信息</dd>
+<dd>type - 绑定类型 默认为module 支持 namespace class</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line118" class="location">library\think\Route.php at line 118</a>
+
+<h3 id="name()">name</h3>
+<code class="signature">public static  array <strong>name</strong>(string|array name, array value)</code>
+<div class="details">
+<p>设置或者获取路由标识</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 路由命名标识 数组表示批量设置</dd>
+<dd>value - 路由地址及变量信息</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line137" class="location">library\think\Route.php at line 137</a>
+
+<h3 id="getBind()">getBind</h3>
+<code class="signature">public static  mixed <strong>getBind</strong>(string type)</code>
+<div class="details">
+<p>读取路由绑定</p><dl>
+<dt>Parameters:</dt>
+<dd>type - 绑定类型</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line149" class="location">library\think\Route.php at line 149</a>
+
+<h3 id="import()">import</h3>
+<code class="signature">public static  void <strong>import</strong>(array rule, string type)</code>
+<div class="details">
+<p>导入配置文件的路由规则</p><dl>
+<dt>Parameters:</dt>
+<dd>rule - 路由规则</dd>
+<dd>type - 请求类型</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line179" class="location">library\think\Route.php at line 179</a>
+
+<h3 id="registerRules()">registerRules</h3>
+<code class="signature">protected static  void <strong>registerRules</strong>(mixed rules, str type)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line209" class="location">library\think\Route.php at line 209</a>
+
+<h3 id="rule()">rule</h3>
+<code class="signature">public static  void <strong>rule</strong>(string rule, string route, string type, array option, array pattern)</code>
+<div class="details">
+<p>注册路由规则</p><dl>
+<dt>Parameters:</dt>
+<dd>rule - 路由规则</dd>
+<dd>route - 路由地址</dd>
+<dd>type - 请求类型</dd>
+<dd>option - 路由参数</dd>
+<dd>pattern - 变量规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line255" class="location">library\think\Route.php at line 255</a>
+
+<h3 id="setRule()">setRule</h3>
+<code class="signature">protected static  void <strong>setRule</strong>(string rule, string route, string type, array option, array pattern, string group)</code>
+<div class="details">
+<p>设置路由规则</p><dl>
+<dt>Parameters:</dt>
+<dd>rule - 路由规则</dd>
+<dd>route - 路由地址</dd>
+<dd>type - 请求类型</dd>
+<dd>option - 路由参数</dd>
+<dd>pattern - 变量规则</dd>
+<dd>group - 所属分组</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line322" class="location">library\think\Route.php at line 322</a>
+
+<h3 id="getGroup()">getGroup</h3>
+<code class="signature">public static  mixed <strong>getGroup</strong>(string type)</code>
+<div class="details">
+<p>获取当前的分组信息</p><dl>
+<dt>Parameters:</dt>
+<dd>type - 分组信息名称 name option pattern</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line339" class="location">library\think\Route.php at line 339</a>
+
+<h3 id="setGroup()">setGroup</h3>
+<code class="signature">public static  void <strong>setGroup</strong>(string name, array option, array pattern)</code>
+<div class="details">
+<p>设置当前的路由分组</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 分组名称</dd>
+<dd>option - 分组路由参数</dd>
+<dd>pattern - 分组变量规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line355" class="location">library\think\Route.php at line 355</a>
+
+<h3 id="group()">group</h3>
+<code class="signature">public static  void <strong>group</strong>(string|array name, array|\Closure routes, array option, array pattern)</code>
+<div class="details">
+<p>注册路由分组</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 分组名称或者参数</dd>
+<dd>routes - 路由地址</dd>
+<dd>option - 路由参数</dd>
+<dd>pattern - 变量规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line438" class="location">library\think\Route.php at line 438</a>
+
+<h3 id="any()">any</h3>
+<code class="signature">public static  void <strong>any</strong>(string rule, string route, array option, array pattern)</code>
+<div class="details">
+<p>注册路由</p><dl>
+<dt>Parameters:</dt>
+<dd>rule - 路由规则</dd>
+<dd>route - 路由地址</dd>
+<dd>option - 路由参数</dd>
+<dd>pattern - 变量规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line452" class="location">library\think\Route.php at line 452</a>
+
+<h3 id="get()">get</h3>
+<code class="signature">public static  void <strong>get</strong>(string rule, string route, array option, array pattern)</code>
+<div class="details">
+<p>注册GET路由</p><dl>
+<dt>Parameters:</dt>
+<dd>rule - 路由规则</dd>
+<dd>route - 路由地址</dd>
+<dd>option - 路由参数</dd>
+<dd>pattern - 变量规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line466" class="location">library\think\Route.php at line 466</a>
+
+<h3 id="post()">post</h3>
+<code class="signature">public static  void <strong>post</strong>(string rule, string route, array option, array pattern)</code>
+<div class="details">
+<p>注册POST路由</p><dl>
+<dt>Parameters:</dt>
+<dd>rule - 路由规则</dd>
+<dd>route - 路由地址</dd>
+<dd>option - 路由参数</dd>
+<dd>pattern - 变量规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line480" class="location">library\think\Route.php at line 480</a>
+
+<h3 id="put()">put</h3>
+<code class="signature">public static  void <strong>put</strong>(string rule, string route, array option, array pattern)</code>
+<div class="details">
+<p>注册PUT路由</p><dl>
+<dt>Parameters:</dt>
+<dd>rule - 路由规则</dd>
+<dd>route - 路由地址</dd>
+<dd>option - 路由参数</dd>
+<dd>pattern - 变量规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line494" class="location">library\think\Route.php at line 494</a>
+
+<h3 id="delete()">delete</h3>
+<code class="signature">public static  void <strong>delete</strong>(string rule, string route, array option, array pattern)</code>
+<div class="details">
+<p>注册DELETE路由</p><dl>
+<dt>Parameters:</dt>
+<dd>rule - 路由规则</dd>
+<dd>route - 路由地址</dd>
+<dd>option - 路由参数</dd>
+<dd>pattern - 变量规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line508" class="location">library\think\Route.php at line 508</a>
+
+<h3 id="patch()">patch</h3>
+<code class="signature">public static  void <strong>patch</strong>(string rule, string route, array option, array pattern)</code>
+<div class="details">
+<p>注册PATCH路由</p><dl>
+<dt>Parameters:</dt>
+<dd>rule - 路由规则</dd>
+<dd>route - 路由地址</dd>
+<dd>option - 路由参数</dd>
+<dd>pattern - 变量规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line522" class="location">library\think\Route.php at line 522</a>
+
+<h3 id="resource()">resource</h3>
+<code class="signature">public static  void <strong>resource</strong>(string rule, string route, array option, array pattern)</code>
+<div class="details">
+<p>注册资源路由</p><dl>
+<dt>Parameters:</dt>
+<dd>rule - 路由规则</dd>
+<dd>route - 路由地址</dd>
+<dd>option - 路由参数</dd>
+<dd>pattern - 变量规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line568" class="location">library\think\Route.php at line 568</a>
+
+<h3 id="controller()">controller</h3>
+<code class="signature">public static  void <strong>controller</strong>(string rule, string route, array option, array pattern)</code>
+<div class="details">
+<p>注册控制器路由 操作方法对应不同的请求后缀</p><dl>
+<dt>Parameters:</dt>
+<dd>rule - 路由规则</dd>
+<dd>route - 路由地址</dd>
+<dd>option - 路由参数</dd>
+<dd>pattern - 变量规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line583" class="location">library\think\Route.php at line 583</a>
+
+<h3 id="alias()">alias</h3>
+<code class="signature">public static  void <strong>alias</strong>(string|array rule, string route, array option)</code>
+<div class="details">
+<p>注册别名路由</p><dl>
+<dt>Parameters:</dt>
+<dd>rule - 路由别名</dd>
+<dd>route - 路由地址</dd>
+<dd>option - 路由参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line599" class="location">library\think\Route.php at line 599</a>
+
+<h3 id="setMethodPrefix()">setMethodPrefix</h3>
+<code class="signature">public static  void <strong>setMethodPrefix</strong>(string method, string prefix)</code>
+<div class="details">
+<p>设置不同请求类型下面的方法前缀</p><dl>
+<dt>Parameters:</dt>
+<dd>method - 请求类型</dd>
+<dd>prefix - 类型前缀</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line615" class="location">library\think\Route.php at line 615</a>
+
+<h3 id="rest()">rest</h3>
+<code class="signature">public static  void <strong>rest</strong>(string name, array resourece, mixed resource)</code>
+<div class="details">
+<p>rest方法定义和修改</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 方法名称</dd>
+<dd>resourece - 资源</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line632" class="location">library\think\Route.php at line 632</a>
+
+<h3 id="miss()">miss</h3>
+<code class="signature">public static  void <strong>miss</strong>(string route, string method, array option)</code>
+<div class="details">
+<p>注册未匹配路由规则后的处理</p><dl>
+<dt>Parameters:</dt>
+<dd>route - 路由地址</dd>
+<dd>method - 请求类型</dd>
+<dd>option - 路由参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line643" class="location">library\think\Route.php at line 643</a>
+
+<h3 id="auto()">auto</h3>
+<code class="signature">public static  void <strong>auto</strong>(string route)</code>
+<div class="details">
+<p>注册一个自动解析的URL路由</p><dl>
+<dt>Parameters:</dt>
+<dd>route - 路由地址</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line654" class="location">library\think\Route.php at line 654</a>
+
+<h3 id="rules()">rules</h3>
+<code class="signature">public static  array <strong>rules</strong>(mixed rules)</code>
+<div class="details">
+<p>获取或者批量设置路由定义</p><dl>
+<dt>Parameters:</dt>
+<dd>rules - 请求类型或者路由定义数组</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line675" class="location">library\think\Route.php at line 675</a>
+
+<h3 id="checkDomain()">checkDomain</h3>
+<code class="signature">public static  void <strong>checkDomain</strong>(<a href="../think/request.html">Request</a> request, array currentRules, string method)</code>
+<div class="details">
+<p>检测子域名部署</p><dl>
+<dt>Parameters:</dt>
+<dd>request - Request请求对象</dd>
+<dd>currentRules - 当前路由规则</dd>
+<dd>method - 请求类型</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line773" class="location">library\think\Route.php at line 773</a>
+
+<h3 id="check()">check</h3>
+<code class="signature">public static  false|array <strong>check</strong>(<a href="../think/request.html">Request</a> request, string url, string depr, bool checkDomain)</code>
+<div class="details">
+<p>检测URL路由</p><dl>
+<dt>Parameters:</dt>
+<dd>request - Request请求对象</dd>
+<dd>url - URL地址</dd>
+<dd>depr - URL分隔符</dd>
+<dd>checkDomain - 是否检测域名规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line987" class="location">library\think\Route.php at line 987</a>
+
+<h3 id="bindToClass()">bindToClass</h3>
+<code class="signature">public static  array <strong>bindToClass</strong>(string url, string class, string depr)</code>
+<div class="details">
+<p>绑定到类</p><dl>
+<dt>Parameters:</dt>
+<dd>url - URL地址</dd>
+<dd>class - 类名（带命名空间）</dd>
+<dd>depr - URL分隔符</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line1006" class="location">library\think\Route.php at line 1006</a>
+
+<h3 id="bindToNamespace()">bindToNamespace</h3>
+<code class="signature">public static  array <strong>bindToNamespace</strong>(string url, string namespace, string depr)</code>
+<div class="details">
+<p>绑定到命名空间</p><dl>
+<dt>Parameters:</dt>
+<dd>url - URL地址</dd>
+<dd>namespace - 命名空间</dd>
+<dd>depr - URL分隔符</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line1026" class="location">library\think\Route.php at line 1026</a>
+
+<h3 id="bindToController()">bindToController</h3>
+<code class="signature">public static  array <strong>bindToController</strong>(string url, string controller, string depr)</code>
+<div class="details">
+<p>绑定到控制器类</p><dl>
+<dt>Parameters:</dt>
+<dd>url - URL地址</dd>
+<dd>controller - 控制器名 （支持带模块名 index/user ）</dd>
+<dd>depr - URL分隔符</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line1045" class="location">library\think\Route.php at line 1045</a>
+
+<h3 id="bindToModule()">bindToModule</h3>
+<code class="signature">public static  array <strong>bindToModule</strong>(string url, string class, string depr, mixed controller)</code>
+<div class="details">
+<p>绑定到模块/控制器</p><dl>
+<dt>Parameters:</dt>
+<dd>url - URL地址</dd>
+<dd>class - 控制器类名（带命名空间）</dd>
+<dd>depr - URL分隔符</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/route.php.html#line1134" class="location">library\think\Route.php at line 1134</a>
+
+<h3 id="parseUrl()">parseUrl</h3>
+<code class="signature">public static  array <strong>parseUrl</strong>(string url, string depr, bool autoSearch)</code>
+<div class="details">
+<p>解析模块的URL地址 [模块/控制器/操作?]参数1=值1&参数2=值2...</p><dl>
+<dt>Parameters:</dt>
+<dd>url - URL地址</dd>
+<dd>depr - URL分隔符</dd>
+<dd>autoSearch - 是否自动深度搜索控制器</dd>
+</dl>
+</div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\route.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

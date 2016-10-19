@@ -1,0 +1,329 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>convention.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\convention.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>convention.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>
+<a name="line3"></a>return [
+<a name="line4"></a>    // +----------------------------------------------------------------------
+<a name="line5"></a>    // | 应用设置
+<a name="line6"></a>    // +----------------------------------------------------------------------
+<a name="line7"></a>
+<a name="line8"></a>    // 应用命名空间
+<a name="line9"></a>    'app_namespace'          => 'app',
+<a name="line10"></a>    // 应用调试模式
+<a name="line11"></a>    'app_debug'              => true,
+<a name="line12"></a>    // 应用Trace
+<a name="line13"></a>    'app_trace'              => false,
+<a name="line14"></a>    // 应用模式状态
+<a name="line15"></a>    'app_status'             => '',
+<a name="line16"></a>    // 是否支持多模块
+<a name="line17"></a>    'app_multi_module'       => true,
+<a name="line18"></a>    // 入口自动绑定模块
+<a name="line19"></a>    'auto_bind_module'       => false,
+<a name="line20"></a>    // 注册的根命名空间
+<a name="line21"></a>    'root_namespace'         => [],
+<a name="line22"></a>    // 扩展函数文件
+<a name="line23"></a>    'extra_file_list'        => [THINK_PATH . 'helper' . EXT],
+<a name="line24"></a>    // 默认输出类型
+<a name="line25"></a>    'default_return_type'    => 'html',
+<a name="line26"></a>    // 默认AJAX 数据返回格式,可选json xml ...
+<a name="line27"></a>    'default_ajax_return'    => 'json',
+<a name="line28"></a>    // 默认JSONP格式返回的处理方法
+<a name="line29"></a>    'default_jsonp_handler'  => 'jsonpReturn',
+<a name="line30"></a>    // 默认JSONP处理方法
+<a name="line31"></a>    'var_jsonp_handler'      => 'callback',
+<a name="line32"></a>    // 默认时区
+<a name="line33"></a>    'default_timezone'       => 'PRC',
+<a name="line34"></a>    // 是否开启多语言
+<a name="line35"></a>    'lang_switch_on'         => false,
+<a name="line36"></a>    // 默认全局过滤方法 用逗号分隔多个
+<a name="line37"></a>    'default_filter'         => '',
+<a name="line38"></a>    // 默认语言
+<a name="line39"></a>    'default_lang'           => 'zh-cn',
+<a name="line40"></a>    // 应用类库后缀
+<a name="line41"></a>    'class_suffix'           => false,
+<a name="line42"></a>    // 控制器类后缀
+<a name="line43"></a>    'controller_suffix'      => false,
+<a name="line44"></a>
+<a name="line45"></a>    // +----------------------------------------------------------------------
+<a name="line46"></a>    // | 模块设置
+<a name="line47"></a>    // +----------------------------------------------------------------------
+<a name="line48"></a>
+<a name="line49"></a>    // 默认模块名
+<a name="line50"></a>    'default_module'         => 'index',
+<a name="line51"></a>    // 禁止访问模块
+<a name="line52"></a>    'deny_module_list'       => ['common'],
+<a name="line53"></a>    // 默认控制器名
+<a name="line54"></a>    'default_controller'     => 'Index',
+<a name="line55"></a>    // 默认操作名
+<a name="line56"></a>    'default_action'         => 'index',
+<a name="line57"></a>    // 默认验证器
+<a name="line58"></a>    'default_validate'       => '',
+<a name="line59"></a>    // 默认的空控制器名
+<a name="line60"></a>    'empty_controller'       => 'Error',
+<a name="line61"></a>    // 操作方法前缀
+<a name="line62"></a>    'use_action_prefix'      => false,
+<a name="line63"></a>    // 操作方法后缀
+<a name="line64"></a>    'action_suffix'          => '',
+<a name="line65"></a>    // 自动搜索控制器
+<a name="line66"></a>    'controller_auto_search' => false,
+<a name="line67"></a>
+<a name="line68"></a>    // +----------------------------------------------------------------------
+<a name="line69"></a>    // | URL设置
+<a name="line70"></a>    // +----------------------------------------------------------------------
+<a name="line71"></a>
+<a name="line72"></a>    // PATHINFO变量名 用于兼容模式
+<a name="line73"></a>    'var_pathinfo'           => 's',
+<a name="line74"></a>    // 兼容PATH_INFO获取
+<a name="line75"></a>    'pathinfo_fetch'         => ['ORIG_PATH_INFO', 'REDIRECT_PATH_INFO', 'REDIRECT_URL'],
+<a name="line76"></a>    // pathinfo分隔符
+<a name="line77"></a>    'pathinfo_depr'          => '/',
+<a name="line78"></a>    // URL伪静态后缀
+<a name="line79"></a>    'url_html_suffix'        => 'html',
+<a name="line80"></a>    // URL普通方式参数 用于自动生成
+<a name="line81"></a>    'url_common_param'       => false,
+<a name="line82"></a>    // URL参数方式 0 按名称成对解析 1 按顺序解析
+<a name="line83"></a>    'url_param_type'         => 0,
+<a name="line84"></a>    // 是否开启路由
+<a name="line85"></a>    'url_route_on'           => true,
+<a name="line86"></a>    // 路由配置文件（支持配置多个）
+<a name="line87"></a>    'route_config_file'      => ['route'],
+<a name="line88"></a>    // 是否强制使用路由
+<a name="line89"></a>    'url_route_must'         => false,
+<a name="line90"></a>    // 域名部署
+<a name="line91"></a>    'url_domain_deploy'      => false,
+<a name="line92"></a>    // 域名根，如thinkphp.cn
+<a name="line93"></a>    'url_domain_root'        => '',
+<a name="line94"></a>    // 是否自动转换URL中的控制器和操作名
+<a name="line95"></a>    'url_convert'            => true,
+<a name="line96"></a>    // 默认的访问控制器层
+<a name="line97"></a>    'url_controller_layer'   => 'controller',
+<a name="line98"></a>    // 表单请求类型伪装变量
+<a name="line99"></a>    'var_method'             => '_method',
+<a name="line100"></a>    // 表单ajax伪装变量
+<a name="line101"></a>    'var_ajax'               => '_ajax',
+<a name="line102"></a>    // 表单pjax伪装变量
+<a name="line103"></a>    'var_pjax'               => '_pjax',
+<a name="line104"></a>
+<a name="line105"></a>    // +----------------------------------------------------------------------
+<a name="line106"></a>    // | 模板设置
+<a name="line107"></a>    // +----------------------------------------------------------------------
+<a name="line108"></a>
+<a name="line109"></a>    'template'               => [
+<a name="line110"></a>        // 模板引擎类型 支持 php think 支持扩展
+<a name="line111"></a>        'type'         => 'Think',
+<a name="line112"></a>        // 模板路径
+<a name="line113"></a>        'view_path'    => '',
+<a name="line114"></a>        // 模板后缀
+<a name="line115"></a>        'view_suffix'  => 'html',
+<a name="line116"></a>        // 模板文件名分隔符
+<a name="line117"></a>        'view_depr'    => DS,
+<a name="line118"></a>        // 模板引擎普通标签开始标记
+<a name="line119"></a>        'tpl_begin'    => '{',
+<a name="line120"></a>        // 模板引擎普通标签结束标记
+<a name="line121"></a>        'tpl_end'      => '}',
+<a name="line122"></a>        // 标签库标签开始标记
+<a name="line123"></a>        'taglib_begin' => '{',
+<a name="line124"></a>        // 标签库标签结束标记
+<a name="line125"></a>        'taglib_end'   => '}',
+<a name="line126"></a>    ],
+<a name="line127"></a>
+<a name="line128"></a>    // 视图输出字符串内容替换
+<a name="line129"></a>    'view_replace_str'       => [],
+<a name="line130"></a>    // 默认跳转页面对应的模板文件
+<a name="line131"></a>    'dispatch_success_tmpl'  => THINK_PATH . 'tpl' . DS . 'dispatch_jump.tpl',
+<a name="line132"></a>    'dispatch_error_tmpl'    => THINK_PATH . 'tpl' . DS . 'dispatch_jump.tpl',
+<a name="line133"></a>
+<a name="line134"></a>    // +----------------------------------------------------------------------
+<a name="line135"></a>    // | 异常及错误设置
+<a name="line136"></a>    // +----------------------------------------------------------------------
+<a name="line137"></a>
+<a name="line138"></a>    // 异常页面的模板文件
+<a name="line139"></a>    'exception_tmpl'         => THINK_PATH . 'tpl' . DS . 'think_exception.tpl',
+<a name="line140"></a>
+<a name="line141"></a>    // 错误显示信息,非调试模式有效
+<a name="line142"></a>    'error_message'          => '页面错误！请稍后再试～',
+<a name="line143"></a>    // 显示错误信息
+<a name="line144"></a>    'show_error_msg'         => false,
+<a name="line145"></a>    // 异常处理handle类 留空使用 \think\exception\Handle
+<a name="line146"></a>    'exception_handle'       => '',
+<a name="line147"></a>
+<a name="line148"></a>    // +----------------------------------------------------------------------
+<a name="line149"></a>    // | 日志设置
+<a name="line150"></a>    // +----------------------------------------------------------------------
+<a name="line151"></a>
+<a name="line152"></a>    'log'                    => [
+<a name="line153"></a>        // 日志记录方式，内置 file socket 支持扩展
+<a name="line154"></a>        'type'  => 'File',
+<a name="line155"></a>        // 日志保存目录
+<a name="line156"></a>        'path'  => LOG_PATH,
+<a name="line157"></a>        // 日志记录级别
+<a name="line158"></a>        'level' => [],
+<a name="line159"></a>    ],
+<a name="line160"></a>
+<a name="line161"></a>    // +----------------------------------------------------------------------
+<a name="line162"></a>    // | Trace设置 开启 app_trace 后 有效
+<a name="line163"></a>    // +----------------------------------------------------------------------
+<a name="line164"></a>    'trace'                  => [
+<a name="line165"></a>        // 内置Html Console 支持扩展
+<a name="line166"></a>        'type' => 'Html',
+<a name="line167"></a>    ],
+<a name="line168"></a>
+<a name="line169"></a>    // +----------------------------------------------------------------------
+<a name="line170"></a>    // | 缓存设置
+<a name="line171"></a>    // +----------------------------------------------------------------------
+<a name="line172"></a>
+<a name="line173"></a>    'cache'                  => [
+<a name="line174"></a>        // 驱动方式
+<a name="line175"></a>        'type'   => 'File',
+<a name="line176"></a>        // 缓存保存目录
+<a name="line177"></a>        'path'   => CACHE_PATH,
+<a name="line178"></a>        // 缓存前缀
+<a name="line179"></a>        'prefix' => '',
+<a name="line180"></a>        // 缓存有效期 0表示永久缓存
+<a name="line181"></a>        'expire' => 0,
+<a name="line182"></a>    ],
+<a name="line183"></a>
+<a name="line184"></a>    // +----------------------------------------------------------------------
+<a name="line185"></a>    // | 会话设置
+<a name="line186"></a>    // +----------------------------------------------------------------------
+<a name="line187"></a>
+<a name="line188"></a>    'session'                => [
+<a name="line189"></a>        'id'             => '',
+<a name="line190"></a>        // SESSION_ID的提交变量,解决flash上传跨域
+<a name="line191"></a>        'var_session_id' => '',
+<a name="line192"></a>        // SESSION 前缀
+<a name="line193"></a>        'prefix'         => 'think',
+<a name="line194"></a>        // 驱动方式 支持redis memcache memcached
+<a name="line195"></a>        'type'           => '',
+<a name="line196"></a>        // 是否自动开启 SESSION
+<a name="line197"></a>        'auto_start'     => true,
+<a name="line198"></a>    ],
+<a name="line199"></a>
+<a name="line200"></a>    // +----------------------------------------------------------------------
+<a name="line201"></a>    // | Cookie设置
+<a name="line202"></a>    // +----------------------------------------------------------------------
+<a name="line203"></a>    'cookie'                 => [
+<a name="line204"></a>        // cookie 名称前缀
+<a name="line205"></a>        'prefix'    => '',
+<a name="line206"></a>        // cookie 保存时间
+<a name="line207"></a>        'expire'    => 0,
+<a name="line208"></a>        // cookie 保存路径
+<a name="line209"></a>        'path'      => '/',
+<a name="line210"></a>        // cookie 有效域名
+<a name="line211"></a>        'domain'    => '',
+<a name="line212"></a>        //  cookie 启用安全传输
+<a name="line213"></a>        'secure'    => false,
+<a name="line214"></a>        // httponly设置
+<a name="line215"></a>        'httponly'  => '',
+<a name="line216"></a>        // 是否使用 setcookie
+<a name="line217"></a>        'setcookie' => true,
+<a name="line218"></a>    ],
+<a name="line219"></a>
+<a name="line220"></a>    // +----------------------------------------------------------------------
+<a name="line221"></a>    // | 数据库设置
+<a name="line222"></a>    // +----------------------------------------------------------------------
+<a name="line223"></a>
+<a name="line224"></a>    'database'               => [
+<a name="line225"></a>        // 数据库类型
+<a name="line226"></a>        'type'           => 'mysql',
+<a name="line227"></a>        // 数据库连接DSN配置
+<a name="line228"></a>        'dsn'            => '',
+<a name="line229"></a>        // 服务器地址
+<a name="line230"></a>        'hostname'       => 'localhost',
+<a name="line231"></a>        // 数据库名
+<a name="line232"></a>        'database'       => '',
+<a name="line233"></a>        // 数据库用户名
+<a name="line234"></a>        'username'       => 'root',
+<a name="line235"></a>        // 数据库密码
+<a name="line236"></a>        'password'       => '',
+<a name="line237"></a>        // 数据库连接端口
+<a name="line238"></a>        'hostport'       => '',
+<a name="line239"></a>        // 数据库连接参数
+<a name="line240"></a>        'params'         => [],
+<a name="line241"></a>        // 数据库编码默认采用utf8
+<a name="line242"></a>        'charset'        => 'utf8',
+<a name="line243"></a>        // 数据库表前缀
+<a name="line244"></a>        'prefix'         => '',
+<a name="line245"></a>        // 数据库调试模式
+<a name="line246"></a>        'debug'          => false,
+<a name="line247"></a>        // 数据库部署方式:0 集中式(单一服务器),1 分布式(主从服务器)
+<a name="line248"></a>        'deploy'         => 0,
+<a name="line249"></a>        // 数据库读写是否分离 主从式有效
+<a name="line250"></a>        'rw_separate'    => false,
+<a name="line251"></a>        // 读写分离后 主服务器数量
+<a name="line252"></a>        'master_num'     => 1,
+<a name="line253"></a>        // 指定从服务器序号
+<a name="line254"></a>        'slave_no'       => '',
+<a name="line255"></a>        // 是否严格检查字段是否存在
+<a name="line256"></a>        'fields_strict'  => true,
+<a name="line257"></a>        // 自动写入时间戳字段
+<a name="line258"></a>        'auto_timestamp' => false,
+<a name="line259"></a>    ],
+<a name="line260"></a>
+<a name="line261"></a>    //分页配置
+<a name="line262"></a>    'paginate'               => [
+<a name="line263"></a>        'type'      => 'bootstrap',
+<a name="line264"></a>        'var_page'  => 'page',
+<a name="line265"></a>        'list_rows' => 15,
+<a name="line266"></a>    ],
+<a name="line267"></a>
+<a name="line268"></a>];
+<a name="line269"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\convention.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

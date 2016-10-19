@@ -1,0 +1,631 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\App.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\app.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\App.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think;
+<a name="line13"></a>
+<a name="line14"></a>use think\Config;
+<a name="line15"></a>use think\Env;
+<a name="line16"></a>use think\Exception;
+<a name="line17"></a>use think\exception\HttpException;
+<a name="line18"></a>use think\exception\HttpResponseException;
+<a name="line19"></a>use think\Hook;
+<a name="line20"></a>use think\Lang;
+<a name="line21"></a>use think\Loader;
+<a name="line22"></a>use think\Log;
+<a name="line23"></a>use think\Request;
+<a name="line24"></a>use think\Response;
+<a name="line25"></a>use think\Route;
+<a name="line26"></a>
+<a name="line27"></a>/**
+<a name="line28"></a> * App 应用管理
+<a name="line29"></a> * @author  liu21st <liu21st@gmail.com>
+<a name="line30"></a> */
+<a name="line31"></a>class App
+<a name="line32"></a>{
+<a name="line33"></a>    /**
+<a name="line34"></a>     * @var bool 是否初始化过
+<a name="line35"></a>     */
+<a name="line36"></a>    protected static $init = false;
+<a name="line37"></a>
+<a name="line38"></a>    /**
+<a name="line39"></a>     * @var string 当前模块路径
+<a name="line40"></a>     */
+<a name="line41"></a>    public static $modulePath;
+<a name="line42"></a>
+<a name="line43"></a>    /**
+<a name="line44"></a>     * @var bool 应用调试模式
+<a name="line45"></a>     */
+<a name="line46"></a>    public static $debug = true;
+<a name="line47"></a>
+<a name="line48"></a>    /**
+<a name="line49"></a>     * @var string 应用类库命名空间
+<a name="line50"></a>     */
+<a name="line51"></a>    public static $namespace = 'app';
+<a name="line52"></a>
+<a name="line53"></a>    /**
+<a name="line54"></a>     * @var bool 应用类库后缀
+<a name="line55"></a>     */
+<a name="line56"></a>    public static $suffix = false;
+<a name="line57"></a>
+<a name="line58"></a>    /**
+<a name="line59"></a>     * @var bool 应用路由检测
+<a name="line60"></a>     */
+<a name="line61"></a>    protected static $routeCheck;
+<a name="line62"></a>
+<a name="line63"></a>    /**
+<a name="line64"></a>     * @var bool 严格路由检测
+<a name="line65"></a>     */
+<a name="line66"></a>    protected static $routeMust;
+<a name="line67"></a>
+<a name="line68"></a>    protected static $dispatch;
+<a name="line69"></a>    protected static $file = [];
+<a name="line70"></a>
+<a name="line71"></a>    /**
+<a name="line72"></a>     * 执行应用程序
+<a name="line73"></a>     * @access public
+<a name="line74"></a>     * @param Request $request Request对象
+<a name="line75"></a>     * @return Response
+<a name="line76"></a>     * @throws Exception
+<a name="line77"></a>     */
+<a name="line78"></a>    public static function run(Request $request = null)
+<a name="line79"></a>    {
+<a name="line80"></a>        is_null($request) && $request = Request::instance();
+<a name="line81"></a>
+<a name="line82"></a>        try {
+<a name="line83"></a>            $config = self::initCommon();
+<a name="line84"></a>            if (defined('BIND_MODULE')) {
+<a name="line85"></a>                // 模块/控制器绑定
+<a name="line86"></a>                BIND_MODULE && Route::bind(BIND_MODULE);
+<a name="line87"></a>            } elseif ($config['auto_bind_module']) {
+<a name="line88"></a>                // 入口自动绑定
+<a name="line89"></a>                $name = pathinfo($request->baseFile(), PATHINFO_FILENAME);
+<a name="line90"></a>                if ($name && 'index' != $name && is_dir(APP_PATH . $name)) {
+<a name="line91"></a>                    Route::bind($name);
+<a name="line92"></a>                }
+<a name="line93"></a>            }
+<a name="line94"></a>
+<a name="line95"></a>            $request->filter($config['default_filter']);
+<a name="line96"></a>
+<a name="line97"></a>            if ($config['lang_switch_on']) {
+<a name="line98"></a>                // 开启多语言机制 检测当前语言
+<a name="line99"></a>                Lang::detect();
+<a name="line100"></a>            } else {
+<a name="line101"></a>                // 读取默认语言
+<a name="line102"></a>                Lang::range($config['default_lang']);
+<a name="line103"></a>            }
+<a name="line104"></a>            $request->langset(Lang::range());
+<a name="line105"></a>            // 加载系统语言包
+<a name="line106"></a>            Lang::load([
+<a name="line107"></a>                THINK_PATH . 'lang' . DS . $request->langset() . EXT,
+<a name="line108"></a>                APP_PATH . 'lang' . DS . $request->langset() . EXT,
+<a name="line109"></a>            ]);
+<a name="line110"></a>
+<a name="line111"></a>            // 获取应用调度信息
+<a name="line112"></a>            $dispatch = self::$dispatch;
+<a name="line113"></a>            if (empty($dispatch)) {
+<a name="line114"></a>                // 进行URL路由检测
+<a name="line115"></a>                $dispatch = self::routeCheck($request, $config);
+<a name="line116"></a>            }
+<a name="line117"></a>            // 记录当前调度信息
+<a name="line118"></a>            $request->dispatch($dispatch);
+<a name="line119"></a>
+<a name="line120"></a>            // 记录路由和请求信息
+<a name="line121"></a>            if (self::$debug) {
+<a name="line122"></a>                Log::record('[ ROUTE ] ' . var_export($dispatch, true), 'info');
+<a name="line123"></a>                Log::record('[ HEADER ] ' . var_export($request->header(), true), 'info');
+<a name="line124"></a>                Log::record('[ PARAM ] ' . var_export($request->param(), true), 'info');
+<a name="line125"></a>            }
+<a name="line126"></a>
+<a name="line127"></a>            // 监听app_begin
+<a name="line128"></a>            Hook::listen('app_begin', $dispatch);
+<a name="line129"></a>
+<a name="line130"></a>            switch ($dispatch['type']) {
+<a name="line131"></a>                case 'redirect':
+<a name="line132"></a>                    // 执行重定向跳转
+<a name="line133"></a>                    $data = Response::create($dispatch['url'], 'redirect')->code($dispatch['status']);
+<a name="line134"></a>                    break;
+<a name="line135"></a>                case 'module':
+<a name="line136"></a>                    // 模块/控制器/操作
+<a name="line137"></a>                    $data = self::module($dispatch['module'], $config, isset($dispatch['convert']) ? $dispatch['convert'] : null);
+<a name="line138"></a>                    break;
+<a name="line139"></a>                case 'controller':
+<a name="line140"></a>                    // 执行控制器操作
+<a name="line141"></a>                    $data = Loader::action($dispatch['controller']);
+<a name="line142"></a>                    break;
+<a name="line143"></a>                case 'method':
+<a name="line144"></a>                    // 执行回调方法
+<a name="line145"></a>                    $data = self::invokeMethod($dispatch['method']);
+<a name="line146"></a>                    break;
+<a name="line147"></a>                case 'function':
+<a name="line148"></a>                    // 执行闭包
+<a name="line149"></a>                    $data = self::invokeFunction($dispatch['function']);
+<a name="line150"></a>                    break;
+<a name="line151"></a>                case 'response':
+<a name="line152"></a>                    $data = $dispatch['response'];
+<a name="line153"></a>                    break;
+<a name="line154"></a>                default:
+<a name="line155"></a>                    throw new \InvalidArgumentException('dispatch type not support');
+<a name="line156"></a>            }
+<a name="line157"></a>        } catch (HttpResponseException $exception) {
+<a name="line158"></a>            $data = $exception->getResponse();
+<a name="line159"></a>        }
+<a name="line160"></a>
+<a name="line161"></a>        // 清空类的实例化
+<a name="line162"></a>        Loader::clearInstance();
+<a name="line163"></a>
+<a name="line164"></a>        // 输出数据到客户端
+<a name="line165"></a>        if ($data instanceof Response) {
+<a name="line166"></a>            $response = $data;
+<a name="line167"></a>        } elseif (!is_null($data)) {
+<a name="line168"></a>            // 默认自动识别响应输出类型
+<a name="line169"></a>            $isAjax   = $request->isAjax();
+<a name="line170"></a>            $type     = $isAjax ? Config::get('default_ajax_return') : Config::get('default_return_type');
+<a name="line171"></a>            $response = Response::create($data, $type);
+<a name="line172"></a>        } else {
+<a name="line173"></a>            $response = Response::create();
+<a name="line174"></a>        }
+<a name="line175"></a>
+<a name="line176"></a>        // 监听app_end
+<a name="line177"></a>        Hook::listen('app_end', $response);
+<a name="line178"></a>
+<a name="line179"></a>        return $response;
+<a name="line180"></a>    }
+<a name="line181"></a>
+<a name="line182"></a>    /**
+<a name="line183"></a>     * 设置当前请求的调度信息
+<a name="line184"></a>     * @access public
+<a name="line185"></a>     * @param array|string  $dispatch 调度信息
+<a name="line186"></a>     * @param string        $type 调度类型
+<a name="line187"></a>     * @return void
+<a name="line188"></a>     */
+<a name="line189"></a>    public static function dispatch($dispatch, $type = 'module')
+<a name="line190"></a>    {
+<a name="line191"></a>        self::$dispatch = ['type' => $type, $type => $dispatch];
+<a name="line192"></a>    }
+<a name="line193"></a>
+<a name="line194"></a>    /**
+<a name="line195"></a>     * 执行函数或者闭包方法 支持参数调用
+<a name="line196"></a>     * @access public
+<a name="line197"></a>     * @param string|array|\Closure $function 函数或者闭包
+<a name="line198"></a>     * @param array                 $vars     变量
+<a name="line199"></a>     * @return mixed
+<a name="line200"></a>     */
+<a name="line201"></a>    public static function invokeFunction($function, $vars = [])
+<a name="line202"></a>    {
+<a name="line203"></a>        $reflect = new \ReflectionFunction($function);
+<a name="line204"></a>        $args    = self::bindParams($reflect, $vars);
+<a name="line205"></a>        // 记录执行信息
+<a name="line206"></a>        self::$debug && Log::record('[ RUN ] ' . $reflect->__toString(), 'info');
+<a name="line207"></a>        return $reflect->invokeArgs($args);
+<a name="line208"></a>    }
+<a name="line209"></a>
+<a name="line210"></a>    /**
+<a name="line211"></a>     * 调用反射执行类的方法 支持参数绑定
+<a name="line212"></a>     * @access public
+<a name="line213"></a>     * @param string|array $method 方法
+<a name="line214"></a>     * @param array        $vars   变量
+<a name="line215"></a>     * @return mixed
+<a name="line216"></a>     */
+<a name="line217"></a>    public static function invokeMethod($method, $vars = [])
+<a name="line218"></a>    {
+<a name="line219"></a>        if (is_array($method)) {
+<a name="line220"></a>            $class   = is_object($method[0]) ? $method[0] : new $method[0](Request::instance());
+<a name="line221"></a>            $reflect = new \ReflectionMethod($class, $method[1]);
+<a name="line222"></a>        } else {
+<a name="line223"></a>            // 静态方法
+<a name="line224"></a>            $reflect = new \ReflectionMethod($method);
+<a name="line225"></a>        }
+<a name="line226"></a>        $args = self::bindParams($reflect, $vars);
+<a name="line227"></a>
+<a name="line228"></a>        self::$debug && Log::record('[ RUN ] ' . $reflect->class . '->' . $reflect->name . '[ ' . $reflect->getFileName() . ' ]', 'info');
+<a name="line229"></a>        return $reflect->invokeArgs(isset($class) ? $class : null, $args);
+<a name="line230"></a>    }
+<a name="line231"></a>
+<a name="line232"></a>    /**
+<a name="line233"></a>     * 调用反射执行类的实例化 支持依赖注入
+<a name="line234"></a>     * @access public
+<a name="line235"></a>     * @param string    $class 类名
+<a name="line236"></a>     * @param array     $vars  变量
+<a name="line237"></a>     * @return mixed
+<a name="line238"></a>     */
+<a name="line239"></a>    public static function invokeClass($class, $vars = [])
+<a name="line240"></a>    {
+<a name="line241"></a>        $reflect     = new \ReflectionClass($class);
+<a name="line242"></a>        $constructor = $reflect->getConstructor();
+<a name="line243"></a>        if ($constructor) {
+<a name="line244"></a>            $args = self::bindParams($constructor, $vars);
+<a name="line245"></a>        } else {
+<a name="line246"></a>            $args = [];
+<a name="line247"></a>        }
+<a name="line248"></a>        return $reflect->newInstanceArgs($args);
+<a name="line249"></a>    }
+<a name="line250"></a>
+<a name="line251"></a>    /**
+<a name="line252"></a>     * 绑定参数
+<a name="line253"></a>     * @access public
+<a name="line254"></a>     * @param \ReflectionMethod|\ReflectionFunction $reflect 反射类
+<a name="line255"></a>     * @param array             $vars    变量
+<a name="line256"></a>     * @return array
+<a name="line257"></a>     */
+<a name="line258"></a>    private static function bindParams($reflect, $vars = [])
+<a name="line259"></a>    {
+<a name="line260"></a>        if (empty($vars)) {
+<a name="line261"></a>            // 自动获取请求变量
+<a name="line262"></a>            if (Config::get('url_param_type')) {
+<a name="line263"></a>                $vars = Request::instance()->route();
+<a name="line264"></a>            } else {
+<a name="line265"></a>                $vars = Request::instance()->param();
+<a name="line266"></a>            }
+<a name="line267"></a>        }
+<a name="line268"></a>        $args = [];
+<a name="line269"></a>        // 判断数组类型 数字数组时按顺序绑定参数
+<a name="line270"></a>        reset($vars);
+<a name="line271"></a>        $type = key($vars) === 0 ? 1 : 0;
+<a name="line272"></a>        if ($reflect->getNumberOfParameters() > 0) {
+<a name="line273"></a>            $params = $reflect->getParameters();
+<a name="line274"></a>            foreach ($params as $param) {
+<a name="line275"></a>                $name  = $param->getName();
+<a name="line276"></a>                $class = $param->getClass();
+<a name="line277"></a>                if ($class) {
+<a name="line278"></a>                    $className = $class->getName();
+<a name="line279"></a>                    $bind      = Request::instance()->$name;
+<a name="line280"></a>                    if ($bind instanceof $className) {
+<a name="line281"></a>                        $args[] = $bind;
+<a name="line282"></a>                    } else {
+<a name="line283"></a>                        $args[] = method_exists($className, 'instance') ? $className::instance() : new $className();
+<a name="line284"></a>                    }
+<a name="line285"></a>                } elseif (1 == $type && !empty($vars)) {
+<a name="line286"></a>                    $args[] = array_shift($vars);
+<a name="line287"></a>                } elseif (0 == $type && isset($vars[$name])) {
+<a name="line288"></a>                    $args[] = $vars[$name];
+<a name="line289"></a>                } elseif ($param->isDefaultValueAvailable()) {
+<a name="line290"></a>                    $args[] = $param->getDefaultValue();
+<a name="line291"></a>                } else {
+<a name="line292"></a>                    throw new \InvalidArgumentException('method param miss:' . $name);
+<a name="line293"></a>                }
+<a name="line294"></a>            }
+<a name="line295"></a>            // 全局过滤
+<a name="line296"></a>            array_walk_recursive($args, [Request::instance(), 'filterExp']);
+<a name="line297"></a>        }
+<a name="line298"></a>        return $args;
+<a name="line299"></a>    }
+<a name="line300"></a>
+<a name="line301"></a>    /**
+<a name="line302"></a>     * 执行模块
+<a name="line303"></a>     * @access public
+<a name="line304"></a>     * @param array $result 模块/控制器/操作
+<a name="line305"></a>     * @param array $config 配置参数
+<a name="line306"></a>     * @param bool  $convert 是否自动转换控制器和操作名
+<a name="line307"></a>     * @return mixed
+<a name="line308"></a>     */
+<a name="line309"></a>    public static function module($result, $config, $convert = null)
+<a name="line310"></a>    {
+<a name="line311"></a>        if (is_string($result)) {
+<a name="line312"></a>            $result = explode('/', $result);
+<a name="line313"></a>        }
+<a name="line314"></a>        $request = Request::instance();
+<a name="line315"></a>        if ($config['app_multi_module']) {
+<a name="line316"></a>            // 多模块部署
+<a name="line317"></a>            $module    = strip_tags(strtolower($result[0] ?: $config['default_module']));
+<a name="line318"></a>            $bind      = Route::getBind('module');
+<a name="line319"></a>            $available = false;
+<a name="line320"></a>            if ($bind) {
+<a name="line321"></a>                // 绑定模块
+<a name="line322"></a>                list($bindModule) = explode('/', $bind);
+<a name="line323"></a>                if (empty($result[0])) {
+<a name="line324"></a>                    $module    = $bindModule;
+<a name="line325"></a>                    $available = true;
+<a name="line326"></a>                } elseif ($module == $bindModule) {
+<a name="line327"></a>                    $available = true;
+<a name="line328"></a>                }
+<a name="line329"></a>            } elseif (!in_array($module, $config['deny_module_list']) && is_dir(APP_PATH . $module)) {
+<a name="line330"></a>                $available = true;
+<a name="line331"></a>            }
+<a name="line332"></a>
+<a name="line333"></a>            // 模块初始化
+<a name="line334"></a>            if ($module && $available) {
+<a name="line335"></a>                // 初始化模块
+<a name="line336"></a>                $request->module($module);
+<a name="line337"></a>                $config = self::init($module);
+<a name="line338"></a>            } else {
+<a name="line339"></a>                throw new HttpException(404, 'module not exists:' . $module);
+<a name="line340"></a>            }
+<a name="line341"></a>        } else {
+<a name="line342"></a>            // 单一模块部署
+<a name="line343"></a>            $module = '';
+<a name="line344"></a>            $request->module($module);
+<a name="line345"></a>        }
+<a name="line346"></a>        // 当前模块路径
+<a name="line347"></a>        App::$modulePath = APP_PATH . ($module ? $module . DS : '');
+<a name="line348"></a>
+<a name="line349"></a>        // 是否自动转换控制器和操作名
+<a name="line350"></a>        $convert = is_bool($convert) ? $convert : $config['url_convert'];
+<a name="line351"></a>        // 获取控制器名
+<a name="line352"></a>        $controller = strip_tags($result[1] ?: $config['default_controller']);
+<a name="line353"></a>        $controller = $convert ? strtolower($controller) : $controller;
+<a name="line354"></a>
+<a name="line355"></a>        // 获取操作名
+<a name="line356"></a>        $actionName = strip_tags($result[2] ?: $config['default_action']);
+<a name="line357"></a>        $actionName = $convert ? strtolower($actionName) : $actionName;
+<a name="line358"></a>
+<a name="line359"></a>        // 设置当前请求的控制器、操作
+<a name="line360"></a>        $request->controller(Loader::parseName($controller, 1))->action($actionName);
+<a name="line361"></a>
+<a name="line362"></a>        // 监听module_init
+<a name="line363"></a>        Hook::listen('module_init', $request);
+<a name="line364"></a>
+<a name="line365"></a>        try {
+<a name="line366"></a>            $instance = Loader::controller($controller, $config['url_controller_layer'], $config['controller_suffix'], $config['empty_controller']);
+<a name="line367"></a>            if (is_null($instance)) {
+<a name="line368"></a>                throw new HttpException(404, 'controller not exists:' . Loader::parseName($controller, 1));
+<a name="line369"></a>            }
+<a name="line370"></a>            // 获取当前操作名
+<a name="line371"></a>            $action = $actionName . $config['action_suffix'];
+<a name="line372"></a>            if (!preg_match('/^[A-Za-z](\w)*$/', $action)) {
+<a name="line373"></a>                // 非法操作
+<a name="line374"></a>                throw new \ReflectionException('illegal action name:' . $actionName);
+<a name="line375"></a>            }
+<a name="line376"></a>
+<a name="line377"></a>            // 执行操作方法
+<a name="line378"></a>            $call = [$instance, $action];
+<a name="line379"></a>            Hook::listen('action_begin', $call);
+<a name="line380"></a>
+<a name="line381"></a>            $data = self::invokeMethod($call);
+<a name="line382"></a>        } catch (\ReflectionException $e) {
+<a name="line383"></a>            // 操作不存在
+<a name="line384"></a>            if (method_exists($instance, '_empty')) {
+<a name="line385"></a>                $reflect = new \ReflectionMethod($instance, '_empty');
+<a name="line386"></a>                $data    = $reflect->invokeArgs($instance, [$action]);
+<a name="line387"></a>                self::$debug && Log::record('[ RUN ] ' . $reflect->__toString(), 'info');
+<a name="line388"></a>            } else {
+<a name="line389"></a>                throw new HttpException(404, 'method not exists:' . (new \ReflectionClass($instance))->getName() . '->' . $action);
+<a name="line390"></a>            }
+<a name="line391"></a>        }
+<a name="line392"></a>        return $data;
+<a name="line393"></a>    }
+<a name="line394"></a>
+<a name="line395"></a>    /**
+<a name="line396"></a>     * 初始化应用
+<a name="line397"></a>     */
+<a name="line398"></a>    public static function initCommon()
+<a name="line399"></a>    {
+<a name="line400"></a>        if (empty(self::$init)) {
+<a name="line401"></a>            // 初始化应用
+<a name="line402"></a>            $config       = self::init();
+<a name="line403"></a>            self::$suffix = $config['class_suffix'];
+<a name="line404"></a>
+<a name="line405"></a>            // 应用调试模式
+<a name="line406"></a>            self::$debug = Env::get('app_debug', Config::get('app_debug'));
+<a name="line407"></a>            if (!self::$debug) {
+<a name="line408"></a>                ini_set('display_errors', 'Off');
+<a name="line409"></a>            } elseif (!IS_CLI) {
+<a name="line410"></a>                //重新申请一块比较大的buffer
+<a name="line411"></a>                if (ob_get_level() > 0) {
+<a name="line412"></a>                    $output = ob_get_clean();
+<a name="line413"></a>                }
+<a name="line414"></a>                ob_start();
+<a name="line415"></a>                if (!empty($output)) {
+<a name="line416"></a>                    echo $output;
+<a name="line417"></a>                }
+<a name="line418"></a>            }
+<a name="line419"></a>
+<a name="line420"></a>            // 注册应用命名空间
+<a name="line421"></a>            self::$namespace = $config['app_namespace'];
+<a name="line422"></a>            Loader::addNamespace($config['app_namespace'], APP_PATH);
+<a name="line423"></a>            if (!empty($config['root_namespace'])) {
+<a name="line424"></a>                Loader::addNamespace($config['root_namespace']);
+<a name="line425"></a>            }
+<a name="line426"></a>
+<a name="line427"></a>            // 加载额外文件
+<a name="line428"></a>            if (!empty($config['extra_file_list'])) {
+<a name="line429"></a>                foreach ($config['extra_file_list'] as $file) {
+<a name="line430"></a>                    $file = strpos($file, '.') ? $file : APP_PATH . $file . EXT;
+<a name="line431"></a>                    if (is_file($file) && !isset(self::$file[$file])) {
+<a name="line432"></a>                        include $file;
+<a name="line433"></a>                        self::$file[$file] = true;
+<a name="line434"></a>                    }
+<a name="line435"></a>                }
+<a name="line436"></a>            }
+<a name="line437"></a>
+<a name="line438"></a>            // 设置系统时区
+<a name="line439"></a>            date_default_timezone_set($config['default_timezone']);
+<a name="line440"></a>
+<a name="line441"></a>            // 监听app_init
+<a name="line442"></a>            Hook::listen('app_init');
+<a name="line443"></a>
+<a name="line444"></a>            self::$init = $config;
+<a name="line445"></a>        }
+<a name="line446"></a>        return self::$init;
+<a name="line447"></a>    }
+<a name="line448"></a>
+<a name="line449"></a>    /**
+<a name="line450"></a>     * 初始化应用或模块
+<a name="line451"></a>     * @access public
+<a name="line452"></a>     * @param string $module 模块名
+<a name="line453"></a>     * @return array
+<a name="line454"></a>     */
+<a name="line455"></a>    private static function init($module = '')
+<a name="line456"></a>    {
+<a name="line457"></a>        // 定位模块目录
+<a name="line458"></a>        $module = $module ? $module . DS : '';
+<a name="line459"></a>
+<a name="line460"></a>        // 加载初始化文件
+<a name="line461"></a>        if (is_file(APP_PATH . $module . 'init' . EXT)) {
+<a name="line462"></a>            include APP_PATH . $module . 'init' . EXT;
+<a name="line463"></a>        } elseif (is_file(RUNTIME_PATH . $module . 'init' . EXT)) {
+<a name="line464"></a>            include RUNTIME_PATH . $module . 'init' . EXT;
+<a name="line465"></a>        } else {
+<a name="line466"></a>            $path = APP_PATH . $module;
+<a name="line467"></a>            // 加载模块配置
+<a name="line468"></a>            $config = Config::load(CONF_PATH . $module . 'config' . CONF_EXT);
+<a name="line469"></a>            // 读取数据库配置文件
+<a name="line470"></a>            $filename = CONF_PATH . $module . 'database' . CONF_EXT;
+<a name="line471"></a>            Config::load($filename, 'database');
+<a name="line472"></a>            // 读取扩展配置文件
+<a name="line473"></a>            if (is_dir(CONF_PATH . $module . 'extra')) {
+<a name="line474"></a>                $dir   = CONF_PATH . $module . 'extra';
+<a name="line475"></a>                $files = scandir($dir);
+<a name="line476"></a>                foreach ($files as $file) {
+<a name="line477"></a>                    if (strpos($file, CONF_EXT)) {
+<a name="line478"></a>                        $filename = $dir . DS . $file;
+<a name="line479"></a>                        Config::load($filename, pathinfo($file, PATHINFO_FILENAME));
+<a name="line480"></a>                    }
+<a name="line481"></a>                }
+<a name="line482"></a>            }
+<a name="line483"></a>
+<a name="line484"></a>            // 加载应用状态配置
+<a name="line485"></a>            if ($config['app_status']) {
+<a name="line486"></a>                $config = Config::load(CONF_PATH . $module . $config['app_status'] . CONF_EXT);
+<a name="line487"></a>            }
+<a name="line488"></a>
+<a name="line489"></a>            // 加载行为扩展文件
+<a name="line490"></a>            if (is_file(CONF_PATH . $module . 'tags' . EXT)) {
+<a name="line491"></a>                Hook::import(include CONF_PATH . $module . 'tags' . EXT);
+<a name="line492"></a>            }
+<a name="line493"></a>
+<a name="line494"></a>            // 加载公共文件
+<a name="line495"></a>            if (is_file($path . 'common' . EXT)) {
+<a name="line496"></a>                include $path . 'common' . EXT;
+<a name="line497"></a>            }
+<a name="line498"></a>
+<a name="line499"></a>            // 加载当前模块语言包
+<a name="line500"></a>            if ($module) {
+<a name="line501"></a>                Lang::load($path . 'lang' . DS . Request::instance()->langset() . EXT);
+<a name="line502"></a>            }
+<a name="line503"></a>        }
+<a name="line504"></a>        return Config::get();
+<a name="line505"></a>    }
+<a name="line506"></a>
+<a name="line507"></a>    /**
+<a name="line508"></a>     * URL路由检测（根据PATH_INFO)
+<a name="line509"></a>     * @access public
+<a name="line510"></a>     * @param  \think\Request $request
+<a name="line511"></a>     * @param  array          $config
+<a name="line512"></a>     * @return array
+<a name="line513"></a>     * @throws \think\Exception
+<a name="line514"></a>     */
+<a name="line515"></a>    public static function routeCheck($request, array $config)
+<a name="line516"></a>    {
+<a name="line517"></a>        $path   = $request->path();
+<a name="line518"></a>        $depr   = $config['pathinfo_depr'];
+<a name="line519"></a>        $result = false;
+<a name="line520"></a>        // 路由检测
+<a name="line521"></a>        $check = !is_null(self::$routeCheck) ? self::$routeCheck : $config['url_route_on'];
+<a name="line522"></a>        if ($check) {
+<a name="line523"></a>            // 开启路由
+<a name="line524"></a>            if (is_file(RUNTIME_PATH . 'route.php')) {
+<a name="line525"></a>                // 读取路由缓存
+<a name="line526"></a>                $rules = include RUNTIME_PATH . 'route.php';
+<a name="line527"></a>                if (is_array($rules)) {
+<a name="line528"></a>                    Route::rules($rules);
+<a name="line529"></a>                }
+<a name="line530"></a>            } else {
+<a name="line531"></a>                $files = $config['route_config_file'];
+<a name="line532"></a>                foreach ($files as $file) {
+<a name="line533"></a>                    if (is_file(CONF_PATH . $file . CONF_EXT)) {
+<a name="line534"></a>                        // 导入路由配置
+<a name="line535"></a>                        $rules = include CONF_PATH . $file . CONF_EXT;
+<a name="line536"></a>                        if (is_array($rules)) {
+<a name="line537"></a>                            Route::import($rules);
+<a name="line538"></a>                        }
+<a name="line539"></a>                    }
+<a name="line540"></a>                }
+<a name="line541"></a>            }
+<a name="line542"></a>
+<a name="line543"></a>            // 路由检测（根据路由定义返回不同的URL调度）
+<a name="line544"></a>            $result = Route::check($request, $path, $depr, $config['url_domain_deploy']);
+<a name="line545"></a>            $must   = !is_null(self::$routeMust) ? self::$routeMust : $config['url_route_must'];
+<a name="line546"></a>            if ($must && false === $result) {
+<a name="line547"></a>                // 路由无效
+<a name="line548"></a>                throw new HttpException(404, 'Route Not Found');
+<a name="line549"></a>            }
+<a name="line550"></a>        }
+<a name="line551"></a>        if (false === $result) {
+<a name="line552"></a>            // 路由无效 解析模块/控制器/操作/参数... 支持控制器自动搜索
+<a name="line553"></a>            $result = Route::parseUrl($path, $depr, $config['controller_auto_search']);
+<a name="line554"></a>        }
+<a name="line555"></a>        return $result;
+<a name="line556"></a>    }
+<a name="line557"></a>
+<a name="line558"></a>    /**
+<a name="line559"></a>     * 设置应用的路由检测机制
+<a name="line560"></a>     * @access public
+<a name="line561"></a>     * @param  bool $route 是否需要检测路由
+<a name="line562"></a>     * @param  bool $must  是否强制检测路由
+<a name="line563"></a>     * @return void
+<a name="line564"></a>     */
+<a name="line565"></a>    public static function route($route, $must = false)
+<a name="line566"></a>    {
+<a name="line567"></a>        self::$routeCheck = $route;
+<a name="line568"></a>        self::$routeMust  = $must;
+<a name="line569"></a>    }
+<a name="line570"></a>}
+<a name="line571"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\app.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

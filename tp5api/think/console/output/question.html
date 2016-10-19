@@ -1,0 +1,327 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../../../stylesheet.css">
+<link rel="start" href="../../../overview-summary.html">
+
+<title>Question (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../../../overview-summary.html">Overview</a></li>
+<li><a href="../../../think/console/output/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../../../think/console/output/package-tree.html">Tree</a></li>
+<li><a href="../../../overview-files.html">Files</a></li>
+<li><a href="../../../deprecated-list.html">Deprecated</a></li>
+<li><a href="../../../todo-list.html">Todo</a></li>
+<li><a href="../../../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../../../index.html" target="_top">Frames</a>
+<a href="../../../think\console\output\question.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\console\output\Question</div>
+<a href="../../../source/library/think/console/output/question.php.html#line14" class="location">library\think\console\output\Question.php at line 14</a>
+
+<h1>Class Question</h1>
+
+<pre class="tree"><strong>Question</strong><br /></pre>
+
+<dl>
+<dt>All Known Subclasses:</dt>
+<dd><a href="../../../think/console/output/question/choice.html">think\console\output\question\Choice</a> <a href="../../../think/console/output/question/confirmation.html">think\console\output\question\Confirmation</a> </dd>
+</dl>
+
+<hr>
+
+<p class="signature">public  class <strong>Question</strong></p>
+
+<hr>
+
+<table id="summary_constructor">
+<tr><th colspan="2">Constructor Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#__construct()">__construct</a>(string question, mixed default)</p><p class="description">构造方法</p></td>
+</tr>
+</table>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getQuestion()">getQuestion</a>()</p><p class="description">获取问题</p></td>
+</tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#getDefault()">getDefault</a>()</p><p class="description">获取默认答案</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#isHidden()">isHidden</a>()</p><p class="description">是否隐藏答案</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../../../think/console/output/question.html">Question</a></td>
+<td class="description"><p class="name"><a href="#setHidden()">setHidden</a>(bool hidden)</p><p class="description">隐藏答案</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#isHiddenFallback()">isHiddenFallback</a>()</p><p class="description">不能被隐藏是否撤销</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../../../think/console/output/question.html">Question</a></td>
+<td class="description"><p class="name"><a href="#setHiddenFallback()">setHiddenFallback</a>(bool fallback)</p><p class="description">设置不能被隐藏的时候的操作</p></td>
+</tr>
+<tr>
+<td class="type"> null|array|\Traversable</td>
+<td class="description"><p class="name"><a href="#getAutocompleterValues()">getAutocompleterValues</a>()</p><p class="description">获取自动完成</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../../../think/console/output/question.html">Question</a></td>
+<td class="description"><p class="name"><a href="#setAutocompleterValues()">setAutocompleterValues</a>(null|array|\Traversable values)</p><p class="description">设置自动完成的值</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../../../think/console/output/question.html">Question</a></td>
+<td class="description"><p class="name"><a href="#setValidator()">setValidator</a>(null|callable validator)</p><p class="description">设置答案的验证器</p></td>
+</tr>
+<tr>
+<td class="type"> null|callable</td>
+<td class="description"><p class="name"><a href="#getValidator()">getValidator</a>()</p><p class="description">获取验证器</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../../../think/console/output/question.html">Question</a></td>
+<td class="description"><p class="name"><a href="#setMaxAttempts()">setMaxAttempts</a>(null|int attempts)</p><p class="description">设置最大重试次数</p></td>
+</tr>
+<tr>
+<td class="type"> null|int</td>
+<td class="description"><p class="name"><a href="#getMaxAttempts()">getMaxAttempts</a>()</p><p class="description">获取最大重试次数</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../../../think/console/output/question.html">Question</a></td>
+<td class="description"><p class="name"><a href="#setNormalizer()">setNormalizer</a>(string|\Closure normalizer)</p><p class="description">设置响应的回调</p></td>
+</tr>
+<tr>
+<td class="type"> string|\Closure</td>
+<td class="description"><p class="name"><a href="#getNormalizer()">getNormalizer</a>()</p><p class="description">获取响应回调
+The normalizer can ba a callable (a string), a closure or a class implementing __invoke.</p></td>
+</tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#isAssoc()">isAssoc</a>(mixed array)</p></td>
+</tr>
+</table>
+
+<h2 id="detail_method">Constructor Detail</h2>
+<a href="../../../source/library/think/console/output/question.php.html#line31" class="location">library\think\console\output\Question.php at line 31</a>
+
+<h3 id="__construct()">__construct</h3>
+<code class="signature">public  void <strong>__construct</strong>(string question, mixed default)</code>
+<div class="details">
+<p>构造方法</p><dl>
+<dt>Parameters:</dt>
+<dd>question - 问题</dd>
+<dd>default - 默认答案</dd>
+</dl>
+</div>
+
+<hr>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../../../source/library/think/console/output/question.php.html#line41" class="location">library\think\console\output\Question.php at line 41</a>
+
+<h3 id="getQuestion()">getQuestion</h3>
+<code class="signature">public  string <strong>getQuestion</strong>()</code>
+<div class="details">
+<p>获取问题</p></div>
+
+<hr>
+
+<a href="../../../source/library/think/console/output/question.php.html#line50" class="location">library\think\console\output\Question.php at line 50</a>
+
+<h3 id="getDefault()">getDefault</h3>
+<code class="signature">public  mixed <strong>getDefault</strong>()</code>
+<div class="details">
+<p>获取默认答案</p></div>
+
+<hr>
+
+<a href="../../../source/library/think/console/output/question.php.html#line59" class="location">library\think\console\output\Question.php at line 59</a>
+
+<h3 id="isHidden()">isHidden</h3>
+<code class="signature">public  bool <strong>isHidden</strong>()</code>
+<div class="details">
+<p>是否隐藏答案</p></div>
+
+<hr>
+
+<a href="../../../source/library/think/console/output/question.php.html#line69" class="location">library\think\console\output\Question.php at line 69</a>
+
+<h3 id="setHidden()">setHidden</h3>
+<code class="signature">public  <a href="../../../think/console/output/question.html">Question</a> <strong>setHidden</strong>(bool hidden)</code>
+<div class="details">
+<p>隐藏答案</p></div>
+
+<hr>
+
+<a href="../../../source/library/think/console/output/question.php.html#line84" class="location">library\think\console\output\Question.php at line 84</a>
+
+<h3 id="isHiddenFallback()">isHiddenFallback</h3>
+<code class="signature">public  bool <strong>isHiddenFallback</strong>()</code>
+<div class="details">
+<p>不能被隐藏是否撤销</p></div>
+
+<hr>
+
+<a href="../../../source/library/think/console/output/question.php.html#line94" class="location">library\think\console\output\Question.php at line 94</a>
+
+<h3 id="setHiddenFallback()">setHiddenFallback</h3>
+<code class="signature">public  <a href="../../../think/console/output/question.html">Question</a> <strong>setHiddenFallback</strong>(bool fallback)</code>
+<div class="details">
+<p>设置不能被隐藏的时候的操作</p></div>
+
+<hr>
+
+<a href="../../../source/library/think/console/output/question.php.html#line105" class="location">library\think\console\output\Question.php at line 105</a>
+
+<h3 id="getAutocompleterValues()">getAutocompleterValues</h3>
+<code class="signature">public  null|array|\Traversable <strong>getAutocompleterValues</strong>()</code>
+<div class="details">
+<p>获取自动完成</p></div>
+
+<hr>
+
+<a href="../../../source/library/think/console/output/question.php.html#line117" class="location">library\think\console\output\Question.php at line 117</a>
+
+<h3 id="setAutocompleterValues()">setAutocompleterValues</h3>
+<code class="signature">public  <a href="../../../think/console/output/question.html">Question</a> <strong>setAutocompleterValues</strong>(null|array|\Traversable values)</code>
+<div class="details">
+<p>设置自动完成的值</p><dl>
+<dt>Throws:</dt>
+<dd>\InvalidArgumentException</dd>
+<dd>\LogicException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../../source/library/think/console/output/question.php.html#line143" class="location">library\think\console\output\Question.php at line 143</a>
+
+<h3 id="setValidator()">setValidator</h3>
+<code class="signature">public  <a href="../../../think/console/output/question.html">Question</a> <strong>setValidator</strong>(null|callable validator)</code>
+<div class="details">
+<p>设置答案的验证器</p><dl>
+<dt>Returns:</dt>
+<dd>The current instance</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../../source/library/think/console/output/question.php.html#line154" class="location">library\think\console\output\Question.php at line 154</a>
+
+<h3 id="getValidator()">getValidator</h3>
+<code class="signature">public  null|callable <strong>getValidator</strong>()</code>
+<div class="details">
+<p>获取验证器</p></div>
+
+<hr>
+
+<a href="../../../source/library/think/console/output/question.php.html#line165" class="location">library\think\console\output\Question.php at line 165</a>
+
+<h3 id="setMaxAttempts()">setMaxAttempts</h3>
+<code class="signature">public  <a href="../../../think/console/output/question.html">Question</a> <strong>setMaxAttempts</strong>(null|int attempts)</code>
+<div class="details">
+<p>设置最大重试次数</p><dl>
+<dt>Throws:</dt>
+<dd>\InvalidArgumentException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../../source/library/think/console/output/question.php.html#line180" class="location">library\think\console\output\Question.php at line 180</a>
+
+<h3 id="getMaxAttempts()">getMaxAttempts</h3>
+<code class="signature">public  null|int <strong>getMaxAttempts</strong>()</code>
+<div class="details">
+<p>获取最大重试次数</p></div>
+
+<hr>
+
+<a href="../../../source/library/think/console/output/question.php.html#line190" class="location">library\think\console\output\Question.php at line 190</a>
+
+<h3 id="setNormalizer()">setNormalizer</h3>
+<code class="signature">public  <a href="../../../think/console/output/question.html">Question</a> <strong>setNormalizer</strong>(string|\Closure normalizer)</code>
+<div class="details">
+<p>设置响应的回调</p></div>
+
+<hr>
+
+<a href="../../../source/library/think/console/output/question.php.html#line202" class="location">library\think\console\output\Question.php at line 202</a>
+
+<h3 id="getNormalizer()">getNormalizer</h3>
+<code class="signature">public  string|\Closure <strong>getNormalizer</strong>()</code>
+<div class="details">
+<p>获取响应回调
+The normalizer can ba a callable (a string), a closure or a class implementing __invoke.</p></div>
+
+<hr>
+
+<a href="../../../source/library/think/console/output/question.php.html#line207" class="location">library\think\console\output\Question.php at line 207</a>
+
+<h3 id="isAssoc()">isAssoc</h3>
+<code class="signature">protected  void <strong>isAssoc</strong>(mixed array)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../../../overview-summary.html">Overview</a></li>
+<li><a href="../../../think/console/output/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../../../think/console/output/package-tree.html">Tree</a></li>
+<li><a href="../../../overview-files.html">Files</a></li>
+<li><a href="../../../deprecated-list.html">Deprecated</a></li>
+<li><a href="../../../todo-list.html">Todo</a></li>
+<li><a href="../../../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../../../index.html" target="_top">Frames</a>
+<a href="../../../think\console\output\question.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

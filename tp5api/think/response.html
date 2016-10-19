@@ -1,0 +1,386 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:04 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>Response (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\response.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\Response</div>
+<a href="../source/library/think/response.php.html#line25" class="location">library\think\Response.php at line 25</a>
+
+<h1>Class Response</h1>
+
+<pre class="tree"><strong>Response</strong><br /></pre>
+
+<dl>
+<dt>All Known Subclasses:</dt>
+<dd><a href="../think/response/json.html">think\response\Json</a> <a href="../think/response/jsonp.html">think\response\Jsonp</a> <a href="../think/response/redirect.html">think\response\Redirect</a> <a href="../think/response/view.html">think\response\View</a> <a href="../think/response/xml.html">think\response\Xml</a> </dd>
+</dl>
+
+<hr>
+
+<p class="signature">public  class <strong>Response</strong></p>
+
+<hr>
+
+<table id="summary_constructor">
+<tr><th colspan="2">Constructor Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#__construct()">__construct</a>(mixed data, int code, array header, array options)</p><p class="description">架构函数</p></td>
+</tr>
+</table>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type">static  Response|JsonResponse|ViewResponse|XmlResponse|RedirectResponse|JsonpResponse</td>
+<td class="description"><p class="name"><a href="#create()">create</a>(mixed data, string type, int code, array header, array options)</p><p class="description">创建Response对象</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#send()">send</a>()</p><p class="description">发送数据到客户端</p></td>
+</tr>
+<tr>
+<td class="type">protected  mixed</td>
+<td class="description"><p class="name"><a href="#output()">output</a>(mixed data)</p><p class="description">处理数据</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#options()">options</a>(mixed options)</p><p class="description">输出的参数</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#data()">data</a>(mixed data)</p><p class="description">输出数据设置</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#header()">header</a>(string|array name, string value)</p><p class="description">设置响应头</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#content()">content</a>($content content)</p><p class="description">设置页面输出内容</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#code()">code</a>(integer code)</p><p class="description">发送HTTP状态</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#lastModified()">lastModified</a>(string time)</p><p class="description">LastModified</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#expires()">expires</a>(string time)</p><p class="description">Expires</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#eTag()">eTag</a>(string eTag)</p><p class="description">ETag</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#cacheControl()">cacheControl</a>(string cache)</p><p class="description">页面缓存控制</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#contentType()">contentType</a>(string contentType, string charset)</p><p class="description">页面输出类型</p></td>
+</tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#getHeader()">getHeader</a>(string name)</p><p class="description">获取头部信息</p></td>
+</tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#getData()">getData</a>()</p><p class="description">获取原始数据</p></td>
+</tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#getContent()">getContent</a>()</p><p class="description">获取输出数据</p></td>
+</tr>
+<tr>
+<td class="type"> integer</td>
+<td class="description"><p class="name"><a href="#getCode()">getCode</a>()</p><p class="description">获取状态码</p></td>
+</tr>
+</table>
+
+<h2 id="detail_method">Constructor Detail</h2>
+<a href="../source/library/think/response.php.html#line55" class="location">library\think\Response.php at line 55</a>
+
+<h3 id="__construct()">__construct</h3>
+<code class="signature">public  void <strong>__construct</strong>(mixed data, int code, array header, array options)</code>
+<div class="details">
+<p>架构函数</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 输出数据</dd>
+<dd></dd>
+<dd></dd>
+<dd>options - 输出参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../source/library/think/response.php.html#line76" class="location">library\think\Response.php at line 76</a>
+
+<h3 id="create()">create</h3>
+<code class="signature">public static  Response|JsonResponse|ViewResponse|XmlResponse|RedirectResponse|JsonpResponse <strong>create</strong>(mixed data, string type, int code, array header, array options)</code>
+<div class="details">
+<p>创建Response对象</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 输出数据</dd>
+<dd>type - 输出类型</dd>
+<dd></dd>
+<dd></dd>
+<dd>options - 输出参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/response.php.html#line96" class="location">library\think\Response.php at line 96</a>
+
+<h3 id="send()">send</h3>
+<code class="signature">public static  mixed <strong>send</strong>()</code>
+<div class="details">
+<p>发送数据到客户端</p><dl>
+<dt>Throws:</dt>
+<dd>\InvalidArgumentException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/response.php.html#line141" class="location">library\think\Response.php at line 141</a>
+
+<h3 id="output()">output</h3>
+<code class="signature">protected  mixed <strong>output</strong>(mixed data)</code>
+<div class="details">
+<p>处理数据</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 要处理的数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/response.php.html#line152" class="location">library\think\Response.php at line 152</a>
+
+<h3 id="options()">options</h3>
+<code class="signature">public  $this <strong>options</strong>(mixed options)</code>
+<div class="details">
+<p>输出的参数</p><dl>
+<dt>Parameters:</dt>
+<dd>options - 输出参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/response.php.html#line164" class="location">library\think\Response.php at line 164</a>
+
+<h3 id="data()">data</h3>
+<code class="signature">public  $this <strong>data</strong>(mixed data)</code>
+<div class="details">
+<p>输出数据设置</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 输出数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/response.php.html#line177" class="location">library\think\Response.php at line 177</a>
+
+<h3 id="header()">header</h3>
+<code class="signature">public  $this <strong>header</strong>(string|array name, string value)</code>
+<div class="details">
+<p>设置响应头</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 参数名</dd>
+<dd>value - 参数值</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/response.php.html#line192" class="location">library\think\Response.php at line 192</a>
+
+<h3 id="content()">content</h3>
+<code class="signature">public  $this <strong>content</strong>($content content)</code>
+<div class="details">
+<p>设置页面输出内容</p></div>
+
+<hr>
+
+<a href="../source/library/think/response.php.html#line212" class="location">library\think\Response.php at line 212</a>
+
+<h3 id="code()">code</h3>
+<code class="signature">public  $this <strong>code</strong>(integer code)</code>
+<div class="details">
+<p>发送HTTP状态</p><dl>
+<dt>Parameters:</dt>
+<dd>code - 状态码</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/response.php.html#line223" class="location">library\think\Response.php at line 223</a>
+
+<h3 id="lastModified()">lastModified</h3>
+<code class="signature">public  $this <strong>lastModified</strong>(string time)</code>
+<div class="details">
+<p>LastModified</p></div>
+
+<hr>
+
+<a href="../source/library/think/response.php.html#line234" class="location">library\think\Response.php at line 234</a>
+
+<h3 id="expires()">expires</h3>
+<code class="signature">public  $this <strong>expires</strong>(string time)</code>
+<div class="details">
+<p>Expires</p></div>
+
+<hr>
+
+<a href="../source/library/think/response.php.html#line245" class="location">library\think\Response.php at line 245</a>
+
+<h3 id="eTag()">eTag</h3>
+<code class="signature">public  $this <strong>eTag</strong>(string eTag)</code>
+<div class="details">
+<p>ETag</p></div>
+
+<hr>
+
+<a href="../source/library/think/response.php.html#line256" class="location">library\think\Response.php at line 256</a>
+
+<h3 id="cacheControl()">cacheControl</h3>
+<code class="signature">public  $this <strong>cacheControl</strong>(string cache)</code>
+<div class="details">
+<p>页面缓存控制</p><dl>
+<dt>Parameters:</dt>
+<dd>cache - 状态码</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/response.php.html#line268" class="location">library\think\Response.php at line 268</a>
+
+<h3 id="contentType()">contentType</h3>
+<code class="signature">public  $this <strong>contentType</strong>(string contentType, string charset)</code>
+<div class="details">
+<p>页面输出类型</p><dl>
+<dt>Parameters:</dt>
+<dd>contentType - 输出类型</dd>
+<dd>charset - 输出编码</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/response.php.html#line279" class="location">library\think\Response.php at line 279</a>
+
+<h3 id="getHeader()">getHeader</h3>
+<code class="signature">public  mixed <strong>getHeader</strong>(string name)</code>
+<div class="details">
+<p>获取头部信息</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 头部名称</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/response.php.html#line288" class="location">library\think\Response.php at line 288</a>
+
+<h3 id="getData()">getData</h3>
+<code class="signature">public  mixed <strong>getData</strong>()</code>
+<div class="details">
+<p>获取原始数据</p></div>
+
+<hr>
+
+<a href="../source/library/think/response.php.html#line297" class="location">library\think\Response.php at line 297</a>
+
+<h3 id="getContent()">getContent</h3>
+<code class="signature">public  mixed <strong>getContent</strong>()</code>
+<div class="details">
+<p>获取输出数据</p></div>
+
+<hr>
+
+<a href="../source/library/think/response.php.html#line319" class="location">library\think\Response.php at line 319</a>
+
+<h3 id="getCode()">getCode</h3>
+<code class="signature">public  integer <strong>getCode</strong>()</code>
+<div class="details">
+<p>获取状态码</p></div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\response.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

@@ -1,0 +1,1205 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\Template.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\template.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\Template.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think;
+<a name="line13"></a>
+<a name="line14"></a>use think\exception\TemplateNotFoundException;
+<a name="line15"></a>
+<a name="line16"></a>/**
+<a name="line17"></a> * ThinkPHP分离出来的模板引擎
+<a name="line18"></a> * 支持XML标签和普通标签的模板解析
+<a name="line19"></a> * 编译型模板引擎 支持动态缓存
+<a name="line20"></a> */
+<a name="line21"></a>class Template
+<a name="line22"></a>{
+<a name="line23"></a>    // 模板变量
+<a name="line24"></a>    protected $data = [];
+<a name="line25"></a>    // 引擎配置
+<a name="line26"></a>    protected $config = [
+<a name="line27"></a>        'view_path'          => '', // 模板路径
+<a name="line28"></a>        'view_suffix'        => 'html', // 默认模板文件后缀
+<a name="line29"></a>        'view_depr'          => DS,
+<a name="line30"></a>        'cache_suffix'       => 'php', // 默认模板缓存后缀
+<a name="line31"></a>        'tpl_deny_func_list' => 'echo,exit', // 模板引擎禁用函数
+<a name="line32"></a>        'tpl_deny_php'       => false, // 默认模板引擎是否禁用PHP原生代码
+<a name="line33"></a>        'tpl_begin'          => '{', // 模板引擎普通标签开始标记
+<a name="line34"></a>        'tpl_end'            => '}', // 模板引擎普通标签结束标记
+<a name="line35"></a>        'strip_space'        => false, // 是否去除模板文件里面的html空格与换行
+<a name="line36"></a>        'tpl_cache'          => true, // 是否开启模板编译缓存,设为false则每次都会重新编译
+<a name="line37"></a>        'compile_type'       => 'file', // 模板编译类型
+<a name="line38"></a>        'cache_prefix'       => '', // 模板缓存前缀标识，可以动态改变
+<a name="line39"></a>        'cache_time'         => 0, // 模板缓存有效期 0 为永久，(以数字为值，单位:秒)
+<a name="line40"></a>        'layout_on'          => false, // 布局模板开关
+<a name="line41"></a>        'layout_name'        => 'layout', // 布局模板入口文件
+<a name="line42"></a>        'layout_item'        => '{__CONTENT__}', // 布局模板的内容替换标识
+<a name="line43"></a>        'taglib_begin'       => '{', // 标签库标签开始标记
+<a name="line44"></a>        'taglib_end'         => '}', // 标签库标签结束标记
+<a name="line45"></a>        'taglib_load'        => true, // 是否使用内置标签库之外的其它标签库，默认自动检测
+<a name="line46"></a>        'taglib_build_in'    => 'cx', // 内置标签库名称(标签使用不必指定标签库名称),以逗号分隔 注意解析顺序
+<a name="line47"></a>        'taglib_pre_load'    => '', // 需要额外加载的标签库(须指定标签库名称)，多个以逗号分隔
+<a name="line48"></a>        'display_cache'      => false, // 模板渲染缓存
+<a name="line49"></a>        'cache_id'           => '', // 模板缓存ID
+<a name="line50"></a>        'tpl_replace_string' => [],
+<a name="line51"></a>        'tpl_var_identify'   => 'array', // .语法变量识别，array|object|'', 为空时自动识别
+<a name="line52"></a>    ];
+<a name="line53"></a>
+<a name="line54"></a>    private $literal     = [];
+<a name="line55"></a>    private $includeFile = []; // 记录所有模板包含的文件路径及更新时间
+<a name="line56"></a>    protected $storage;
+<a name="line57"></a>
+<a name="line58"></a>    /**
+<a name="line59"></a>     * 架构函数
+<a name="line60"></a>     * @access public
+<a name="line61"></a>     */
+<a name="line62"></a>    public function __construct(array $config = [])
+<a name="line63"></a>    {
+<a name="line64"></a>        $this->config['cache_path']   = TEMP_PATH;
+<a name="line65"></a>        $this->config                 = array_merge($this->config, $config);
+<a name="line66"></a>        $this->config['taglib_begin'] = $this->stripPreg($this->config['taglib_begin']);
+<a name="line67"></a>        $this->config['taglib_end']   = $this->stripPreg($this->config['taglib_end']);
+<a name="line68"></a>        $this->config['tpl_begin']    = $this->stripPreg($this->config['tpl_begin']);
+<a name="line69"></a>        $this->config['tpl_end']      = $this->stripPreg($this->config['tpl_end']);
+<a name="line70"></a>
+<a name="line71"></a>        // 初始化模板编译存储器
+<a name="line72"></a>        $type          = $this->config['compile_type'] ? $this->config['compile_type'] : 'File';
+<a name="line73"></a>        $class         = false !== strpos($type, '\\') ? $type : '\\think\\template\\driver\\' . ucwords($type);
+<a name="line74"></a>        $this->storage = new $class();
+<a name="line75"></a>    }
+<a name="line76"></a>
+<a name="line77"></a>    /**
+<a name="line78"></a>     * 字符串替换 避免正则混淆
+<a name="line79"></a>     * @access private
+<a name="line80"></a>     * @param string $str
+<a name="line81"></a>     * @return string
+<a name="line82"></a>     */
+<a name="line83"></a>    private function stripPreg($str)
+<a name="line84"></a>    {
+<a name="line85"></a>        return str_replace(
+<a name="line86"></a>            ['{', '}', '(', ')', '|', '[', ']', '-', '+', '*', '.', '^', '?'],
+<a name="line87"></a>            ['\{', '\}', '\(', '\)', '\|', '\[', '\]', '\-', '\+', '\*', '\.', '\^', '\?'],
+<a name="line88"></a>            $str);
+<a name="line89"></a>    }
+<a name="line90"></a>
+<a name="line91"></a>    /**
+<a name="line92"></a>     * 模板变量赋值
+<a name="line93"></a>     * @access public
+<a name="line94"></a>     * @param mixed $name
+<a name="line95"></a>     * @param mixed $value
+<a name="line96"></a>     * @return void
+<a name="line97"></a>     */
+<a name="line98"></a>    public function assign($name, $value = '')
+<a name="line99"></a>    {
+<a name="line100"></a>        if (is_array($name)) {
+<a name="line101"></a>            $this->data = array_merge($this->data, $name);
+<a name="line102"></a>        } else {
+<a name="line103"></a>            $this->data[$name] = $value;
+<a name="line104"></a>        }
+<a name="line105"></a>    }
+<a name="line106"></a>
+<a name="line107"></a>    /**
+<a name="line108"></a>     * 模板引擎参数赋值
+<a name="line109"></a>     * @access public
+<a name="line110"></a>     * @param mixed $name
+<a name="line111"></a>     * @param mixed $value
+<a name="line112"></a>     */
+<a name="line113"></a>    public function __set($name, $value)
+<a name="line114"></a>    {
+<a name="line115"></a>        $this->config[$name] = $value;
+<a name="line116"></a>    }
+<a name="line117"></a>
+<a name="line118"></a>    /**
+<a name="line119"></a>     * 模板引擎配置项
+<a name="line120"></a>     * @access public
+<a name="line121"></a>     * @param array|string $config
+<a name="line122"></a>     * @return void|array
+<a name="line123"></a>     */
+<a name="line124"></a>    public function config($config)
+<a name="line125"></a>    {
+<a name="line126"></a>        if (is_array($config)) {
+<a name="line127"></a>            $this->config = array_merge($this->config, $config);
+<a name="line128"></a>        } elseif (isset($this->config[$config])) {
+<a name="line129"></a>            return $this->config[$config];
+<a name="line130"></a>        } else {
+<a name="line131"></a>            return null;
+<a name="line132"></a>        }
+<a name="line133"></a>    }
+<a name="line134"></a>
+<a name="line135"></a>    /**
+<a name="line136"></a>     * 模板变量获取
+<a name="line137"></a>     * @access public
+<a name="line138"></a>     * @param  string $name 变量名
+<a name="line139"></a>     * @return mixed
+<a name="line140"></a>     */
+<a name="line141"></a>    public function get($name = '')
+<a name="line142"></a>    {
+<a name="line143"></a>        if ('' == $name) {
+<a name="line144"></a>            return $this->data;
+<a name="line145"></a>        } else {
+<a name="line146"></a>            $data = $this->data;
+<a name="line147"></a>            foreach (explode('.', $name) as $key => $val) {
+<a name="line148"></a>                if (isset($data[$val])) {
+<a name="line149"></a>                    $data = $data[$val];
+<a name="line150"></a>                } else {
+<a name="line151"></a>                    $data = null;
+<a name="line152"></a>                    break;
+<a name="line153"></a>                }
+<a name="line154"></a>            }
+<a name="line155"></a>            return $data;
+<a name="line156"></a>        }
+<a name="line157"></a>    }
+<a name="line158"></a>
+<a name="line159"></a>    /**
+<a name="line160"></a>     * 渲染模板文件
+<a name="line161"></a>     * @access public
+<a name="line162"></a>     * @param string    $template 模板文件
+<a name="line163"></a>     * @param array     $vars 模板变量
+<a name="line164"></a>     * @param array     $config 模板参数
+<a name="line165"></a>     * @return void
+<a name="line166"></a>     */
+<a name="line167"></a>    public function fetch($template, $vars = [], $config = [])
+<a name="line168"></a>    {
+<a name="line169"></a>        if ($vars) {
+<a name="line170"></a>            $this->data = $vars;
+<a name="line171"></a>        }
+<a name="line172"></a>        if ($config) {
+<a name="line173"></a>            $this->config($config);
+<a name="line174"></a>        }
+<a name="line175"></a>        if (!empty($this->config['cache_id']) && $this->config['display_cache']) {
+<a name="line176"></a>            // 读取渲染缓存
+<a name="line177"></a>            $cacheContent = Cache::get($this->config['cache_id']);
+<a name="line178"></a>            if (false !== $cacheContent) {
+<a name="line179"></a>                echo $cacheContent;
+<a name="line180"></a>                return;
+<a name="line181"></a>            }
+<a name="line182"></a>        }
+<a name="line183"></a>        $template = $this->parseTemplateFile($template);
+<a name="line184"></a>        if ($template) {
+<a name="line185"></a>            $cacheFile = $this->config['cache_path'] . $this->config['cache_prefix'] . md5($template) . '.' . ltrim($this->config['cache_suffix'], '.');
+<a name="line186"></a>            if (!$this->checkCache($cacheFile)) {
+<a name="line187"></a>                // 缓存无效 重新模板编译
+<a name="line188"></a>                $content = file_get_contents($template);
+<a name="line189"></a>                $this->compiler($content, $cacheFile);
+<a name="line190"></a>            }
+<a name="line191"></a>            // 页面缓存
+<a name="line192"></a>            ob_start();
+<a name="line193"></a>            ob_implicit_flush(0);
+<a name="line194"></a>            // 读取编译存储
+<a name="line195"></a>            $this->storage->read($cacheFile, $this->data);
+<a name="line196"></a>            // 获取并清空缓存
+<a name="line197"></a>            $content = ob_get_clean();
+<a name="line198"></a>            if (!empty($this->config['cache_id']) && $this->config['display_cache']) {
+<a name="line199"></a>                // 缓存页面输出
+<a name="line200"></a>                Cache::set($this->config['cache_id'], $content, $this->config['cache_time']);
+<a name="line201"></a>            }
+<a name="line202"></a>            echo $content;
+<a name="line203"></a>        }
+<a name="line204"></a>    }
+<a name="line205"></a>
+<a name="line206"></a>    /**
+<a name="line207"></a>     * 渲染模板内容
+<a name="line208"></a>     * @access public
+<a name="line209"></a>     * @param string    $content 模板内容
+<a name="line210"></a>     * @param array     $vars 模板变量
+<a name="line211"></a>     * @param array     $config 模板参数
+<a name="line212"></a>     * @return void
+<a name="line213"></a>     */
+<a name="line214"></a>    public function display($content, $vars = [], $config = [])
+<a name="line215"></a>    {
+<a name="line216"></a>        if ($vars) {
+<a name="line217"></a>            $this->data = $vars;
+<a name="line218"></a>        }
+<a name="line219"></a>        if ($config) {
+<a name="line220"></a>            $this->config($config);
+<a name="line221"></a>        }
+<a name="line222"></a>        $cacheFile = $this->config['cache_path'] . $this->config['cache_prefix'] . md5($content) . '.' . ltrim($this->config['cache_suffix'], '.');
+<a name="line223"></a>        if (!$this->checkCache($cacheFile)) {
+<a name="line224"></a>            // 缓存无效 模板编译
+<a name="line225"></a>            $this->compiler($content, $cacheFile);
+<a name="line226"></a>        }
+<a name="line227"></a>        // 读取编译存储
+<a name="line228"></a>        $this->storage->read($cacheFile, $this->data);
+<a name="line229"></a>    }
+<a name="line230"></a>
+<a name="line231"></a>    /**
+<a name="line232"></a>     * 设置布局
+<a name="line233"></a>     * @access public
+<a name="line234"></a>     * @param mixed     $name 布局模板名称 false 则关闭布局
+<a name="line235"></a>     * @param string    $replace 布局模板内容替换标识
+<a name="line236"></a>     * @return object
+<a name="line237"></a>     */
+<a name="line238"></a>    public function layout($name, $replace = '')
+<a name="line239"></a>    {
+<a name="line240"></a>        if (false === $name) {
+<a name="line241"></a>            // 关闭布局
+<a name="line242"></a>            $this->config['layout_on'] = false;
+<a name="line243"></a>        } else {
+<a name="line244"></a>            // 开启布局
+<a name="line245"></a>            $this->config['layout_on'] = true;
+<a name="line246"></a>            // 名称必须为字符串
+<a name="line247"></a>            if (is_string($name)) {
+<a name="line248"></a>                $this->config['layout_name'] = $name;
+<a name="line249"></a>            }
+<a name="line250"></a>            if (!empty($replace)) {
+<a name="line251"></a>                $this->config['layout_item'] = $replace;
+<a name="line252"></a>            }
+<a name="line253"></a>        }
+<a name="line254"></a>        return $this;
+<a name="line255"></a>    }
+<a name="line256"></a>
+<a name="line257"></a>    /**
+<a name="line258"></a>     * 检查编译缓存是否有效
+<a name="line259"></a>     * 如果无效则需要重新编译
+<a name="line260"></a>     * @access private
+<a name="line261"></a>     * @param string $cacheFile 缓存文件名
+<a name="line262"></a>     * @return boolean
+<a name="line263"></a>     */
+<a name="line264"></a>    private function checkCache($cacheFile)
+<a name="line265"></a>    {
+<a name="line266"></a>        // 未开启缓存功能
+<a name="line267"></a>        if (!$this->config['tpl_cache']) {
+<a name="line268"></a>            return false;
+<a name="line269"></a>        }
+<a name="line270"></a>        // 缓存文件不存在
+<a name="line271"></a>        if (!is_file($cacheFile)) {
+<a name="line272"></a>            return false;
+<a name="line273"></a>        }
+<a name="line274"></a>        // 读取缓存文件失败
+<a name="line275"></a>        if (!$handle = @fopen($cacheFile, "r")) {
+<a name="line276"></a>            return false;
+<a name="line277"></a>        }
+<a name="line278"></a>        // 读取第一行
+<a name="line279"></a>        preg_match('/\/\*(.+?)\*\//', fgets($handle), $matches);
+<a name="line280"></a>        if (!isset($matches[1])) {
+<a name="line281"></a>            return false;
+<a name="line282"></a>        }
+<a name="line283"></a>        $includeFile = unserialize($matches[1]);
+<a name="line284"></a>        if (!is_array($includeFile)) {
+<a name="line285"></a>            return false;
+<a name="line286"></a>        }
+<a name="line287"></a>        // 检查模板文件是否有更新
+<a name="line288"></a>        foreach ($includeFile as $path => $time) {
+<a name="line289"></a>            if (is_file($path) && filemtime($path) > $time) {
+<a name="line290"></a>                // 模板文件如果有更新则缓存需要更新
+<a name="line291"></a>                return false;
+<a name="line292"></a>            }
+<a name="line293"></a>        }
+<a name="line294"></a>        // 检查编译存储是否有效
+<a name="line295"></a>        return $this->storage->check($cacheFile, $this->config['cache_time']);
+<a name="line296"></a>    }
+<a name="line297"></a>
+<a name="line298"></a>    /**
+<a name="line299"></a>     * 检查编译缓存是否存在
+<a name="line300"></a>     * @access public
+<a name="line301"></a>     * @param string $cacheId 缓存的id
+<a name="line302"></a>     * @return boolean
+<a name="line303"></a>     */
+<a name="line304"></a>    public function isCache($cacheId)
+<a name="line305"></a>    {
+<a name="line306"></a>        if ($cacheId && $this->config['display_cache']) {
+<a name="line307"></a>            // 缓存页面输出
+<a name="line308"></a>            return Cache::has($cacheId);
+<a name="line309"></a>        }
+<a name="line310"></a>        return false;
+<a name="line311"></a>    }
+<a name="line312"></a>
+<a name="line313"></a>    /**
+<a name="line314"></a>     * 编译模板文件内容
+<a name="line315"></a>     * @access private
+<a name="line316"></a>     * @param string    $content 模板内容
+<a name="line317"></a>     * @param string    $cacheFile 缓存文件名
+<a name="line318"></a>     * @return void
+<a name="line319"></a>     */
+<a name="line320"></a>    private function compiler(&$content, $cacheFile)
+<a name="line321"></a>    {
+<a name="line322"></a>        // 判断是否启用布局
+<a name="line323"></a>        if ($this->config['layout_on']) {
+<a name="line324"></a>            if (false !== strpos($content, '{__NOLAYOUT__}')) {
+<a name="line325"></a>                // 可以单独定义不使用布局
+<a name="line326"></a>                $content = str_replace('{__NOLAYOUT__}', '', $content);
+<a name="line327"></a>            } else {
+<a name="line328"></a>                // 读取布局模板
+<a name="line329"></a>                $layoutFile = $this->parseTemplateFile($this->config['layout_name']);
+<a name="line330"></a>                if ($layoutFile) {
+<a name="line331"></a>                    // 替换布局的主体内容
+<a name="line332"></a>                    $content = str_replace($this->config['layout_item'], $content, file_get_contents($layoutFile));
+<a name="line333"></a>                }
+<a name="line334"></a>            }
+<a name="line335"></a>        } else {
+<a name="line336"></a>            $content = str_replace('{__NOLAYOUT__}', '', $content);
+<a name="line337"></a>        }
+<a name="line338"></a>
+<a name="line339"></a>        // 模板解析
+<a name="line340"></a>        $this->parse($content);
+<a name="line341"></a>        if ($this->config['strip_space']) {
+<a name="line342"></a>            /* 去除html空格与换行 */
+<a name="line343"></a>            $find    = ['~>\s+<~', '~>(\s+\n|\r)~'];
+<a name="line344"></a>            $replace = ['><', '>'];
+<a name="line345"></a>            $content = preg_replace($find, $replace, $content);
+<a name="line346"></a>        }
+<a name="line347"></a>        // 优化生成的php代码
+<a name="line348"></a>        $content = preg_replace('/\?>\s*<\?php\s(?!echo\b)/s', '', $content);
+<a name="line349"></a>        // 模板过滤输出
+<a name="line350"></a>        $replace = $this->config['tpl_replace_string'];
+<a name="line351"></a>        $content = str_replace(array_keys($replace), array_values($replace), $content);
+<a name="line352"></a>        // 添加安全代码及模板引用记录
+<a name="line353"></a>        $content = '<?php if (!defined(\'THINK_PATH\')) exit(); /*' . serialize($this->includeFile) . '*/ ?>' . "\n" . $content;
+<a name="line354"></a>        // 编译存储
+<a name="line355"></a>        $this->storage->write($cacheFile, $content);
+<a name="line356"></a>        $this->includeFile = [];
+<a name="line357"></a>        return;
+<a name="line358"></a>    }
+<a name="line359"></a>
+<a name="line360"></a>    /**
+<a name="line361"></a>     * 模板解析入口
+<a name="line362"></a>     * 支持普通标签和TagLib解析 支持自定义标签库
+<a name="line363"></a>     * @access public
+<a name="line364"></a>     * @param string $content 要解析的模板内容
+<a name="line365"></a>     * @return void
+<a name="line366"></a>     */
+<a name="line367"></a>    public function parse(&$content)
+<a name="line368"></a>    {
+<a name="line369"></a>        // 内容为空不解析
+<a name="line370"></a>        if (empty($content)) {
+<a name="line371"></a>            return;
+<a name="line372"></a>        }
+<a name="line373"></a>        // 替换literal标签内容
+<a name="line374"></a>        $this->parseLiteral($content);
+<a name="line375"></a>        // 解析继承
+<a name="line376"></a>        $this->parseExtend($content);
+<a name="line377"></a>        // 解析布局
+<a name="line378"></a>        $this->parseLayout($content);
+<a name="line379"></a>        // 检查include语法
+<a name="line380"></a>        $this->parseInclude($content);
+<a name="line381"></a>        // 替换包含文件中literal标签内容
+<a name="line382"></a>        $this->parseLiteral($content);
+<a name="line383"></a>        // 检查PHP语法
+<a name="line384"></a>        $this->parsePhp($content);
+<a name="line385"></a>
+<a name="line386"></a>        // 获取需要引入的标签库列表
+<a name="line387"></a>        // 标签库只需要定义一次，允许引入多个一次
+<a name="line388"></a>        // 一般放在文件的最前面
+<a name="line389"></a>        // 格式：<taglib name="html,mytag..." />
+<a name="line390"></a>        // 当TAGLIB_LOAD配置为true时才会进行检测
+<a name="line391"></a>        if ($this->config['taglib_load']) {
+<a name="line392"></a>            $tagLibs = $this->getIncludeTagLib($content);
+<a name="line393"></a>            if (!empty($tagLibs)) {
+<a name="line394"></a>                // 对导入的TagLib进行解析
+<a name="line395"></a>                foreach ($tagLibs as $tagLibName) {
+<a name="line396"></a>                    $this->parseTagLib($tagLibName, $content);
+<a name="line397"></a>                }
+<a name="line398"></a>            }
+<a name="line399"></a>        }
+<a name="line400"></a>        // 预先加载的标签库 无需在每个模板中使用taglib标签加载 但必须使用标签库XML前缀
+<a name="line401"></a>        if ($this->config['taglib_pre_load']) {
+<a name="line402"></a>            $tagLibs = explode(',', $this->config['taglib_pre_load']);
+<a name="line403"></a>            foreach ($tagLibs as $tag) {
+<a name="line404"></a>                $this->parseTagLib($tag, $content);
+<a name="line405"></a>            }
+<a name="line406"></a>        }
+<a name="line407"></a>        // 内置标签库 无需使用taglib标签导入就可以使用 并且不需使用标签库XML前缀
+<a name="line408"></a>        $tagLibs = explode(',', $this->config['taglib_build_in']);
+<a name="line409"></a>        foreach ($tagLibs as $tag) {
+<a name="line410"></a>            $this->parseTagLib($tag, $content, true);
+<a name="line411"></a>        }
+<a name="line412"></a>        // 解析普通模板标签 {$tagName}
+<a name="line413"></a>        $this->parseTag($content);
+<a name="line414"></a>
+<a name="line415"></a>        // 还原被替换的Literal标签
+<a name="line416"></a>        $this->parseLiteral($content, true);
+<a name="line417"></a>        return;
+<a name="line418"></a>    }
+<a name="line419"></a>
+<a name="line420"></a>    /**
+<a name="line421"></a>     * 检查PHP语法
+<a name="line422"></a>     * @access private
+<a name="line423"></a>     * @param string $content 要解析的模板内容
+<a name="line424"></a>     * @return void
+<a name="line425"></a>     * @throws \think\Exception
+<a name="line426"></a>     */
+<a name="line427"></a>    private function parsePhp(&$content)
+<a name="line428"></a>    {
+<a name="line429"></a>        // 短标签的情况要将<?标签用echo方式输出 否则无法正常输出xml标识
+<a name="line430"></a>        $content = preg_replace('/(<\?(?!php|=|$))/i', '<?php echo \'\\1\'; ?>' . "\n", $content);
+<a name="line431"></a>        // PHP语法检查
+<a name="line432"></a>        if ($this->config['tpl_deny_php'] && false !== strpos($content, '<?php')) {
+<a name="line433"></a>            throw new Exception('not allow php tag', 11600);
+<a name="line434"></a>        }
+<a name="line435"></a>        return;
+<a name="line436"></a>    }
+<a name="line437"></a>
+<a name="line438"></a>    /**
+<a name="line439"></a>     * 解析模板中的布局标签
+<a name="line440"></a>     * @access private
+<a name="line441"></a>     * @param string $content 要解析的模板内容
+<a name="line442"></a>     * @return void
+<a name="line443"></a>     */
+<a name="line444"></a>    private function parseLayout(&$content)
+<a name="line445"></a>    {
+<a name="line446"></a>        // 读取模板中的布局标签
+<a name="line447"></a>        if (preg_match($this->getRegex('layout'), $content, $matches)) {
+<a name="line448"></a>            // 替换Layout标签
+<a name="line449"></a>            $content = str_replace($matches[0], '', $content);
+<a name="line450"></a>            // 解析Layout标签
+<a name="line451"></a>            $array = $this->parseAttr($matches[0]);
+<a name="line452"></a>            if (!$this->config['layout_on'] || $this->config['layout_name'] != $array['name']) {
+<a name="line453"></a>                // 读取布局模板
+<a name="line454"></a>                $layoutFile = $this->parseTemplateFile($array['name']);
+<a name="line455"></a>                if ($layoutFile) {
+<a name="line456"></a>                    $replace = isset($array['replace']) ? $array['replace'] : $this->config['layout_item'];
+<a name="line457"></a>                    // 替换布局的主体内容
+<a name="line458"></a>                    $content = str_replace($replace, $content, file_get_contents($layoutFile));
+<a name="line459"></a>                }
+<a name="line460"></a>            }
+<a name="line461"></a>        } else {
+<a name="line462"></a>            $content = str_replace('{__NOLAYOUT__}', '', $content);
+<a name="line463"></a>        }
+<a name="line464"></a>        return;
+<a name="line465"></a>    }
+<a name="line466"></a>
+<a name="line467"></a>    /**
+<a name="line468"></a>     * 解析模板中的include标签
+<a name="line469"></a>     * @access private
+<a name="line470"></a>     * @param  string $content 要解析的模板内容
+<a name="line471"></a>     * @return void
+<a name="line472"></a>     */
+<a name="line473"></a>    private function parseInclude(&$content)
+<a name="line474"></a>    {
+<a name="line475"></a>        $regex = $this->getRegex('include');
+<a name="line476"></a>        $func  = function ($template) use (&$func, &$regex, &$content) {
+<a name="line477"></a>            if (preg_match_all($regex, $template, $matches, PREG_SET_ORDER)) {
+<a name="line478"></a>                foreach ($matches as $match) {
+<a name="line479"></a>                    $array = $this->parseAttr($match[0]);
+<a name="line480"></a>                    $file  = $array['file'];
+<a name="line481"></a>                    unset($array['file']);
+<a name="line482"></a>                    // 分析模板文件名并读取内容
+<a name="line483"></a>                    $parseStr = $this->parseTemplateName($file);
+<a name="line484"></a>                    foreach ($array as $k => $v) {
+<a name="line485"></a>                        // 以$开头字符串转换成模板变量
+<a name="line486"></a>                        if (0 === strpos($v, '$')) {
+<a name="line487"></a>                            $v = $this->get(substr($v, 1));
+<a name="line488"></a>                        }
+<a name="line489"></a>                        $parseStr = str_replace('[' . $k . ']', $v, $parseStr);
+<a name="line490"></a>                    }
+<a name="line491"></a>                    $content = str_replace($match[0], $parseStr, $content);
+<a name="line492"></a>                    // 再次对包含文件进行模板分析
+<a name="line493"></a>                    $func($parseStr);
+<a name="line494"></a>                }
+<a name="line495"></a>                unset($matches);
+<a name="line496"></a>            }
+<a name="line497"></a>        };
+<a name="line498"></a>        // 替换模板中的include标签
+<a name="line499"></a>        $func($content);
+<a name="line500"></a>        return;
+<a name="line501"></a>    }
+<a name="line502"></a>
+<a name="line503"></a>    /**
+<a name="line504"></a>     * 解析模板中的extend标签
+<a name="line505"></a>     * @access private
+<a name="line506"></a>     * @param  string $content 要解析的模板内容
+<a name="line507"></a>     * @return void
+<a name="line508"></a>     */
+<a name="line509"></a>    private function parseExtend(&$content)
+<a name="line510"></a>    {
+<a name="line511"></a>        $regex  = $this->getRegex('extend');
+<a name="line512"></a>        $array  = $blocks  = $baseBlocks  = [];
+<a name="line513"></a>        $extend = '';
+<a name="line514"></a>        $func   = function ($template) use (&$func, &$regex, &$array, &$extend, &$blocks, &$baseBlocks) {
+<a name="line515"></a>            if (preg_match($regex, $template, $matches)) {
+<a name="line516"></a>                if (!isset($array[$matches['name']])) {
+<a name="line517"></a>                    $array[$matches['name']] = 1;
+<a name="line518"></a>                    // 读取继承模板
+<a name="line519"></a>                    $extend = $this->parseTemplateName($matches['name']);
+<a name="line520"></a>                    // 递归检查继承
+<a name="line521"></a>                    $func($extend);
+<a name="line522"></a>                    // 取得block标签内容
+<a name="line523"></a>                    $blocks = array_merge($blocks, $this->parseBlock($template));
+<a name="line524"></a>                    return;
+<a name="line525"></a>                }
+<a name="line526"></a>            } else {
+<a name="line527"></a>                // 取得顶层模板block标签内容
+<a name="line528"></a>                $baseBlocks = $this->parseBlock($template, true);
+<a name="line529"></a>                if (empty($extend)) {
+<a name="line530"></a>                    // 无extend标签但有block标签的情况
+<a name="line531"></a>                    $extend = $template;
+<a name="line532"></a>                }
+<a name="line533"></a>            }
+<a name="line534"></a>        };
+<a name="line535"></a>
+<a name="line536"></a>        $func($content);
+<a name="line537"></a>        if (!empty($extend)) {
+<a name="line538"></a>            if ($baseBlocks) {
+<a name="line539"></a>                $children = [];
+<a name="line540"></a>                foreach ($baseBlocks as $name => $val) {
+<a name="line541"></a>                    $replace = $val['content'];
+<a name="line542"></a>                    if (!empty($children[$name])) {
+<a name="line543"></a>                        // 如果包含有子block标签
+<a name="line544"></a>                        foreach ($children[$name] as $key) {
+<a name="line545"></a>                            $replace = str_replace($baseBlocks[$key]['begin'] . $baseBlocks[$key]['content'] . $baseBlocks[$key]['end'], $blocks[$key]['content'], $replace);
+<a name="line546"></a>                        }
+<a name="line547"></a>                    }
+<a name="line548"></a>                    if (isset($blocks[$name])) {
+<a name="line549"></a>                        // 带有{__block__}表示与所继承模板的相应标签合并，而不是覆盖
+<a name="line550"></a>                        $replace = str_replace(['{__BLOCK__}', '{__block__}'], $replace, $blocks[$name]['content']);
+<a name="line551"></a>                        if (!empty($val['parent'])) {
+<a name="line552"></a>                            // 如果不是最顶层的block标签
+<a name="line553"></a>                            $parent = $val['parent'];
+<a name="line554"></a>                            if (isset($blocks[$parent])) {
+<a name="line555"></a>                                $blocks[$parent]['content'] = str_replace($blocks[$name]['begin'] . $blocks[$name]['content'] . $blocks[$name]['end'], $replace, $blocks[$parent]['content']);
+<a name="line556"></a>                            }
+<a name="line557"></a>                            $blocks[$name]['content'] = $replace;
+<a name="line558"></a>                            $children[$parent][]      = $name;
+<a name="line559"></a>                            continue;
+<a name="line560"></a>                        }
+<a name="line561"></a>                    } elseif (!empty($val['parent'])) {
+<a name="line562"></a>                        // 如果子标签没有被继承则用原值
+<a name="line563"></a>                        $children[$val['parent']][] = $name;
+<a name="line564"></a>                        $blocks[$name]              = $val;
+<a name="line565"></a>                    }
+<a name="line566"></a>                    if (!$val['parent']) {
+<a name="line567"></a>                        // 替换模板中的顶级block标签
+<a name="line568"></a>                        $extend = str_replace($val['begin'] . $val['content'] . $val['end'], $replace, $extend);
+<a name="line569"></a>                    }
+<a name="line570"></a>                }
+<a name="line571"></a>            }
+<a name="line572"></a>            $content = $extend;
+<a name="line573"></a>            unset($blocks, $baseBlocks);
+<a name="line574"></a>        }
+<a name="line575"></a>        return;
+<a name="line576"></a>    }
+<a name="line577"></a>
+<a name="line578"></a>    /**
+<a name="line579"></a>     * 替换页面中的literal标签
+<a name="line580"></a>     * @access private
+<a name="line581"></a>     * @param  string   $content 模板内容
+<a name="line582"></a>     * @param  boolean  $restore 是否为还原
+<a name="line583"></a>     * @return void
+<a name="line584"></a>     */
+<a name="line585"></a>    private function parseLiteral(&$content, $restore = false)
+<a name="line586"></a>    {
+<a name="line587"></a>        $regex = $this->getRegex($restore ? 'restoreliteral' : 'literal');
+<a name="line588"></a>        if (preg_match_all($regex, $content, $matches, PREG_SET_ORDER)) {
+<a name="line589"></a>            if (!$restore) {
+<a name="line590"></a>                $count = count($this->literal);
+<a name="line591"></a>                // 替换literal标签
+<a name="line592"></a>                foreach ($matches as $match) {
+<a name="line593"></a>                    $this->literal[] = substr($match[0], strlen($match[1]), -strlen($match[2]));
+<a name="line594"></a>                    $content         = str_replace($match[0], "<!--###literal{$count}###-->", $content);
+<a name="line595"></a>                    $count++;
+<a name="line596"></a>                }
+<a name="line597"></a>            } else {
+<a name="line598"></a>                // 还原literal标签
+<a name="line599"></a>                foreach ($matches as $match) {
+<a name="line600"></a>                    $content = str_replace($match[0], $this->literal[$match[1]], $content);
+<a name="line601"></a>                }
+<a name="line602"></a>                // 清空literal记录
+<a name="line603"></a>                $this->literal = [];
+<a name="line604"></a>            }
+<a name="line605"></a>            unset($matches);
+<a name="line606"></a>        }
+<a name="line607"></a>        return;
+<a name="line608"></a>    }
+<a name="line609"></a>
+<a name="line610"></a>    /**
+<a name="line611"></a>     * 获取模板中的block标签
+<a name="line612"></a>     * @access private
+<a name="line613"></a>     * @param  string   $content 模板内容
+<a name="line614"></a>     * @param  boolean  $sort 是否排序
+<a name="line615"></a>     * @return array
+<a name="line616"></a>     */
+<a name="line617"></a>    private function parseBlock(&$content, $sort = false)
+<a name="line618"></a>    {
+<a name="line619"></a>        $regex  = $this->getRegex('block');
+<a name="line620"></a>        $result = [];
+<a name="line621"></a>        if (preg_match_all($regex, $content, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+<a name="line622"></a>            $right = $keys = [];
+<a name="line623"></a>            foreach ($matches as $match) {
+<a name="line624"></a>                if (empty($match['name'][0])) {
+<a name="line625"></a>                    if (count($right) > 0) {
+<a name="line626"></a>                        $tag                  = array_pop($right);
+<a name="line627"></a>                        $start                = $tag['offset'] + strlen($tag['tag']);
+<a name="line628"></a>                        $length               = $match[0][1] - $start;
+<a name="line629"></a>                        $result[$tag['name']] = [
+<a name="line630"></a>                            'begin'   => $tag['tag'],
+<a name="line631"></a>                            'content' => substr($content, $start, $length),
+<a name="line632"></a>                            'end'     => $match[0][0],
+<a name="line633"></a>                            'parent'  => count($right) ? end($right)['name'] : '',
+<a name="line634"></a>                        ];
+<a name="line635"></a>                        $keys[$tag['name']] = $match[0][1];
+<a name="line636"></a>                    }
+<a name="line637"></a>                } else {
+<a name="line638"></a>                    // 标签头压入栈
+<a name="line639"></a>                    $right[] = [
+<a name="line640"></a>                        'name'   => $match[2][0],
+<a name="line641"></a>                        'offset' => $match[0][1],
+<a name="line642"></a>                        'tag'    => $match[0][0],
+<a name="line643"></a>                    ];
+<a name="line644"></a>                }
+<a name="line645"></a>            }
+<a name="line646"></a>            unset($right, $matches);
+<a name="line647"></a>            if ($sort) {
+<a name="line648"></a>                // 按block标签结束符在模板中的位置排序
+<a name="line649"></a>                array_multisort($keys, $result);
+<a name="line650"></a>            }
+<a name="line651"></a>        }
+<a name="line652"></a>        return $result;
+<a name="line653"></a>    }
+<a name="line654"></a>
+<a name="line655"></a>    /**
+<a name="line656"></a>     * 搜索模板页面中包含的TagLib库
+<a name="line657"></a>     * 并返回列表
+<a name="line658"></a>     * @access private
+<a name="line659"></a>     * @param  string $content 模板内容
+<a name="line660"></a>     * @return array|null
+<a name="line661"></a>     */
+<a name="line662"></a>    private function getIncludeTagLib(&$content)
+<a name="line663"></a>    {
+<a name="line664"></a>        // 搜索是否有TagLib标签
+<a name="line665"></a>        if (preg_match($this->getRegex('taglib'), $content, $matches)) {
+<a name="line666"></a>            // 替换TagLib标签
+<a name="line667"></a>            $content = str_replace($matches[0], '', $content);
+<a name="line668"></a>            return explode(',', $matches['name']);
+<a name="line669"></a>        }
+<a name="line670"></a>        return null;
+<a name="line671"></a>    }
+<a name="line672"></a>
+<a name="line673"></a>    /**
+<a name="line674"></a>     * TagLib库解析
+<a name="line675"></a>     * @access public
+<a name="line676"></a>     * @param  string   $tagLib 要解析的标签库
+<a name="line677"></a>     * @param  string   $content 要解析的模板内容
+<a name="line678"></a>     * @param  boolean  $hide 是否隐藏标签库前缀
+<a name="line679"></a>     * @return void
+<a name="line680"></a>     */
+<a name="line681"></a>    public function parseTagLib($tagLib, &$content, $hide = false)
+<a name="line682"></a>    {
+<a name="line683"></a>        if (false !== strpos($tagLib, '\\')) {
+<a name="line684"></a>            // 支持指定标签库的命名空间
+<a name="line685"></a>            $className = $tagLib;
+<a name="line686"></a>            $tagLib    = substr($tagLib, strrpos($tagLib, '\\') + 1);
+<a name="line687"></a>        } else {
+<a name="line688"></a>            $className = '\\think\\template\\taglib\\' . ucwords($tagLib);
+<a name="line689"></a>        }
+<a name="line690"></a>        $tLib = new $className($this);
+<a name="line691"></a>        $tLib->parseTag($content, $hide ? '' : $tagLib);
+<a name="line692"></a>        return;
+<a name="line693"></a>    }
+<a name="line694"></a>
+<a name="line695"></a>    /**
+<a name="line696"></a>     * 分析标签属性
+<a name="line697"></a>     * @access public
+<a name="line698"></a>     * @param  string   $str 属性字符串
+<a name="line699"></a>     * @param  string   $name 不为空时返回指定的属性名
+<a name="line700"></a>     * @return array
+<a name="line701"></a>     */
+<a name="line702"></a>    public function parseAttr($str, $name = null)
+<a name="line703"></a>    {
+<a name="line704"></a>        $regex = '/\s+(?>(?P<name>[\w-]+)\s*)=(?>\s*)([\"\'])(?P<value>(?:(?!\\2).)*)\\2/is';
+<a name="line705"></a>        $array = [];
+<a name="line706"></a>        if (preg_match_all($regex, $str, $matches, PREG_SET_ORDER)) {
+<a name="line707"></a>            foreach ($matches as $match) {
+<a name="line708"></a>                $array[$match['name']] = $match['value'];
+<a name="line709"></a>            }
+<a name="line710"></a>            unset($matches);
+<a name="line711"></a>        }
+<a name="line712"></a>        if (!empty($name) && isset($array[$name])) {
+<a name="line713"></a>            return $array[$name];
+<a name="line714"></a>        } else {
+<a name="line715"></a>            return $array;
+<a name="line716"></a>        }
+<a name="line717"></a>    }
+<a name="line718"></a>
+<a name="line719"></a>    /**
+<a name="line720"></a>     * 模板标签解析
+<a name="line721"></a>     * 格式： {TagName:args [|content] }
+<a name="line722"></a>     * @access private
+<a name="line723"></a>     * @param  string $content 要解析的模板内容
+<a name="line724"></a>     * @return void
+<a name="line725"></a>     */
+<a name="line726"></a>    private function parseTag(&$content)
+<a name="line727"></a>    {
+<a name="line728"></a>        $regex = $this->getRegex('tag');
+<a name="line729"></a>        if (preg_match_all($regex, $content, $matches, PREG_SET_ORDER)) {
+<a name="line730"></a>            foreach ($matches as $match) {
+<a name="line731"></a>                $str  = stripslashes($match[1]);
+<a name="line732"></a>                $flag = substr($str, 0, 1);
+<a name="line733"></a>                switch ($flag) {
+<a name="line734"></a>                    case '$':
+<a name="line735"></a>                        // 解析模板变量 格式 {$varName}
+<a name="line736"></a>                        // 是否带有?号
+<a name="line737"></a>                        if (false !== $pos = strpos($str, '?')) {
+<a name="line738"></a>                            $array = preg_split('/([!=]={1,2}|(?<!-)[><]={0,1})/', substr($str, 0, $pos), 2, PREG_SPLIT_DELIM_CAPTURE);
+<a name="line739"></a>                            $name  = $array[0];
+<a name="line740"></a>                            $this->parseVar($name);
+<a name="line741"></a>                            $this->parseVarFunction($name);
+<a name="line742"></a>
+<a name="line743"></a>                            $str = trim(substr($str, $pos + 1));
+<a name="line744"></a>                            $this->parseVar($str);
+<a name="line745"></a>                            $first = substr($str, 0, 1);
+<a name="line746"></a>                            if (strpos($name, ')')) {
+<a name="line747"></a>                                // $name为对象或是自动识别，或者含有函数
+<a name="line748"></a>                                if (isset($array[1])) {
+<a name="line749"></a>                                    $this->parseVar($array[2]);
+<a name="line750"></a>                                    $name .= $array[1] . $array[2];
+<a name="line751"></a>                                }
+<a name="line752"></a>                                switch ($first) {
+<a name="line753"></a>                                    case '?':
+<a name="line754"></a>                                        $str = '<?php echo (' . $name . ') ? ' . $name . ' : ' . substr($str, 1) . '; ?>';
+<a name="line755"></a>                                        break;
+<a name="line756"></a>                                    case '=':
+<a name="line757"></a>                                        $str = '<?php if(' . $name . ') echo ' . substr($str, 1) . '; ?>';
+<a name="line758"></a>                                        break;
+<a name="line759"></a>                                    default:
+<a name="line760"></a>                                        $str = '<?php echo ' . $name . '?' . $str . '; ?>';
+<a name="line761"></a>                                }
+<a name="line762"></a>                            } else {
+<a name="line763"></a>                                if (isset($array[1])) {
+<a name="line764"></a>                                    $this->parseVar($array[2]);
+<a name="line765"></a>                                    $_name = ' && ' . $name . $array[1] . $array[2];
+<a name="line766"></a>                                } else {
+<a name="line767"></a>                                    $_name = '';
+<a name="line768"></a>                                }
+<a name="line769"></a>                                // $name为数组
+<a name="line770"></a>                                switch ($first) {
+<a name="line771"></a>                                    case '?':
+<a name="line772"></a>                                        // {$varname??'xxx'} $varname有定义则输出$varname,否则输出xxx
+<a name="line773"></a>                                        $str = '<?php echo isset(' . $name . ')' . $_name . ' ? ' . $name . ' : ' . substr($str, 1) . '; ?>';
+<a name="line774"></a>                                        break;
+<a name="line775"></a>                                    case '=':
+<a name="line776"></a>                                        // {$varname?='xxx'} $varname为真时才输出xxx
+<a name="line777"></a>                                        $str = '<?php if(!empty(' . $name . ')' . $_name . ') echo ' . substr($str, 1) . '; ?>';
+<a name="line778"></a>                                        break;
+<a name="line779"></a>                                    case ':':
+<a name="line780"></a>                                        // {$varname?:'xxx'} $varname为真时输出$varname,否则输出xxx
+<a name="line781"></a>                                        $str = '<?php echo !empty(' . $name . ')' . $_name . '?' . $name . $str . '; ?>';
+<a name="line782"></a>                                        break;
+<a name="line783"></a>                                    default:
+<a name="line784"></a>                                        if (strpos($str, ':')) {
+<a name="line785"></a>                                            // {$varname ? 'a' : 'b'} $varname为真时输出a,否则输出b
+<a name="line786"></a>                                            $str = '<?php echo !empty(' . $name . ')' . $_name . '?' . $str . '; ?>';
+<a name="line787"></a>                                        } else {
+<a name="line788"></a>                                            $str = '<?php echo ' . $_name . '?' . $str . '; ?>';
+<a name="line789"></a>                                        }
+<a name="line790"></a>                                }
+<a name="line791"></a>                            }
+<a name="line792"></a>                        } else {
+<a name="line793"></a>                            $this->parseVar($str);
+<a name="line794"></a>                            $this->parseVarFunction($str);
+<a name="line795"></a>                            $str = '<?php echo ' . $str . '; ?>';
+<a name="line796"></a>                        }
+<a name="line797"></a>                        break;
+<a name="line798"></a>                    case ':':
+<a name="line799"></a>                        // 输出某个函数的结果
+<a name="line800"></a>                        $str = substr($str, 1);
+<a name="line801"></a>                        $this->parseVar($str);
+<a name="line802"></a>                        $str = '<?php echo ' . $str . '; ?>';
+<a name="line803"></a>                        break;
+<a name="line804"></a>                    case '~':
+<a name="line805"></a>                        // 执行某个函数
+<a name="line806"></a>                        $str = substr($str, 1);
+<a name="line807"></a>                        $this->parseVar($str);
+<a name="line808"></a>                        $str = '<?php ' . $str . '; ?>';
+<a name="line809"></a>                        break;
+<a name="line810"></a>                    case '-':
+<a name="line811"></a>                    case '+':
+<a name="line812"></a>                        // 输出计算
+<a name="line813"></a>                        $this->parseVar($str);
+<a name="line814"></a>                        $str = '<?php echo ' . $str . '; ?>';
+<a name="line815"></a>                        break;
+<a name="line816"></a>                    case '/':
+<a name="line817"></a>                        // 注释标签
+<a name="line818"></a>                        $flag2 = substr($str, 1, 1);
+<a name="line819"></a>                        if ('/' == $flag2 || ('*' == $flag2 && substr(rtrim($str), -2) == '*/')) {
+<a name="line820"></a>                            $str = '';
+<a name="line821"></a>                        }
+<a name="line822"></a>                        break;
+<a name="line823"></a>                    default:
+<a name="line824"></a>                        // 未识别的标签直接返回
+<a name="line825"></a>                        $str = $this->config['tpl_begin'] . $str . $this->config['tpl_end'];
+<a name="line826"></a>                        break;
+<a name="line827"></a>                }
+<a name="line828"></a>                $content = str_replace($match[0], $str, $content);
+<a name="line829"></a>            }
+<a name="line830"></a>            unset($matches);
+<a name="line831"></a>        }
+<a name="line832"></a>        return;
+<a name="line833"></a>    }
+<a name="line834"></a>
+<a name="line835"></a>    /**
+<a name="line836"></a>     * 模板变量解析,支持使用函数
+<a name="line837"></a>     * 格式： {$varname|function1|function2=arg1,arg2}
+<a name="line838"></a>     * @access public
+<a name="line839"></a>     * @param  string $varStr 变量数据
+<a name="line840"></a>     * @return void
+<a name="line841"></a>     */
+<a name="line842"></a>    public function parseVar(&$varStr)
+<a name="line843"></a>    {
+<a name="line844"></a>        $varStr = trim($varStr);
+<a name="line845"></a>        if (preg_match_all('/\$[a-zA-Z_](?>\w*)(?:[:\.][0-9a-zA-Z_](?>\w*))+/', $varStr, $matches, PREG_OFFSET_CAPTURE)) {
+<a name="line846"></a>            static $_varParseList = [];
+<a name="line847"></a>            while ($matches[0]) {
+<a name="line848"></a>                $match = array_pop($matches[0]);
+<a name="line849"></a>                //如果已经解析过该变量字串，则直接返回变量值
+<a name="line850"></a>                if (isset($_varParseList[$match[0]])) {
+<a name="line851"></a>                    $parseStr = $_varParseList[$match[0]];
+<a name="line852"></a>                } else {
+<a name="line853"></a>                    if (strpos($match[0], '.')) {
+<a name="line854"></a>                        $vars  = explode('.', $match[0]);
+<a name="line855"></a>                        $first = array_shift($vars);
+<a name="line856"></a>                        if ('$Think' == $first) {
+<a name="line857"></a>                            // 所有以Think.打头的以特殊变量对待 无需模板赋值就可以输出
+<a name="line858"></a>                            $parseStr = $this->parseThinkVar($vars);
+<a name="line859"></a>                        } elseif ('$Request' == $first) {
+<a name="line860"></a>                            // 获取Request请求对象参数
+<a name="line861"></a>                            $method = array_shift($vars);
+<a name="line862"></a>                            if (!empty($vars)) {
+<a name="line863"></a>                                $params = implode('.', $vars);
+<a name="line864"></a>                                if ('true' != $params) {
+<a name="line865"></a>                                    $params = '\'' . $params . '\'';
+<a name="line866"></a>                                }
+<a name="line867"></a>                            } else {
+<a name="line868"></a>                                $params = '';
+<a name="line869"></a>                            }
+<a name="line870"></a>                            $parseStr = '\think\Request::instance()->' . $method . '(' . $params . ')';
+<a name="line871"></a>                        } else {
+<a name="line872"></a>                            switch ($this->config['tpl_var_identify']) {
+<a name="line873"></a>                                case 'array': // 识别为数组
+<a name="line874"></a>                                    $parseStr = $first . '[\'' . implode('\'][\'', $vars) . '\']';
+<a name="line875"></a>                                    break;
+<a name="line876"></a>                                case 'obj': // 识别为对象
+<a name="line877"></a>                                    $parseStr = $first . '->' . implode('->', $vars);
+<a name="line878"></a>                                    break;
+<a name="line879"></a>                                default: // 自动判断数组或对象
+<a name="line880"></a>                                    $parseStr = '(is_array(' . $first . ')?' . $first . '[\'' . implode('\'][\'', $vars) . '\']:' . $first . '->' . implode('->', $vars) . ')';
+<a name="line881"></a>                            }
+<a name="line882"></a>                        }
+<a name="line883"></a>                    } else {
+<a name="line884"></a>                        $parseStr = str_replace(':', '->', $match[0]);
+<a name="line885"></a>                    }
+<a name="line886"></a>                    $_varParseList[$match[0]] = $parseStr;
+<a name="line887"></a>                }
+<a name="line888"></a>                $varStr = substr_replace($varStr, $parseStr, $match[1], strlen($match[0]));
+<a name="line889"></a>            }
+<a name="line890"></a>            unset($matches);
+<a name="line891"></a>        }
+<a name="line892"></a>        return;
+<a name="line893"></a>    }
+<a name="line894"></a>
+<a name="line895"></a>    /**
+<a name="line896"></a>     * 对模板中使用了函数的变量进行解析
+<a name="line897"></a>     * 格式 {$varname|function1|function2=arg1,arg2}
+<a name="line898"></a>     * @access public
+<a name="line899"></a>     * @param  string $varStr 变量字符串
+<a name="line900"></a>     * @return void
+<a name="line901"></a>     */
+<a name="line902"></a>    public function parseVarFunction(&$varStr)
+<a name="line903"></a>    {
+<a name="line904"></a>        if (false == strpos($varStr, '|')) {
+<a name="line905"></a>            return;
+<a name="line906"></a>        }
+<a name="line907"></a>        static $_varFunctionList = [];
+<a name="line908"></a>        $_key                    = md5($varStr);
+<a name="line909"></a>        //如果已经解析过该变量字串，则直接返回变量值
+<a name="line910"></a>        if (isset($_varFunctionList[$_key])) {
+<a name="line911"></a>            $varStr = $_varFunctionList[$_key];
+<a name="line912"></a>        } else {
+<a name="line913"></a>            $varArray = explode('|', $varStr);
+<a name="line914"></a>            // 取得变量名称
+<a name="line915"></a>            $name = array_shift($varArray);
+<a name="line916"></a>            // 对变量使用函数
+<a name="line917"></a>            $length = count($varArray);
+<a name="line918"></a>            // 取得模板禁止使用函数列表
+<a name="line919"></a>            $template_deny_funs = explode(',', $this->config['tpl_deny_func_list']);
+<a name="line920"></a>            for ($i = 0; $i < $length; $i++) {
+<a name="line921"></a>                $args = explode('=', $varArray[$i], 2);
+<a name="line922"></a>                // 模板函数过滤
+<a name="line923"></a>                $fun = trim($args[0]);
+<a name="line924"></a>                switch ($fun) {
+<a name="line925"></a>                    case 'default': // 特殊模板函数
+<a name="line926"></a>                        if (false === strpos($name, '(')) {
+<a name="line927"></a>                            $name = '(isset(' . $name . ') && (' . $name . ' !== \'\')?' . $name . ':' . $args[1] . ')';
+<a name="line928"></a>                        } else {
+<a name="line929"></a>                            $name = '(' . $name . ' !== \'\'?' . $name . ':' . $args[1] . ')';
+<a name="line930"></a>                        }
+<a name="line931"></a>                        break;
+<a name="line932"></a>                    default: // 通用模板函数
+<a name="line933"></a>                        if (!in_array($fun, $template_deny_funs)) {
+<a name="line934"></a>                            if (isset($args[1])) {
+<a name="line935"></a>                                if (strstr($args[1], '###')) {
+<a name="line936"></a>                                    $args[1] = str_replace('###', $name, $args[1]);
+<a name="line937"></a>                                    $name    = "$fun($args[1])";
+<a name="line938"></a>                                } else {
+<a name="line939"></a>                                    $name = "$fun($name,$args[1])";
+<a name="line940"></a>                                }
+<a name="line941"></a>                            } else {
+<a name="line942"></a>                                if (!empty($args[0])) {
+<a name="line943"></a>                                    $name = "$fun($name)";
+<a name="line944"></a>                                }
+<a name="line945"></a>                            }
+<a name="line946"></a>                        }
+<a name="line947"></a>                }
+<a name="line948"></a>            }
+<a name="line949"></a>            $_varFunctionList[$_key] = $name;
+<a name="line950"></a>            $varStr                  = $name;
+<a name="line951"></a>        }
+<a name="line952"></a>        return;
+<a name="line953"></a>    }
+<a name="line954"></a>
+<a name="line955"></a>    /**
+<a name="line956"></a>     * 特殊模板变量解析
+<a name="line957"></a>     * 格式 以 $Think. 打头的变量属于特殊模板变量
+<a name="line958"></a>     * @access public
+<a name="line959"></a>     * @param  array $vars 变量数组
+<a name="line960"></a>     * @return string
+<a name="line961"></a>     */
+<a name="line962"></a>    public function parseThinkVar($vars)
+<a name="line963"></a>    {
+<a name="line964"></a>        $type  = strtoupper(trim(array_shift($vars)));
+<a name="line965"></a>        $param = implode('.', $vars);
+<a name="line966"></a>        if ($vars) {
+<a name="line967"></a>            switch ($type) {
+<a name="line968"></a>                case 'SERVER':
+<a name="line969"></a>                    $parseStr = '\\think\\Request::instance()->server(\'' . $param . '\')';
+<a name="line970"></a>                    break;
+<a name="line971"></a>                case 'GET':
+<a name="line972"></a>                    $parseStr = '\\think\\Request::instance()->get(\'' . $param . '\')';
+<a name="line973"></a>                    break;
+<a name="line974"></a>                case 'POST':
+<a name="line975"></a>                    $parseStr = '\\think\\Request::instance()->post(\'' . $param . '\')';
+<a name="line976"></a>                    break;
+<a name="line977"></a>                case 'COOKIE':
+<a name="line978"></a>                    $parseStr = '\\think\\Cookie::get(\'' . $param . '\')';
+<a name="line979"></a>                    break;
+<a name="line980"></a>                case 'SESSION':
+<a name="line981"></a>                    $parseStr = '\\think\\Session::get(\'' . $param . '\')';
+<a name="line982"></a>                    break;
+<a name="line983"></a>                case 'ENV':
+<a name="line984"></a>                    $parseStr = '\\think\\Request::instance()->env(\'' . $param . '\')';
+<a name="line985"></a>                    break;
+<a name="line986"></a>                case 'REQUEST':
+<a name="line987"></a>                    $parseStr = '\\think\\Request::instance()->request(\'' . $param . '\')';
+<a name="line988"></a>                    break;
+<a name="line989"></a>                case 'CONST':
+<a name="line990"></a>                    $parseStr = strtoupper($param);
+<a name="line991"></a>                    break;
+<a name="line992"></a>                case 'LANG':
+<a name="line993"></a>                    $parseStr = '\\think\\Lang::get(\'' . $param . '\')';
+<a name="line994"></a>                    break;
+<a name="line995"></a>                case 'CONFIG':
+<a name="line996"></a>                    $parseStr = '\\think\\Config::get(\'' . $param . '\')';
+<a name="line997"></a>                    break;
+<a name="line998"></a>                default:
+<a name="line999"></a>                    $parseStr = '\'\'';
+<a name="line1000"></a>                    break;
+<a name="line1001"></a>            }
+<a name="line1002"></a>        } else {
+<a name="line1003"></a>            switch ($type) {
+<a name="line1004"></a>                case 'NOW':
+<a name="line1005"></a>                    $parseStr = "date('Y-m-d g:i a',time())";
+<a name="line1006"></a>                    break;
+<a name="line1007"></a>                case 'VERSION':
+<a name="line1008"></a>                    $parseStr = 'THINK_VERSION';
+<a name="line1009"></a>                    break;
+<a name="line1010"></a>                case 'LDELIM':
+<a name="line1011"></a>                    $parseStr = '\'' . ltrim($this->config['tpl_begin'], '\\') . '\'';
+<a name="line1012"></a>                    break;
+<a name="line1013"></a>                case 'RDELIM':
+<a name="line1014"></a>                    $parseStr = '\'' . ltrim($this->config['tpl_end'], '\\') . '\'';
+<a name="line1015"></a>                    break;
+<a name="line1016"></a>                default:
+<a name="line1017"></a>                    if (defined($type)) {
+<a name="line1018"></a>                        $parseStr = $type;
+<a name="line1019"></a>                    } else {
+<a name="line1020"></a>                        $parseStr = '';
+<a name="line1021"></a>                    }
+<a name="line1022"></a>            }
+<a name="line1023"></a>        }
+<a name="line1024"></a>        return $parseStr;
+<a name="line1025"></a>    }
+<a name="line1026"></a>
+<a name="line1027"></a>    /**
+<a name="line1028"></a>     * 分析加载的模板文件并读取内容 支持多个模板文件读取
+<a name="line1029"></a>     * @access private
+<a name="line1030"></a>     * @param  string $templateName 模板文件名
+<a name="line1031"></a>     * @return string
+<a name="line1032"></a>     */
+<a name="line1033"></a>    private function parseTemplateName($templateName)
+<a name="line1034"></a>    {
+<a name="line1035"></a>        $array    = explode(',', $templateName);
+<a name="line1036"></a>        $parseStr = '';
+<a name="line1037"></a>        foreach ($array as $templateName) {
+<a name="line1038"></a>            if (empty($templateName)) {
+<a name="line1039"></a>                continue;
+<a name="line1040"></a>            }
+<a name="line1041"></a>            if (0 === strpos($templateName, '$')) {
+<a name="line1042"></a>                //支持加载变量文件名
+<a name="line1043"></a>                $templateName = $this->get(substr($templateName, 1));
+<a name="line1044"></a>            }
+<a name="line1045"></a>            $template = $this->parseTemplateFile($templateName);
+<a name="line1046"></a>            if ($template) {
+<a name="line1047"></a>                // 获取模板文件内容
+<a name="line1048"></a>                $parseStr .= file_get_contents($template);
+<a name="line1049"></a>            }
+<a name="line1050"></a>        }
+<a name="line1051"></a>        return $parseStr;
+<a name="line1052"></a>    }
+<a name="line1053"></a>
+<a name="line1054"></a>    /**
+<a name="line1055"></a>     * 解析模板文件名
+<a name="line1056"></a>     * @access private
+<a name="line1057"></a>     * @param  string $template 文件名
+<a name="line1058"></a>     * @return string|false
+<a name="line1059"></a>     */
+<a name="line1060"></a>    private function parseTemplateFile($template)
+<a name="line1061"></a>    {
+<a name="line1062"></a>        if ('' == pathinfo($template, PATHINFO_EXTENSION)) {
+<a name="line1063"></a>            if (strpos($template, '@')) {
+<a name="line1064"></a>                // 跨模块调用模板
+<a name="line1065"></a>                $template = str_replace(['/', ':'], $this->config['view_depr'], $template);
+<a name="line1066"></a>                $template = APP_PATH . str_replace('@', '/' . basename($this->config['view_path']) . '/', $template);
+<a name="line1067"></a>            } else {
+<a name="line1068"></a>                $template = str_replace(['/', ':'], $this->config['view_depr'], $template);
+<a name="line1069"></a>                $template = $this->config['view_path'] . $template;
+<a name="line1070"></a>            }
+<a name="line1071"></a>            $template .= '.' . ltrim($this->config['view_suffix'], '.');
+<a name="line1072"></a>        }
+<a name="line1073"></a>
+<a name="line1074"></a>        if (is_file($template)) {
+<a name="line1075"></a>            // 记录模板文件的更新时间
+<a name="line1076"></a>            $this->includeFile[$template] = filemtime($template);
+<a name="line1077"></a>            return $template;
+<a name="line1078"></a>        } else {
+<a name="line1079"></a>            throw new TemplateNotFoundException('template not exists:' . $template, $template);
+<a name="line1080"></a>        }
+<a name="line1081"></a>    }
+<a name="line1082"></a>
+<a name="line1083"></a>    /**
+<a name="line1084"></a>     * 按标签生成正则
+<a name="line1085"></a>     * @access private
+<a name="line1086"></a>     * @param  string $tagName 标签名
+<a name="line1087"></a>     * @return string
+<a name="line1088"></a>     */
+<a name="line1089"></a>    private function getRegex($tagName)
+<a name="line1090"></a>    {
+<a name="line1091"></a>        $regex = '';
+<a name="line1092"></a>        if ('tag' == $tagName) {
+<a name="line1093"></a>            $begin = $this->config['tpl_begin'];
+<a name="line1094"></a>            $end   = $this->config['tpl_end'];
+<a name="line1095"></a>            if (strlen(ltrim($begin, '\\')) == 1 && strlen(ltrim($end, '\\')) == 1) {
+<a name="line1096"></a>                $regex = $begin . '((?:[\$]{1,2}[a-wA-w_]|[\:\~][\$a-wA-w_]|[+]{2}[\$][a-wA-w_]|[-]{2}[\$][a-wA-w_]|\/[\*\/])(?>[^' . $end . ']*))' . $end;
+<a name="line1097"></a>            } else {
+<a name="line1098"></a>                $regex = $begin . '((?:[\$]{1,2}[a-wA-w_]|[\:\~][\$a-wA-w_]|[+]{2}[\$][a-wA-w_]|[-]{2}[\$][a-wA-w_]|\/[\*\/])(?>(?:(?!' . $end . ').)*))' . $end;
+<a name="line1099"></a>            }
+<a name="line1100"></a>        } else {
+<a name="line1101"></a>            $begin  = $this->config['taglib_begin'];
+<a name="line1102"></a>            $end    = $this->config['taglib_end'];
+<a name="line1103"></a>            $single = strlen(ltrim($begin, '\\')) == 1 && strlen(ltrim($end, '\\')) == 1 ? true : false;
+<a name="line1104"></a>            switch ($tagName) {
+<a name="line1105"></a>                case 'block':
+<a name="line1106"></a>                    if ($single) {
+<a name="line1107"></a>                        $regex = $begin . '(?:' . $tagName . '\b(?>(?:(?!name=).)*)\bname=([\'\"])(?P<name>[\$\w\-\/\.]+)\\1(?>[^' . $end . ']*)|\/' . $tagName . ')' . $end;
+<a name="line1108"></a>                    } else {
+<a name="line1109"></a>                        $regex = $begin . '(?:' . $tagName . '\b(?>(?:(?!name=).)*)\bname=([\'\"])(?P<name>[\$\w\-\/\.]+)\\1(?>(?:(?!' . $end . ').)*)|\/' . $tagName . ')' . $end;
+<a name="line1110"></a>                    }
+<a name="line1111"></a>                    break;
+<a name="line1112"></a>                case 'literal':
+<a name="line1113"></a>                    if ($single) {
+<a name="line1114"></a>                        $regex = '(' . $begin . $tagName . '\b(?>[^' . $end . ']*)' . $end . ')';
+<a name="line1115"></a>                        $regex .= '(?:(?>[^' . $begin . ']*)(?>(?!' . $begin . '(?>' . $tagName . '\b[^' . $end . ']*|\/' . $tagName . ')' . $end . ')' . $begin . '[^' . $begin . ']*)*)';
+<a name="line1116"></a>                        $regex .= '(' . $begin . '\/' . $tagName . $end . ')';
+<a name="line1117"></a>                    } else {
+<a name="line1118"></a>                        $regex = '(' . $begin . $tagName . '\b(?>(?:(?!' . $end . ').)*)' . $end . ')';
+<a name="line1119"></a>                        $regex .= '(?:(?>(?:(?!' . $begin . ').)*)(?>(?!' . $begin . '(?>' . $tagName . '\b(?>(?:(?!' . $end . ').)*)|\/' . $tagName . ')' . $end . ')' . $begin . '(?>(?:(?!' . $begin . ').)*))*)';
+<a name="line1120"></a>                        $regex .= '(' . $begin . '\/' . $tagName . $end . ')';
+<a name="line1121"></a>                    }
+<a name="line1122"></a>                    break;
+<a name="line1123"></a>                case 'restoreliteral':
+<a name="line1124"></a>                    $regex = '<!--###literal(\d+)###-->';
+<a name="line1125"></a>                    break;
+<a name="line1126"></a>                case 'include':
+<a name="line1127"></a>                    $name = 'file';
+<a name="line1128"></a>                case 'taglib':
+<a name="line1129"></a>                case 'layout':
+<a name="line1130"></a>                case 'extend':
+<a name="line1131"></a>                    if (empty($name)) {
+<a name="line1132"></a>                        $name = 'name';
+<a name="line1133"></a>                    }
+<a name="line1134"></a>                    if ($single) {
+<a name="line1135"></a>                        $regex = $begin . $tagName . '\b(?>(?:(?!' . $name . '=).)*)\b' . $name . '=([\'\"])(?P<name>[\$\w\-\/\.\:@,\\\\]+)\\1(?>[^' . $end . ']*)' . $end;
+<a name="line1136"></a>                    } else {
+<a name="line1137"></a>                        $regex = $begin . $tagName . '\b(?>(?:(?!' . $name . '=).)*)\b' . $name . '=([\'\"])(?P<name>[\$\w\-\/\.\:@,\\\\]+)\\1(?>(?:(?!' . $end . ').)*)' . $end;
+<a name="line1138"></a>                    }
+<a name="line1139"></a>                    break;
+<a name="line1140"></a>            }
+<a name="line1141"></a>        }
+<a name="line1142"></a>        return '/' . $regex . '/is';
+<a name="line1143"></a>    }
+<a name="line1144"></a>}
+<a name="line1145"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\template.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

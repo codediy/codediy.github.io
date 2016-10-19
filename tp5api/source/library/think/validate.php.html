@@ -1,0 +1,1285 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\Validate.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\validate.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\Validate.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think;
+<a name="line13"></a>
+<a name="line14"></a>use think\File;
+<a name="line15"></a>use think\Lang;
+<a name="line16"></a>use think\Request;
+<a name="line17"></a>use think\Session;
+<a name="line18"></a>
+<a name="line19"></a>class Validate
+<a name="line20"></a>{
+<a name="line21"></a>    // 实例
+<a name="line22"></a>    protected static $instance;
+<a name="line23"></a>
+<a name="line24"></a>    // 自定义的验证类型
+<a name="line25"></a>    protected static $type = [];
+<a name="line26"></a>
+<a name="line27"></a>    // 验证类型别名
+<a name="line28"></a>    protected $alias = [
+<a name="line29"></a>        '>' => 'gt', '>=' => 'egt', '<' => 'lt', '<=' => 'elt', '=' => 'eq', 'same' => 'eq',
+<a name="line30"></a>    ];
+<a name="line31"></a>
+<a name="line32"></a>    // 当前验证的规则
+<a name="line33"></a>    protected $rule = [];
+<a name="line34"></a>
+<a name="line35"></a>    // 验证提示信息
+<a name="line36"></a>    protected $message = [];
+<a name="line37"></a>
+<a name="line38"></a>    // 验证规则默认提示信息
+<a name="line39"></a>    protected static $typeMsg = [
+<a name="line40"></a>        'require'     => ':attribute不能为空',
+<a name="line41"></a>        'number'      => ':attribute必须是数字',
+<a name="line42"></a>        'float'       => ':attribute必须是浮点数',
+<a name="line43"></a>        'boolean'     => ':attribute必须是布尔值',
+<a name="line44"></a>        'email'       => ':attribute格式不符',
+<a name="line45"></a>        'array'       => ':attribute必须是数组',
+<a name="line46"></a>        'accepted'    => ':attribute必须是yes、on或者1',
+<a name="line47"></a>        'date'        => ':attribute格式不符合',
+<a name="line48"></a>        'file'        => ':attribute不是有效的上传文件',
+<a name="line49"></a>        'image'       => ':attribute不是有效的图像文件',
+<a name="line50"></a>        'alpha'       => ':attribute只能是字母',
+<a name="line51"></a>        'alphaNum'    => ':attribute只能是字母和数字',
+<a name="line52"></a>        'alphaDash'   => ':attribute只能是字母、数字和下划线_及破折号-',
+<a name="line53"></a>        'activeUrl'   => ':attribute不是有效的域名或者IP',
+<a name="line54"></a>        'chs'         => ':attribute只能是汉字',
+<a name="line55"></a>        'chsAlpha'    => ':attribute只能是汉字、字母',
+<a name="line56"></a>        'chsAlphaNum' => ':attribute只能是汉字、字母和数字',
+<a name="line57"></a>        'chsDash'     => ':attribute只能是汉字、字母、数字和下划线_及破折号-',
+<a name="line58"></a>        'url'         => ':attribute不是有效的URL地址',
+<a name="line59"></a>        'ip'          => ':attribute不是有效的IP地址',
+<a name="line60"></a>        'dateFormat'  => ':attribute必须使用日期格式 :rule',
+<a name="line61"></a>        'in'          => ':attribute必须在 :rule 范围内',
+<a name="line62"></a>        'notIn'       => ':attribute不能在 :rule 范围内',
+<a name="line63"></a>        'between'     => ':attribute只能在 :1 - :2 之间',
+<a name="line64"></a>        'notBetween'  => ':attribute不能在 :1 - :2 之间',
+<a name="line65"></a>        'length'      => ':attribute长度不符合要求 :rule',
+<a name="line66"></a>        'max'         => ':attribute长度不能超过 :rule',
+<a name="line67"></a>        'min'         => ':attribute长度不能小于 :rule',
+<a name="line68"></a>        'after'       => ':attribute日期不能小于 :rule',
+<a name="line69"></a>        'before'      => ':attribute日期不能超过 :rule',
+<a name="line70"></a>        'expire'      => '不在有效期内 :rule',
+<a name="line71"></a>        'allowIp'     => '不允许的IP访问',
+<a name="line72"></a>        'denyIp'      => '禁止的IP访问',
+<a name="line73"></a>        'confirm'     => ':attribute和字段 :rule 不一致',
+<a name="line74"></a>        'different'   => ':attribute和字段 :rule 不能相同',
+<a name="line75"></a>        'egt'         => ':attribute必须大于等于 :rule',
+<a name="line76"></a>        'gt'          => ':attribute必须大于 :rule',
+<a name="line77"></a>        'elt'         => ':attribute必须小于等于 :rule',
+<a name="line78"></a>        'lt'          => ':attribute必须小于 :rule',
+<a name="line79"></a>        'eq'          => ':attribute必须等于 :rule',
+<a name="line80"></a>        'unique'      => ':attribute已存在',
+<a name="line81"></a>        'regex'       => ':attribute不符合指定规则',
+<a name="line82"></a>        'method'      => '无效的请求类型',
+<a name="line83"></a>        'token'       => '令牌数据无效',
+<a name="line84"></a>        'fileSize'    => '上传文件大小不符',
+<a name="line85"></a>        'fileExt'     => '上传文件后缀不符',
+<a name="line86"></a>        'fileMime'    => '上传文件类型不符',
+<a name="line87"></a>
+<a name="line88"></a>    ];
+<a name="line89"></a>
+<a name="line90"></a>    // 当前验证场景
+<a name="line91"></a>    protected $currentScene = null;
+<a name="line92"></a>
+<a name="line93"></a>    // 正则表达式 regex = ['zip'=>'\d{6}',...]
+<a name="line94"></a>    protected $regex = [];
+<a name="line95"></a>
+<a name="line96"></a>    // 验证场景 scene = ['edit'=>'name1,name2,...']
+<a name="line97"></a>    protected $scene = [];
+<a name="line98"></a>
+<a name="line99"></a>    // 验证失败错误信息
+<a name="line100"></a>    protected $error = [];
+<a name="line101"></a>
+<a name="line102"></a>    // 批量验证
+<a name="line103"></a>    protected $batch = false;
+<a name="line104"></a>
+<a name="line105"></a>    /**
+<a name="line106"></a>     * 架构函数
+<a name="line107"></a>     * @access public
+<a name="line108"></a>     * @param array $rules 验证规则
+<a name="line109"></a>     * @param array $message 验证提示信息
+<a name="line110"></a>     */
+<a name="line111"></a>    public function __construct(array $rules = [], $message = [])
+<a name="line112"></a>    {
+<a name="line113"></a>        $this->rule    = array_merge($this->rule, $rules);
+<a name="line114"></a>        $this->message = array_merge($this->message, $message);
+<a name="line115"></a>    }
+<a name="line116"></a>
+<a name="line117"></a>    /**
+<a name="line118"></a>     * 实例化验证
+<a name="line119"></a>     * @access public
+<a name="line120"></a>     * @param array     $rules 验证规则
+<a name="line121"></a>     * @param array     $message 验证提示信息
+<a name="line122"></a>     * @return Validate
+<a name="line123"></a>     */
+<a name="line124"></a>    public static function make($rules = [], $message = [])
+<a name="line125"></a>    {
+<a name="line126"></a>        if (is_null(self::$instance)) {
+<a name="line127"></a>            self::$instance = new self($rules, $message);
+<a name="line128"></a>        }
+<a name="line129"></a>        return self::$instance;
+<a name="line130"></a>    }
+<a name="line131"></a>
+<a name="line132"></a>    /**
+<a name="line133"></a>     * 添加字段验证规则
+<a name="line134"></a>     * @access protected
+<a name="line135"></a>     * @param string|array  $name  字段名称或者规则数组
+<a name="line136"></a>     * @param mixed         $rule  验证规则
+<a name="line137"></a>     * @return Validate
+<a name="line138"></a>     */
+<a name="line139"></a>    public function rule($name, $rule = '')
+<a name="line140"></a>    {
+<a name="line141"></a>        if (is_array($name)) {
+<a name="line142"></a>            $this->rule = array_merge($this->rule, $name);
+<a name="line143"></a>        } else {
+<a name="line144"></a>            $this->rule[$name] = $rule;
+<a name="line145"></a>        }
+<a name="line146"></a>        return $this;
+<a name="line147"></a>    }
+<a name="line148"></a>
+<a name="line149"></a>    /**
+<a name="line150"></a>     * 注册验证（类型）规则
+<a name="line151"></a>     * @access public
+<a name="line152"></a>     * @param string    $type  验证规则类型
+<a name="line153"></a>     * @param mixed     $callback callback方法(或闭包)
+<a name="line154"></a>     * @return void
+<a name="line155"></a>     */
+<a name="line156"></a>    public static function extend($type, $callback = null)
+<a name="line157"></a>    {
+<a name="line158"></a>        if (is_array($type)) {
+<a name="line159"></a>            self::$type = array_merge(self::$type, $type);
+<a name="line160"></a>        } else {
+<a name="line161"></a>            self::$type[$type] = $callback;
+<a name="line162"></a>        }
+<a name="line163"></a>    }
+<a name="line164"></a>
+<a name="line165"></a>    /**
+<a name="line166"></a>     * 获取验证规则的默认提示信息
+<a name="line167"></a>     * @access protected
+<a name="line168"></a>     * @param string|array  $type  验证规则类型名称或者数组
+<a name="line169"></a>     * @param string        $msg  验证提示信息
+<a name="line170"></a>     * @return void
+<a name="line171"></a>     */
+<a name="line172"></a>    public static function setTypeMsg($type, $msg = null)
+<a name="line173"></a>    {
+<a name="line174"></a>        if (is_array($type)) {
+<a name="line175"></a>            self::$typeMsg = array_merge(self::$typeMsg, $type);
+<a name="line176"></a>        } else {
+<a name="line177"></a>            self::$typeMsg[$type] = $msg;
+<a name="line178"></a>        }
+<a name="line179"></a>    }
+<a name="line180"></a>
+<a name="line181"></a>    /**
+<a name="line182"></a>     * 设置提示信息
+<a name="line183"></a>     * @access public
+<a name="line184"></a>     * @param string|array  $name  字段名称
+<a name="line185"></a>     * @param string        $message 提示信息
+<a name="line186"></a>     * @return Validate
+<a name="line187"></a>     */
+<a name="line188"></a>    public function message($name, $message = '')
+<a name="line189"></a>    {
+<a name="line190"></a>        if (is_array($name)) {
+<a name="line191"></a>            $this->message = array_merge($this->message, $name);
+<a name="line192"></a>        } else {
+<a name="line193"></a>            $this->message[$name] = $message;
+<a name="line194"></a>        }
+<a name="line195"></a>        return $this;
+<a name="line196"></a>    }
+<a name="line197"></a>
+<a name="line198"></a>    /**
+<a name="line199"></a>     * 设置验证场景
+<a name="line200"></a>     * @access public
+<a name="line201"></a>     * @param string|array  $name  场景名或者场景设置数组
+<a name="line202"></a>     * @param mixed         $fields 要验证的字段
+<a name="line203"></a>     * @return Validate
+<a name="line204"></a>     */
+<a name="line205"></a>    public function scene($name, $fields = null)
+<a name="line206"></a>    {
+<a name="line207"></a>        if (is_array($name)) {
+<a name="line208"></a>            $this->scene = array_merge($this->scene, $name);
+<a name="line209"></a>        }if (is_null($fields)) {
+<a name="line210"></a>            // 设置当前场景
+<a name="line211"></a>            $this->currentScene = $name;
+<a name="line212"></a>        } else {
+<a name="line213"></a>            // 设置验证场景
+<a name="line214"></a>            $this->scene[$name] = $fields;
+<a name="line215"></a>        }
+<a name="line216"></a>        return $this;
+<a name="line217"></a>    }
+<a name="line218"></a>
+<a name="line219"></a>    /**
+<a name="line220"></a>     * 设置批量验证
+<a name="line221"></a>     * @access public
+<a name="line222"></a>     * @param bool $batch  是否批量验证
+<a name="line223"></a>     * @return Validate
+<a name="line224"></a>     */
+<a name="line225"></a>    public function batch($batch = true)
+<a name="line226"></a>    {
+<a name="line227"></a>        $this->batch = $batch;
+<a name="line228"></a>        return $this;
+<a name="line229"></a>    }
+<a name="line230"></a>
+<a name="line231"></a>    /**
+<a name="line232"></a>     * 数据自动验证
+<a name="line233"></a>     * @access public
+<a name="line234"></a>     * @param array     $data  数据
+<a name="line235"></a>     * @param mixed     $rules  验证规则
+<a name="line236"></a>     * @param string    $scene 验证场景
+<a name="line237"></a>     * @return bool
+<a name="line238"></a>     */
+<a name="line239"></a>    public function check($data, $rules = [], $scene = '')
+<a name="line240"></a>    {
+<a name="line241"></a>        $this->error = [];
+<a name="line242"></a>
+<a name="line243"></a>        if (empty($rules)) {
+<a name="line244"></a>            // 读取验证规则
+<a name="line245"></a>            $rules = $this->rule;
+<a name="line246"></a>        }
+<a name="line247"></a>
+<a name="line248"></a>        // 分析验证规则
+<a name="line249"></a>        $scene = $this->getScene($scene);
+<a name="line250"></a>        if (is_array($scene)) {
+<a name="line251"></a>            // 处理场景验证字段
+<a name="line252"></a>            $change = [];
+<a name="line253"></a>            $array  = [];
+<a name="line254"></a>            foreach ($scene as $k => $val) {
+<a name="line255"></a>                if (is_numeric($k)) {
+<a name="line256"></a>                    $array[] = $val;
+<a name="line257"></a>                } else {
+<a name="line258"></a>                    $array[]    = $k;
+<a name="line259"></a>                    $change[$k] = $val;
+<a name="line260"></a>                }
+<a name="line261"></a>            }
+<a name="line262"></a>        }
+<a name="line263"></a>
+<a name="line264"></a>        foreach ($rules as $key => $item) {
+<a name="line265"></a>            // field => rule1|rule2... field=>['rule1','rule2',...]
+<a name="line266"></a>            if (is_numeric($key)) {
+<a name="line267"></a>                // [field,rule1|rule2,msg1|msg2]
+<a name="line268"></a>                $key  = $item[0];
+<a name="line269"></a>                $rule = $item[1];
+<a name="line270"></a>                if (isset($item[2])) {
+<a name="line271"></a>                    $msg = is_string($item[2]) ? explode('|', $item[2]) : $item[2];
+<a name="line272"></a>                } else {
+<a name="line273"></a>                    $msg = [];
+<a name="line274"></a>                }
+<a name="line275"></a>            } else {
+<a name="line276"></a>                $rule = $item;
+<a name="line277"></a>                $msg  = [];
+<a name="line278"></a>            }
+<a name="line279"></a>            if (strpos($key, '|')) {
+<a name="line280"></a>                // 字段|描述 用于指定属性名称
+<a name="line281"></a>                list($key, $title) = explode('|', $key);
+<a name="line282"></a>            } else {
+<a name="line283"></a>                $title = $key;
+<a name="line284"></a>            }
+<a name="line285"></a>
+<a name="line286"></a>            // 场景检测
+<a name="line287"></a>            if (!empty($scene)) {
+<a name="line288"></a>                if ($scene instanceof \Closure && !call_user_func_array($scene, [$key, $data])) {
+<a name="line289"></a>                    continue;
+<a name="line290"></a>                } elseif (is_array($scene)) {
+<a name="line291"></a>                    if (!in_array($key, $array)) {
+<a name="line292"></a>                        continue;
+<a name="line293"></a>                    } elseif (isset($change[$key])) {
+<a name="line294"></a>                        // 重载某个验证规则
+<a name="line295"></a>                        $rule = $change[$key];
+<a name="line296"></a>                    }
+<a name="line297"></a>                }
+<a name="line298"></a>            }
+<a name="line299"></a>
+<a name="line300"></a>            // 获取数据 支持二维数组
+<a name="line301"></a>            $value = $this->getDataValue($data, $key);
+<a name="line302"></a>
+<a name="line303"></a>            // 字段验证
+<a name="line304"></a>            $result = $this->checkItem($key, $value, $rule, $data, $title, $msg);
+<a name="line305"></a>
+<a name="line306"></a>            if (true !== $result) {
+<a name="line307"></a>                // 没有返回true 则表示验证失败
+<a name="line308"></a>                if (!empty($this->batch)) {
+<a name="line309"></a>                    // 批量验证
+<a name="line310"></a>                    if (is_array($result)) {
+<a name="line311"></a>                        $this->error = array_merge($this->error, $result);
+<a name="line312"></a>                    } else {
+<a name="line313"></a>                        $this->error[$key] = $result;
+<a name="line314"></a>                    }
+<a name="line315"></a>                } else {
+<a name="line316"></a>                    $this->error = $result;
+<a name="line317"></a>                    return false;
+<a name="line318"></a>                }
+<a name="line319"></a>            }
+<a name="line320"></a>        }
+<a name="line321"></a>        return !empty($this->error) ? false : true;
+<a name="line322"></a>    }
+<a name="line323"></a>
+<a name="line324"></a>    /**
+<a name="line325"></a>     * 验证单个字段规则
+<a name="line326"></a>     * @access protected
+<a name="line327"></a>     * @param string    $field  字段名
+<a name="line328"></a>     * @param mixed     $value  字段值
+<a name="line329"></a>     * @param mixed     $rules  验证规则
+<a name="line330"></a>     * @param array     $data  数据
+<a name="line331"></a>     * @param string    $title  字段描述
+<a name="line332"></a>     * @param array     $msg  提示信息
+<a name="line333"></a>     * @return mixed
+<a name="line334"></a>     */
+<a name="line335"></a>    protected function checkItem($field, $value, $rules, $data, $title = '', $msg = [])
+<a name="line336"></a>    {
+<a name="line337"></a>        if ($rules instanceof \Closure) {
+<a name="line338"></a>            // 匿名函数验证 支持传入当前字段和所有字段两个数据
+<a name="line339"></a>            $result = call_user_func_array($rules, [$value, $data]);
+<a name="line340"></a>        } else {
+<a name="line341"></a>            // 支持多规则验证 require|in:a,b,c|... 或者 ['require','in'=>'a,b,c',...]
+<a name="line342"></a>            if (is_string($rules)) {
+<a name="line343"></a>                $rules = explode('|', $rules);
+<a name="line344"></a>            }
+<a name="line345"></a>            $i = 0;
+<a name="line346"></a>            foreach ($rules as $key => $rule) {
+<a name="line347"></a>                if ($rule instanceof \Closure) {
+<a name="line348"></a>                    $result = call_user_func_array($rule, [$value, $data]);
+<a name="line349"></a>                } else {
+<a name="line350"></a>                    // 判断验证类型
+<a name="line351"></a>                    if (is_numeric($key) && strpos($rule, ':')) {
+<a name="line352"></a>                        list($type, $rule) = explode(':', $rule, 2);
+<a name="line353"></a>                        if (isset($this->alias[$type])) {
+<a name="line354"></a>                            // 判断别名
+<a name="line355"></a>                            $type = $this->alias[$type];
+<a name="line356"></a>                        }
+<a name="line357"></a>                        $info = $type;
+<a name="line358"></a>                    } elseif (is_numeric($key)) {
+<a name="line359"></a>                        $type = 'is';
+<a name="line360"></a>                        $info = $rule;
+<a name="line361"></a>                    } else {
+<a name="line362"></a>                        $info = $type = $key;
+<a name="line363"></a>                    }
+<a name="line364"></a>
+<a name="line365"></a>                    // 如果不是require 有数据才会行验证
+<a name="line366"></a>                    if (0 === strpos($info, 'require') || (!is_null($value) && '' !== $value)) {
+<a name="line367"></a>                        // 验证类型
+<a name="line368"></a>                        $callback = isset(self::$type[$type]) ? self::$type[$type] : [$this, $type];
+<a name="line369"></a>                        // 验证数据
+<a name="line370"></a>                        $result = call_user_func_array($callback, [$value, $rule, $data, $field]);
+<a name="line371"></a>                    } else {
+<a name="line372"></a>                        $result = true;
+<a name="line373"></a>                    }
+<a name="line374"></a>                }
+<a name="line375"></a>
+<a name="line376"></a>                if (false === $result) {
+<a name="line377"></a>                    // 验证失败 返回错误信息
+<a name="line378"></a>                    if (isset($msg[$i])) {
+<a name="line379"></a>                        $message = $msg[$i];
+<a name="line380"></a>                        if (is_string($message) && strpos($message, '{%')) {
+<a name="line381"></a>                            $message = Lang::get(substr($message, 2, -1));
+<a name="line382"></a>                        }
+<a name="line383"></a>                    } else {
+<a name="line384"></a>                        $message = $this->getRuleMsg($field, $title, $info, $rule);
+<a name="line385"></a>                    }
+<a name="line386"></a>                    return $message;
+<a name="line387"></a>                } elseif (true !== $result) {
+<a name="line388"></a>                    // 返回自定义错误信息
+<a name="line389"></a>                    return $result;
+<a name="line390"></a>                }
+<a name="line391"></a>                $i++;
+<a name="line392"></a>            }
+<a name="line393"></a>        }
+<a name="line394"></a>        return true !== $result ? $result : true;
+<a name="line395"></a>    }
+<a name="line396"></a>
+<a name="line397"></a>    /**
+<a name="line398"></a>     * 验证是否和某个字段的值一致
+<a name="line399"></a>     * @access protected
+<a name="line400"></a>     * @param mixed     $value  字段值
+<a name="line401"></a>     * @param mixed     $rule  验证规则
+<a name="line402"></a>     * @param array     $data  数据
+<a name="line403"></a>     * @return bool
+<a name="line404"></a>     */
+<a name="line405"></a>    protected function confirm($value, $rule, $data)
+<a name="line406"></a>    {
+<a name="line407"></a>        return $this->getDataValue($data, $rule) == $value;
+<a name="line408"></a>    }
+<a name="line409"></a>
+<a name="line410"></a>    /**
+<a name="line411"></a>     * 验证是否和某个字段的值是否不同
+<a name="line412"></a>     * @access protected
+<a name="line413"></a>     * @param mixed $value 字段值
+<a name="line414"></a>     * @param mixed $rule  验证规则
+<a name="line415"></a>     * @param array $data  数据
+<a name="line416"></a>     * @return bool
+<a name="line417"></a>     */
+<a name="line418"></a>    protected function different($value, $rule, $data)
+<a name="line419"></a>    {
+<a name="line420"></a>        return $this->getDataValue($data, $rule) != $value;
+<a name="line421"></a>    }
+<a name="line422"></a>
+<a name="line423"></a>    /**
+<a name="line424"></a>     * 验证是否大于等于某个值
+<a name="line425"></a>     * @access protected
+<a name="line426"></a>     * @param mixed     $value  字段值
+<a name="line427"></a>     * @param mixed     $rule  验证规则
+<a name="line428"></a>     * @return bool
+<a name="line429"></a>     */
+<a name="line430"></a>    protected function egt($value, $rule)
+<a name="line431"></a>    {
+<a name="line432"></a>        return $value >= $rule;
+<a name="line433"></a>    }
+<a name="line434"></a>
+<a name="line435"></a>    /**
+<a name="line436"></a>     * 验证是否大于某个值
+<a name="line437"></a>     * @access protected
+<a name="line438"></a>     * @param mixed     $value  字段值
+<a name="line439"></a>     * @param mixed     $rule  验证规则
+<a name="line440"></a>     * @return bool
+<a name="line441"></a>     */
+<a name="line442"></a>    protected function gt($value, $rule)
+<a name="line443"></a>    {
+<a name="line444"></a>        return $value > $rule;
+<a name="line445"></a>    }
+<a name="line446"></a>
+<a name="line447"></a>    /**
+<a name="line448"></a>     * 验证是否小于等于某个值
+<a name="line449"></a>     * @access protected
+<a name="line450"></a>     * @param mixed     $value  字段值
+<a name="line451"></a>     * @param mixed     $rule  验证规则
+<a name="line452"></a>     * @return bool
+<a name="line453"></a>     */
+<a name="line454"></a>    protected function elt($value, $rule)
+<a name="line455"></a>    {
+<a name="line456"></a>        return $value <= $rule;
+<a name="line457"></a>    }
+<a name="line458"></a>
+<a name="line459"></a>    /**
+<a name="line460"></a>     * 验证是否小于某个值
+<a name="line461"></a>     * @access protected
+<a name="line462"></a>     * @param mixed     $value  字段值
+<a name="line463"></a>     * @param mixed     $rule  验证规则
+<a name="line464"></a>     * @return bool
+<a name="line465"></a>     */
+<a name="line466"></a>    protected function lt($value, $rule)
+<a name="line467"></a>    {
+<a name="line468"></a>        return $value < $rule;
+<a name="line469"></a>    }
+<a name="line470"></a>
+<a name="line471"></a>    /**
+<a name="line472"></a>     * 验证是否等于某个值
+<a name="line473"></a>     * @access protected
+<a name="line474"></a>     * @param mixed     $value  字段值
+<a name="line475"></a>     * @param mixed     $rule  验证规则
+<a name="line476"></a>     * @return bool
+<a name="line477"></a>     */
+<a name="line478"></a>    protected function eq($value, $rule)
+<a name="line479"></a>    {
+<a name="line480"></a>        return $value == $rule;
+<a name="line481"></a>    }
+<a name="line482"></a>
+<a name="line483"></a>    /**
+<a name="line484"></a>     * 验证字段值是否为有效格式
+<a name="line485"></a>     * @access protected
+<a name="line486"></a>     * @param mixed     $value  字段值
+<a name="line487"></a>     * @param string    $rule  验证规则
+<a name="line488"></a>     * @param array     $data  验证数据
+<a name="line489"></a>     * @return bool
+<a name="line490"></a>     */
+<a name="line491"></a>    protected function is($value, $rule, $data = [])
+<a name="line492"></a>    {
+<a name="line493"></a>        switch ($rule) {
+<a name="line494"></a>            case 'require':
+<a name="line495"></a>                // 必须
+<a name="line496"></a>                $result = !empty($value) || '0' == $value;
+<a name="line497"></a>                break;
+<a name="line498"></a>            case 'accepted':
+<a name="line499"></a>                // 接受
+<a name="line500"></a>                $result = in_array($value, ['1', 'on', 'yes']);
+<a name="line501"></a>                break;
+<a name="line502"></a>            case 'date':
+<a name="line503"></a>                // 是否是一个有效日期
+<a name="line504"></a>                $result = false !== strtotime($value);
+<a name="line505"></a>                break;
+<a name="line506"></a>            case 'alpha':
+<a name="line507"></a>                // 只允许字母
+<a name="line508"></a>                $result = $this->regex($value, '/^[A-Za-z]+$/');
+<a name="line509"></a>                break;
+<a name="line510"></a>            case 'alphaNum':
+<a name="line511"></a>                // 只允许字母和数字
+<a name="line512"></a>                $result = $this->regex($value, '/^[A-Za-z0-9]+$/');
+<a name="line513"></a>                break;
+<a name="line514"></a>            case 'alphaDash':
+<a name="line515"></a>                // 只允许字母、数字和下划线 破折号
+<a name="line516"></a>                $result = $this->regex($value, '/^[A-Za-z0-9\-\_]+$/');
+<a name="line517"></a>                break;
+<a name="line518"></a>            case 'chs':
+<a name="line519"></a>                // 只允许汉字
+<a name="line520"></a>                $result = $this->regex($value, '/^[\x{4e00}-\x{9fa5}]+$/u');
+<a name="line521"></a>                break;
+<a name="line522"></a>            case 'chsAlpha':
+<a name="line523"></a>                // 只允许汉字、字母
+<a name="line524"></a>                $result = $this->regex($value, '/^[\x{4e00}-\x{9fa5}a-zA-Z]+$/u');
+<a name="line525"></a>                break;
+<a name="line526"></a>            case 'chsAlphaNum':
+<a name="line527"></a>                // 只允许汉字、字母和数字
+<a name="line528"></a>                $result = $this->regex($value, '/^[\x{4e00}-\x{9fa5}a-zA-Z0-9]+$/u');
+<a name="line529"></a>                break;
+<a name="line530"></a>            case 'chsDash':
+<a name="line531"></a>                // 只允许汉字、字母、数字和下划线_及破折号-
+<a name="line532"></a>                $result = $this->regex($value, '/^[\x{4e00}-\x{9fa5}a-zA-Z0-9\_\-]+$/u');
+<a name="line533"></a>                break;
+<a name="line534"></a>            case 'activeUrl':
+<a name="line535"></a>                // 是否为有效的网址
+<a name="line536"></a>                $result = checkdnsrr($value);
+<a name="line537"></a>                break;
+<a name="line538"></a>            case 'ip':
+<a name="line539"></a>                // 是否为IP地址
+<a name="line540"></a>                $result = $this->filter($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6);
+<a name="line541"></a>                break;
+<a name="line542"></a>            case 'url':
+<a name="line543"></a>                // 是否为一个URL地址
+<a name="line544"></a>                $result = $this->filter($value, FILTER_VALIDATE_URL);
+<a name="line545"></a>                break;
+<a name="line546"></a>            case 'float':
+<a name="line547"></a>                // 是否为float
+<a name="line548"></a>                $result = $this->filter($value, FILTER_VALIDATE_FLOAT);
+<a name="line549"></a>                break;
+<a name="line550"></a>            case 'number':
+<a name="line551"></a>                $result = is_numeric($value);
+<a name="line552"></a>                break;
+<a name="line553"></a>            case 'integer':
+<a name="line554"></a>                // 是否为整型
+<a name="line555"></a>                $result = $this->filter($value, FILTER_VALIDATE_INT);
+<a name="line556"></a>                break;
+<a name="line557"></a>            case 'email':
+<a name="line558"></a>                // 是否为邮箱地址
+<a name="line559"></a>                $result = $this->filter($value, FILTER_VALIDATE_EMAIL);
+<a name="line560"></a>                break;
+<a name="line561"></a>            case 'boolean':
+<a name="line562"></a>                // 是否为布尔值
+<a name="line563"></a>                $result = in_array($value, [0, 1, true, false]);
+<a name="line564"></a>                break;
+<a name="line565"></a>            case 'array':
+<a name="line566"></a>                // 是否为数组
+<a name="line567"></a>                $result = is_array($value);
+<a name="line568"></a>                break;
+<a name="line569"></a>            case 'file':
+<a name="line570"></a>                $result = $value instanceof File;
+<a name="line571"></a>                break;
+<a name="line572"></a>            case 'image':
+<a name="line573"></a>                $result = $value instanceof File && in_array($this->getImageType($value->getRealPath()), [1, 2, 3, 6]);
+<a name="line574"></a>                break;
+<a name="line575"></a>            case 'token':
+<a name="line576"></a>                $result = $this->token($value, '__token__', $data);
+<a name="line577"></a>                break;
+<a name="line578"></a>            default:
+<a name="line579"></a>                if (isset(self::$type[$rule])) {
+<a name="line580"></a>                    // 注册的验证规则
+<a name="line581"></a>                    $result = call_user_func_array(self::$type[$rule], [$value]);
+<a name="line582"></a>                } else {
+<a name="line583"></a>                    // 正则验证
+<a name="line584"></a>                    $result = $this->regex($value, $rule);
+<a name="line585"></a>                }
+<a name="line586"></a>        }
+<a name="line587"></a>        return $result;
+<a name="line588"></a>    }
+<a name="line589"></a>
+<a name="line590"></a>    // 判断图像类型
+<a name="line591"></a>    protected function getImageType($image)
+<a name="line592"></a>    {
+<a name="line593"></a>        if (function_exists('exif_imagetype')) {
+<a name="line594"></a>            return exif_imagetype($image);
+<a name="line595"></a>        } else {
+<a name="line596"></a>            $info = getimagesize($image);
+<a name="line597"></a>            return $info[2];
+<a name="line598"></a>        }
+<a name="line599"></a>    }
+<a name="line600"></a>
+<a name="line601"></a>    /**
+<a name="line602"></a>     * 验证是否为合格的域名或者IP 支持A，MX，NS，SOA，PTR，CNAME，AAAA，A6， SRV，NAPTR，TXT 或者 ANY类型
+<a name="line603"></a>     * @access protected
+<a name="line604"></a>     * @param mixed     $value  字段值
+<a name="line605"></a>     * @param mixed     $rule  验证规则
+<a name="line606"></a>     * @return bool
+<a name="line607"></a>     */
+<a name="line608"></a>    protected function activeUrl($value, $rule)
+<a name="line609"></a>    {
+<a name="line610"></a>        return checkdnsrr($value, $rule);
+<a name="line611"></a>    }
+<a name="line612"></a>
+<a name="line613"></a>    /**
+<a name="line614"></a>     * 验证是否有效IP
+<a name="line615"></a>     * @access protected
+<a name="line616"></a>     * @param mixed     $value  字段值
+<a name="line617"></a>     * @param mixed     $rule  验证规则 ipv4 ipv6
+<a name="line618"></a>     * @return bool
+<a name="line619"></a>     */
+<a name="line620"></a>    protected function ip($value, $rule)
+<a name="line621"></a>    {
+<a name="line622"></a>        if (!in_array($rule, ['ipv4', 'ipv6'])) {
+<a name="line623"></a>            $rule = 'ipv4';
+<a name="line624"></a>        }
+<a name="line625"></a>        return $this->filter($value, FILTER_VALIDATE_IP, 'ipv6' == $rule ? FILTER_FLAG_IPV6 : FILTER_FLAG_IPV4);
+<a name="line626"></a>    }
+<a name="line627"></a>
+<a name="line628"></a>    /**
+<a name="line629"></a>     * 验证上传文件后缀
+<a name="line630"></a>     * @access protected
+<a name="line631"></a>     * @param mixed     $file  上传文件
+<a name="line632"></a>     * @param mixed     $rule  验证规则
+<a name="line633"></a>     * @return bool
+<a name="line634"></a>     */
+<a name="line635"></a>    protected function fileExt($file, $rule)
+<a name="line636"></a>    {
+<a name="line637"></a>        if (!($file instanceof File)) {
+<a name="line638"></a>            return false;
+<a name="line639"></a>        }
+<a name="line640"></a>        if (is_string($rule)) {
+<a name="line641"></a>            $rule = explode(',', $rule);
+<a name="line642"></a>        }
+<a name="line643"></a>        if (is_array($file)) {
+<a name="line644"></a>            foreach ($file as $item) {
+<a name="line645"></a>                if (!$item->checkExt($rule)) {
+<a name="line646"></a>                    return false;
+<a name="line647"></a>                }
+<a name="line648"></a>            }
+<a name="line649"></a>            return true;
+<a name="line650"></a>        } else {
+<a name="line651"></a>            return $file->checkExt($rule);
+<a name="line652"></a>        }
+<a name="line653"></a>    }
+<a name="line654"></a>
+<a name="line655"></a>    /**
+<a name="line656"></a>     * 验证上传文件类型
+<a name="line657"></a>     * @access protected
+<a name="line658"></a>     * @param mixed     $file  上传文件
+<a name="line659"></a>     * @param mixed     $rule  验证规则
+<a name="line660"></a>     * @return bool
+<a name="line661"></a>     */
+<a name="line662"></a>    protected function fileMime($file, $rule)
+<a name="line663"></a>    {
+<a name="line664"></a>        if (!($file instanceof File)) {
+<a name="line665"></a>            return false;
+<a name="line666"></a>        }
+<a name="line667"></a>        if (is_string($rule)) {
+<a name="line668"></a>            $rule = explode(',', $rule);
+<a name="line669"></a>        }
+<a name="line670"></a>        if (is_array($file)) {
+<a name="line671"></a>            foreach ($file as $item) {
+<a name="line672"></a>                if (!$item->checkMime($rule)) {
+<a name="line673"></a>                    return false;
+<a name="line674"></a>                }
+<a name="line675"></a>            }
+<a name="line676"></a>            return true;
+<a name="line677"></a>        } else {
+<a name="line678"></a>            return $file->checkMime($rule);
+<a name="line679"></a>        }
+<a name="line680"></a>    }
+<a name="line681"></a>
+<a name="line682"></a>    /**
+<a name="line683"></a>     * 验证上传文件大小
+<a name="line684"></a>     * @access protected
+<a name="line685"></a>     * @param mixed     $file  上传文件
+<a name="line686"></a>     * @param mixed     $rule  验证规则
+<a name="line687"></a>     * @return bool
+<a name="line688"></a>     */
+<a name="line689"></a>    protected function fileSize($file, $rule)
+<a name="line690"></a>    {
+<a name="line691"></a>        if (!($file instanceof File)) {
+<a name="line692"></a>            return false;
+<a name="line693"></a>        }
+<a name="line694"></a>        if (is_array($file)) {
+<a name="line695"></a>            foreach ($file as $item) {
+<a name="line696"></a>                if (!$item->checkSize($rule)) {
+<a name="line697"></a>                    return false;
+<a name="line698"></a>                }
+<a name="line699"></a>            }
+<a name="line700"></a>            return true;
+<a name="line701"></a>        } else {
+<a name="line702"></a>            return $file->checkSize($rule);
+<a name="line703"></a>        }
+<a name="line704"></a>    }
+<a name="line705"></a>
+<a name="line706"></a>    /**
+<a name="line707"></a>     * 验证图片的宽高及类型
+<a name="line708"></a>     * @access protected
+<a name="line709"></a>     * @param mixed     $file  上传文件
+<a name="line710"></a>     * @param mixed     $rule  验证规则
+<a name="line711"></a>     * @return bool
+<a name="line712"></a>     */
+<a name="line713"></a>    protected function image($file, $rule)
+<a name="line714"></a>    {
+<a name="line715"></a>        if (!($file instanceof File)) {
+<a name="line716"></a>            return false;
+<a name="line717"></a>        }
+<a name="line718"></a>        $rule                        = explode(',', $rule);
+<a name="line719"></a>        list($width, $height, $type) = getimagesize($file->getRealPath());
+<a name="line720"></a>        if (isset($rule[2])) {
+<a name="line721"></a>            $imageType = strtolower($rule[2]);
+<a name="line722"></a>            if ('jpeg' == $imageType) {
+<a name="line723"></a>                $imageType = 'jpg';
+<a name="line724"></a>            }
+<a name="line725"></a>            if (image_type_to_extension($type, false) != $imageType) {
+<a name="line726"></a>                return false;
+<a name="line727"></a>            }
+<a name="line728"></a>        }
+<a name="line729"></a>        list($w, $h) = $rule;
+<a name="line730"></a>        return $w == $width && $h == $height;
+<a name="line731"></a>    }
+<a name="line732"></a>
+<a name="line733"></a>    /**
+<a name="line734"></a>     * 验证请求类型
+<a name="line735"></a>     * @access protected
+<a name="line736"></a>     * @param mixed     $value  字段值
+<a name="line737"></a>     * @param mixed     $rule  验证规则
+<a name="line738"></a>     * @return bool
+<a name="line739"></a>     */
+<a name="line740"></a>    protected function method($value, $rule)
+<a name="line741"></a>    {
+<a name="line742"></a>        $method = Request::instance()->method();
+<a name="line743"></a>        return strtoupper($rule) == $method;
+<a name="line744"></a>    }
+<a name="line745"></a>
+<a name="line746"></a>    /**
+<a name="line747"></a>     * 验证时间和日期是否符合指定格式
+<a name="line748"></a>     * @access protected
+<a name="line749"></a>     * @param mixed     $value  字段值
+<a name="line750"></a>     * @param mixed     $rule  验证规则
+<a name="line751"></a>     * @return bool
+<a name="line752"></a>     */
+<a name="line753"></a>    protected function dateFormat($value, $rule)
+<a name="line754"></a>    {
+<a name="line755"></a>        $info = date_parse_from_format($rule, $value);
+<a name="line756"></a>        return 0 == $info['warning_count'] && 0 == $info['error_count'];
+<a name="line757"></a>    }
+<a name="line758"></a>
+<a name="line759"></a>    /**
+<a name="line760"></a>     * 验证是否唯一
+<a name="line761"></a>     * @access protected
+<a name="line762"></a>     * @param mixed     $value  字段值
+<a name="line763"></a>     * @param mixed     $rule  验证规则 格式：数据表,字段名,排除ID,主键名
+<a name="line764"></a>     * @param array     $data  数据
+<a name="line765"></a>     * @param string    $field  验证字段名
+<a name="line766"></a>     * @return bool
+<a name="line767"></a>     */
+<a name="line768"></a>    protected function unique($value, $rule, $data, $field)
+<a name="line769"></a>    {
+<a name="line770"></a>        if (is_string($rule)) {
+<a name="line771"></a>            $rule = explode(',', $rule);
+<a name="line772"></a>        }
+<a name="line773"></a>        $db  = Db::name($rule[0]);
+<a name="line774"></a>        $key = isset($rule[1]) ? $rule[1] : $field;
+<a name="line775"></a>
+<a name="line776"></a>        if (strpos($key, '^')) {
+<a name="line777"></a>            // 支持多个字段验证
+<a name="line778"></a>            $fields = explode('^', $key);
+<a name="line779"></a>            foreach ($fields as $key) {
+<a name="line780"></a>                $map[$key] = $data[$key];
+<a name="line781"></a>            }
+<a name="line782"></a>        } elseif (strpos($key, '=')) {
+<a name="line783"></a>            parse_str($key, $map);
+<a name="line784"></a>        } else {
+<a name="line785"></a>            $map[$key] = $data[$field];
+<a name="line786"></a>        }
+<a name="line787"></a>
+<a name="line788"></a>        $pk = strval(isset($rule[3]) ? $rule[3] : $db->getPk());
+<a name="line789"></a>        if (isset($rule[2])) {
+<a name="line790"></a>            $map[$pk] = ['neq', $rule[2]];
+<a name="line791"></a>        } elseif (isset($data[$pk])) {
+<a name="line792"></a>            $map[$pk] = ['neq', $data[$pk]];
+<a name="line793"></a>        }
+<a name="line794"></a>
+<a name="line795"></a>        if ($db->where($map)->field($pk)->find()) {
+<a name="line796"></a>            return false;
+<a name="line797"></a>        }
+<a name="line798"></a>        return true;
+<a name="line799"></a>    }
+<a name="line800"></a>
+<a name="line801"></a>    /**
+<a name="line802"></a>     * 使用行为类验证
+<a name="line803"></a>     * @access protected
+<a name="line804"></a>     * @param mixed     $value  字段值
+<a name="line805"></a>     * @param mixed     $rule  验证规则
+<a name="line806"></a>     * @param array     $data  数据
+<a name="line807"></a>     * @return mixed
+<a name="line808"></a>     */
+<a name="line809"></a>    protected function behavior($value, $rule, $data)
+<a name="line810"></a>    {
+<a name="line811"></a>        return Hook::exec($rule, '', $data);
+<a name="line812"></a>    }
+<a name="line813"></a>
+<a name="line814"></a>    /**
+<a name="line815"></a>     * 使用filter_var方式验证
+<a name="line816"></a>     * @access protected
+<a name="line817"></a>     * @param mixed     $value  字段值
+<a name="line818"></a>     * @param mixed     $rule  验证规则
+<a name="line819"></a>     * @return bool
+<a name="line820"></a>     */
+<a name="line821"></a>    protected function filter($value, $rule)
+<a name="line822"></a>    {
+<a name="line823"></a>        if (is_string($rule) && strpos($rule, ',')) {
+<a name="line824"></a>            list($rule, $param) = explode(',', $rule);
+<a name="line825"></a>        } elseif (is_array($rule)) {
+<a name="line826"></a>            $param = isset($rule[1]) ? $rule[1] : null;
+<a name="line827"></a>        } else {
+<a name="line828"></a>            $param = null;
+<a name="line829"></a>        }
+<a name="line830"></a>        return false !== filter_var($value, is_int($rule) ? $rule : filter_id($rule), $param);
+<a name="line831"></a>    }
+<a name="line832"></a>
+<a name="line833"></a>    /**
+<a name="line834"></a>     * 验证某个字段等于某个值的时候必须
+<a name="line835"></a>     * @access protected
+<a name="line836"></a>     * @param mixed     $value  字段值
+<a name="line837"></a>     * @param mixed     $rule  验证规则
+<a name="line838"></a>     * @param array     $data  数据
+<a name="line839"></a>     * @return bool
+<a name="line840"></a>     */
+<a name="line841"></a>    protected function requireIf($value, $rule, $data)
+<a name="line842"></a>    {
+<a name="line843"></a>        list($field, $val) = explode(',', $rule);
+<a name="line844"></a>        if ($this->getDataValue($data, $field) == $val) {
+<a name="line845"></a>            return !empty($value);
+<a name="line846"></a>        } else {
+<a name="line847"></a>            return true;
+<a name="line848"></a>        }
+<a name="line849"></a>    }
+<a name="line850"></a>
+<a name="line851"></a>    /**
+<a name="line852"></a>     * 通过回调方法验证某个字段是否必须
+<a name="line853"></a>     * @access protected
+<a name="line854"></a>     * @param mixed     $value  字段值
+<a name="line855"></a>     * @param mixed     $rule  验证规则
+<a name="line856"></a>     * @param array     $data  数据
+<a name="line857"></a>     * @return bool
+<a name="line858"></a>     */
+<a name="line859"></a>    protected function requireCallback($value, $rule, $data)
+<a name="line860"></a>    {
+<a name="line861"></a>        $result = call_user_func_array($rule, [$value, $data]);
+<a name="line862"></a>        if ($result) {
+<a name="line863"></a>            return !empty($value);
+<a name="line864"></a>        } else {
+<a name="line865"></a>            return true;
+<a name="line866"></a>        }
+<a name="line867"></a>    }
+<a name="line868"></a>
+<a name="line869"></a>    /**
+<a name="line870"></a>     * 验证某个字段有值的情况下必须
+<a name="line871"></a>     * @access protected
+<a name="line872"></a>     * @param mixed     $value  字段值
+<a name="line873"></a>     * @param mixed     $rule  验证规则
+<a name="line874"></a>     * @param array     $data  数据
+<a name="line875"></a>     * @return bool
+<a name="line876"></a>     */
+<a name="line877"></a>    protected function requireWith($value, $rule, $data)
+<a name="line878"></a>    {
+<a name="line879"></a>        $val = $this->getDataValue($data, $rule);
+<a name="line880"></a>        if (!empty($val)) {
+<a name="line881"></a>            return !empty($value);
+<a name="line882"></a>        } else {
+<a name="line883"></a>            return true;
+<a name="line884"></a>        }
+<a name="line885"></a>    }
+<a name="line886"></a>
+<a name="line887"></a>    /**
+<a name="line888"></a>     * 验证是否在范围内
+<a name="line889"></a>     * @access protected
+<a name="line890"></a>     * @param mixed     $value  字段值
+<a name="line891"></a>     * @param mixed     $rule  验证规则
+<a name="line892"></a>     * @return bool
+<a name="line893"></a>     */
+<a name="line894"></a>    protected function in($value, $rule)
+<a name="line895"></a>    {
+<a name="line896"></a>        return in_array($value, is_array($rule) ? $rule : explode(',', $rule));
+<a name="line897"></a>    }
+<a name="line898"></a>
+<a name="line899"></a>    /**
+<a name="line900"></a>     * 验证是否不在某个范围
+<a name="line901"></a>     * @access protected
+<a name="line902"></a>     * @param mixed     $value  字段值
+<a name="line903"></a>     * @param mixed     $rule  验证规则
+<a name="line904"></a>     * @return bool
+<a name="line905"></a>     */
+<a name="line906"></a>    protected function notIn($value, $rule)
+<a name="line907"></a>    {
+<a name="line908"></a>        return !in_array($value, is_array($rule) ? $rule : explode(',', $rule));
+<a name="line909"></a>    }
+<a name="line910"></a>
+<a name="line911"></a>    /**
+<a name="line912"></a>     * between验证数据
+<a name="line913"></a>     * @access protected
+<a name="line914"></a>     * @param mixed     $value  字段值
+<a name="line915"></a>     * @param mixed     $rule  验证规则
+<a name="line916"></a>     * @return bool
+<a name="line917"></a>     */
+<a name="line918"></a>    protected function between($value, $rule)
+<a name="line919"></a>    {
+<a name="line920"></a>        if (is_string($rule)) {
+<a name="line921"></a>            $rule = explode(',', $rule);
+<a name="line922"></a>        }
+<a name="line923"></a>        list($min, $max) = $rule;
+<a name="line924"></a>        return $value >= $min && $value <= $max;
+<a name="line925"></a>    }
+<a name="line926"></a>
+<a name="line927"></a>    /**
+<a name="line928"></a>     * 使用notbetween验证数据
+<a name="line929"></a>     * @access protected
+<a name="line930"></a>     * @param mixed     $value  字段值
+<a name="line931"></a>     * @param mixed     $rule  验证规则
+<a name="line932"></a>     * @return bool
+<a name="line933"></a>     */
+<a name="line934"></a>    protected function notBetween($value, $rule)
+<a name="line935"></a>    {
+<a name="line936"></a>        if (is_string($rule)) {
+<a name="line937"></a>            $rule = explode(',', $rule);
+<a name="line938"></a>        }
+<a name="line939"></a>        list($min, $max) = $rule;
+<a name="line940"></a>        return $value < $min || $value > $max;
+<a name="line941"></a>    }
+<a name="line942"></a>
+<a name="line943"></a>    /**
+<a name="line944"></a>     * 验证数据长度
+<a name="line945"></a>     * @access protected
+<a name="line946"></a>     * @param mixed     $value  字段值
+<a name="line947"></a>     * @param mixed     $rule  验证规则
+<a name="line948"></a>     * @return bool
+<a name="line949"></a>     */
+<a name="line950"></a>    protected function length($value, $rule)
+<a name="line951"></a>    {
+<a name="line952"></a>        if (is_array($value)) {
+<a name="line953"></a>            $length = count($value);
+<a name="line954"></a>        } elseif ($value instanceof File) {
+<a name="line955"></a>            $length = $value->getSize();
+<a name="line956"></a>        } else {
+<a name="line957"></a>            $length = mb_strlen((string) $value);
+<a name="line958"></a>        }
+<a name="line959"></a>
+<a name="line960"></a>        if (strpos($rule, ',')) {
+<a name="line961"></a>            // 长度区间
+<a name="line962"></a>            list($min, $max) = explode(',', $rule);
+<a name="line963"></a>            return $length >= $min && $length <= $max;
+<a name="line964"></a>        } else {
+<a name="line965"></a>            // 指定长度
+<a name="line966"></a>            return $length == $rule;
+<a name="line967"></a>        }
+<a name="line968"></a>    }
+<a name="line969"></a>
+<a name="line970"></a>    /**
+<a name="line971"></a>     * 验证数据最大长度
+<a name="line972"></a>     * @access protected
+<a name="line973"></a>     * @param mixed     $value  字段值
+<a name="line974"></a>     * @param mixed     $rule  验证规则
+<a name="line975"></a>     * @return bool
+<a name="line976"></a>     */
+<a name="line977"></a>    protected function max($value, $rule)
+<a name="line978"></a>    {
+<a name="line979"></a>        if (is_array($value)) {
+<a name="line980"></a>            $length = count($value);
+<a name="line981"></a>        } elseif ($value instanceof File) {
+<a name="line982"></a>            $length = $value->getSize();
+<a name="line983"></a>        } else {
+<a name="line984"></a>            $length = mb_strlen((string) $value);
+<a name="line985"></a>        }
+<a name="line986"></a>        return $length <= $rule;
+<a name="line987"></a>    }
+<a name="line988"></a>
+<a name="line989"></a>    /**
+<a name="line990"></a>     * 验证数据最小长度
+<a name="line991"></a>     * @access protected
+<a name="line992"></a>     * @param mixed     $value  字段值
+<a name="line993"></a>     * @param mixed     $rule  验证规则
+<a name="line994"></a>     * @return bool
+<a name="line995"></a>     */
+<a name="line996"></a>    protected function min($value, $rule)
+<a name="line997"></a>    {
+<a name="line998"></a>        if (is_array($value)) {
+<a name="line999"></a>            $length = count($value);
+<a name="line1000"></a>        } elseif ($value instanceof File) {
+<a name="line1001"></a>            $length = $value->getSize();
+<a name="line1002"></a>        } else {
+<a name="line1003"></a>            $length = mb_strlen((string) $value);
+<a name="line1004"></a>        }
+<a name="line1005"></a>        return $length >= $rule;
+<a name="line1006"></a>    }
+<a name="line1007"></a>
+<a name="line1008"></a>    /**
+<a name="line1009"></a>     * 验证日期
+<a name="line1010"></a>     * @access protected
+<a name="line1011"></a>     * @param mixed     $value  字段值
+<a name="line1012"></a>     * @param mixed     $rule  验证规则
+<a name="line1013"></a>     * @return bool
+<a name="line1014"></a>     */
+<a name="line1015"></a>    protected function after($value, $rule)
+<a name="line1016"></a>    {
+<a name="line1017"></a>        return strtotime($value) >= strtotime($rule);
+<a name="line1018"></a>    }
+<a name="line1019"></a>
+<a name="line1020"></a>    /**
+<a name="line1021"></a>     * 验证日期
+<a name="line1022"></a>     * @access protected
+<a name="line1023"></a>     * @param mixed     $value  字段值
+<a name="line1024"></a>     * @param mixed     $rule  验证规则
+<a name="line1025"></a>     * @return bool
+<a name="line1026"></a>     */
+<a name="line1027"></a>    protected function before($value, $rule)
+<a name="line1028"></a>    {
+<a name="line1029"></a>        return strtotime($value) <= strtotime($rule);
+<a name="line1030"></a>    }
+<a name="line1031"></a>
+<a name="line1032"></a>    /**
+<a name="line1033"></a>     * 验证有效期
+<a name="line1034"></a>     * @access protected
+<a name="line1035"></a>     * @param mixed     $value  字段值
+<a name="line1036"></a>     * @param mixed     $rule  验证规则
+<a name="line1037"></a>     * @return bool
+<a name="line1038"></a>     */
+<a name="line1039"></a>    protected function expire($value, $rule)
+<a name="line1040"></a>    {
+<a name="line1041"></a>        if (is_string($rule)) {
+<a name="line1042"></a>            $rule = explode(',', $rule);
+<a name="line1043"></a>        }
+<a name="line1044"></a>        list($start, $end) = $rule;
+<a name="line1045"></a>        if (!is_numeric($start)) {
+<a name="line1046"></a>            $start = strtotime($start);
+<a name="line1047"></a>        }
+<a name="line1048"></a>
+<a name="line1049"></a>        if (!is_numeric($end)) {
+<a name="line1050"></a>            $end = strtotime($end);
+<a name="line1051"></a>        }
+<a name="line1052"></a>        return $_SERVER['REQUEST_TIME'] >= $start && $_SERVER['REQUEST_TIME'] <= $end;
+<a name="line1053"></a>    }
+<a name="line1054"></a>
+<a name="line1055"></a>    /**
+<a name="line1056"></a>     * 验证IP许可
+<a name="line1057"></a>     * @access protected
+<a name="line1058"></a>     * @param string    $value  字段值
+<a name="line1059"></a>     * @param mixed     $rule  验证规则
+<a name="line1060"></a>     * @return mixed
+<a name="line1061"></a>     */
+<a name="line1062"></a>    protected function allowIp($value, $rule)
+<a name="line1063"></a>    {
+<a name="line1064"></a>        return in_array($_SERVER['REMOTE_ADDR'], is_array($rule) ? $rule : explode(',', $rule));
+<a name="line1065"></a>    }
+<a name="line1066"></a>
+<a name="line1067"></a>    /**
+<a name="line1068"></a>     * 验证IP禁用
+<a name="line1069"></a>     * @access protected
+<a name="line1070"></a>     * @param string    $value  字段值
+<a name="line1071"></a>     * @param mixed     $rule  验证规则
+<a name="line1072"></a>     * @return mixed
+<a name="line1073"></a>     */
+<a name="line1074"></a>    protected function denyIp($value, $rule)
+<a name="line1075"></a>    {
+<a name="line1076"></a>        return !in_array($_SERVER['REMOTE_ADDR'], is_array($rule) ? $rule : explode(',', $rule));
+<a name="line1077"></a>    }
+<a name="line1078"></a>
+<a name="line1079"></a>    /**
+<a name="line1080"></a>     * 使用正则验证数据
+<a name="line1081"></a>     * @access protected
+<a name="line1082"></a>     * @param mixed     $value  字段值
+<a name="line1083"></a>     * @param mixed     $rule  验证规则 正则规则或者预定义正则名
+<a name="line1084"></a>     * @return mixed
+<a name="line1085"></a>     */
+<a name="line1086"></a>    protected function regex($value, $rule)
+<a name="line1087"></a>    {
+<a name="line1088"></a>        if (isset($this->regex[$rule])) {
+<a name="line1089"></a>            $rule = $this->regex[$rule];
+<a name="line1090"></a>        }
+<a name="line1091"></a>        if (0 !== strpos($rule, '/') && !preg_match('/\/[imsU]{0,4}$/', $rule)) {
+<a name="line1092"></a>            // 不是正则表达式则两端补上/
+<a name="line1093"></a>            $rule = '/^' . $rule . '$/';
+<a name="line1094"></a>        }
+<a name="line1095"></a>        return 1 === preg_match($rule, (string) $value);
+<a name="line1096"></a>    }
+<a name="line1097"></a>
+<a name="line1098"></a>    /**
+<a name="line1099"></a>     * 验证表单令牌
+<a name="line1100"></a>     * @access protected
+<a name="line1101"></a>     * @param mixed     $value  字段值
+<a name="line1102"></a>     * @param mixed     $rule  验证规则
+<a name="line1103"></a>     * @param array     $data  数据
+<a name="line1104"></a>     * @return bool
+<a name="line1105"></a>     */
+<a name="line1106"></a>    protected function token($value, $rule, $data)
+<a name="line1107"></a>    {
+<a name="line1108"></a>        $rule = !empty($rule) ? $rule : '__token__';
+<a name="line1109"></a>        if (!isset($data[$rule]) || !Session::has($rule)) {
+<a name="line1110"></a>            // 令牌数据无效
+<a name="line1111"></a>            return false;
+<a name="line1112"></a>        }
+<a name="line1113"></a>
+<a name="line1114"></a>        // 令牌验证
+<a name="line1115"></a>        if (isset($data[$rule]) && Session::get($rule) === $data[$rule]) {
+<a name="line1116"></a>            // 防止重复提交
+<a name="line1117"></a>            Session::delete($rule); // 验证完成销毁session
+<a name="line1118"></a>            return true;
+<a name="line1119"></a>        }
+<a name="line1120"></a>        // 开启TOKEN重置
+<a name="line1121"></a>        Session::delete($rule);
+<a name="line1122"></a>        return false;
+<a name="line1123"></a>    }
+<a name="line1124"></a>
+<a name="line1125"></a>    // 获取错误信息
+<a name="line1126"></a>    public function getError()
+<a name="line1127"></a>    {
+<a name="line1128"></a>        return $this->error;
+<a name="line1129"></a>    }
+<a name="line1130"></a>
+<a name="line1131"></a>    /**
+<a name="line1132"></a>     * 获取数据值
+<a name="line1133"></a>     * @access protected
+<a name="line1134"></a>     * @param array     $data  数据
+<a name="line1135"></a>     * @param string    $key  数据标识 支持二维
+<a name="line1136"></a>     * @return mixed
+<a name="line1137"></a>     */
+<a name="line1138"></a>    protected function getDataValue($data, $key)
+<a name="line1139"></a>    {
+<a name="line1140"></a>        if (strpos($key, '.')) {
+<a name="line1141"></a>            // 支持二维数组验证
+<a name="line1142"></a>            list($name1, $name2) = explode('.', $key);
+<a name="line1143"></a>            $value               = isset($data[$name1][$name2]) ? $data[$name1][$name2] : null;
+<a name="line1144"></a>        } else {
+<a name="line1145"></a>            $value = isset($data[$key]) ? $data[$key] : null;
+<a name="line1146"></a>        }
+<a name="line1147"></a>        return $value;
+<a name="line1148"></a>    }
+<a name="line1149"></a>
+<a name="line1150"></a>    /**
+<a name="line1151"></a>     * 获取验证规则的错误提示信息
+<a name="line1152"></a>     * @access protected
+<a name="line1153"></a>     * @param string    $attribute  字段英文名
+<a name="line1154"></a>     * @param string    $title  字段描述名
+<a name="line1155"></a>     * @param string    $type  验证规则名称
+<a name="line1156"></a>     * @param mixed     $rule  验证规则数据
+<a name="line1157"></a>     * @return string
+<a name="line1158"></a>     */
+<a name="line1159"></a>    protected function getRuleMsg($attribute, $title, $type, $rule)
+<a name="line1160"></a>    {
+<a name="line1161"></a>        if (isset($this->message[$attribute . '.' . $type])) {
+<a name="line1162"></a>            $msg = $this->message[$attribute . '.' . $type];
+<a name="line1163"></a>        } elseif (isset($this->message[$attribute])) {
+<a name="line1164"></a>            $msg = $this->message[$attribute];
+<a name="line1165"></a>        } elseif (isset(self::$typeMsg[$type])) {
+<a name="line1166"></a>            $msg = self::$typeMsg[$type];
+<a name="line1167"></a>        } else {
+<a name="line1168"></a>            $msg = $title . '规则错误';
+<a name="line1169"></a>        }
+<a name="line1170"></a>
+<a name="line1171"></a>        if (is_string($msg) && strpos($msg, '{%')) {
+<a name="line1172"></a>            $msg = Lang::get(substr($msg, 2, -1));
+<a name="line1173"></a>        }
+<a name="line1174"></a>
+<a name="line1175"></a>        if (is_string($msg) && false !== strpos($msg, ':')) {
+<a name="line1176"></a>            // 变量替换
+<a name="line1177"></a>            if (strpos($rule, ',')) {
+<a name="line1178"></a>                $array = array_pad(explode(',', $rule), 3, '');
+<a name="line1179"></a>            } else {
+<a name="line1180"></a>                $array = array_pad([], 3, '');
+<a name="line1181"></a>            }
+<a name="line1182"></a>            $msg = str_replace(
+<a name="line1183"></a>                [':attribute', ':rule', ':1', ':2', ':3'],
+<a name="line1184"></a>                [$title, (string) $rule, $array[0], $array[1], $array[2]],
+<a name="line1185"></a>                $msg);
+<a name="line1186"></a>        }
+<a name="line1187"></a>        return $msg;
+<a name="line1188"></a>    }
+<a name="line1189"></a>
+<a name="line1190"></a>    /**
+<a name="line1191"></a>     * 获取数据验证的场景
+<a name="line1192"></a>     * @access protected
+<a name="line1193"></a>     * @param string $scene  验证场景
+<a name="line1194"></a>     * @return array
+<a name="line1195"></a>     */
+<a name="line1196"></a>    protected function getScene($scene = '')
+<a name="line1197"></a>    {
+<a name="line1198"></a>        if (empty($scene)) {
+<a name="line1199"></a>            // 读取指定场景
+<a name="line1200"></a>            $scene = $this->currentScene;
+<a name="line1201"></a>        }
+<a name="line1202"></a>
+<a name="line1203"></a>        if (!empty($scene) && isset($this->scene[$scene])) {
+<a name="line1204"></a>            // 如果设置了验证适用场景
+<a name="line1205"></a>            $scene = $this->scene[$scene];
+<a name="line1206"></a>            if (is_string($scene)) {
+<a name="line1207"></a>                $scene = explode(',', $scene);
+<a name="line1208"></a>            }
+<a name="line1209"></a>        } else {
+<a name="line1210"></a>            $scene = [];
+<a name="line1211"></a>        }
+<a name="line1212"></a>        return $scene;
+<a name="line1213"></a>    }
+<a name="line1214"></a>
+<a name="line1215"></a>    public static function __callStatic($method, $params)
+<a name="line1216"></a>    {
+<a name="line1217"></a>        $class = new static;
+<a name="line1218"></a>        if (method_exists($class, $method)) {
+<a name="line1219"></a>            return call_user_func_array([$class, $method], $params);
+<a name="line1220"></a>        } else {
+<a name="line1221"></a>            throw new \BadMethodCallException('method not exists:' . __CLASS__ . '->' . $method);
+<a name="line1222"></a>        }
+<a name="line1223"></a>    }
+<a name="line1224"></a>}
+<a name="line1225"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\validate.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

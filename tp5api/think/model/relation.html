@@ -1,0 +1,542 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../../stylesheet.css">
+<link rel="start" href="../../overview-summary.html">
+
+<title>Relation (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../../overview-summary.html">Overview</a></li>
+<li><a href="../../think/model/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../../think/model/package-tree.html">Tree</a></li>
+<li><a href="../../overview-files.html">Files</a></li>
+<li><a href="../../deprecated-list.html">Deprecated</a></li>
+<li><a href="../../todo-list.html">Todo</a></li>
+<li><a href="../../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../../index.html" target="_top">Frames</a>
+<a href="../../think\model\relation.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\model\Relation</div>
+<a href="../../source/library/think/model/relation.php.html#line20" class="location">library\think\model\Relation.php at line 20</a>
+
+<h1>Class Relation</h1>
+
+<pre class="tree"><strong>Relation</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>Relation</strong></p>
+
+<hr>
+
+<table id="summary_field">
+<tr><th colspan="2">Constant Summary</th></tr>
+<tr>
+<td class="type">final static  int</td>
+<td class="description"><p class="name"><a href="#BELONGS_TO">BELONGS_TO</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  int</td>
+<td class="description"><p class="name"><a href="#BELONGS_TO_MANY">BELONGS_TO_MANY</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  int</td>
+<td class="description"><p class="name"><a href="#HAS_MANY">HAS_MANY</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  int</td>
+<td class="description"><p class="name"><a href="#HAS_MANY_THROUGH">HAS_MANY_THROUGH</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  int</td>
+<td class="description"><p class="name"><a href="#HAS_ONE">HAS_ONE</a></p></td>
+</tr>
+</table>
+
+<table id="summary_constructor">
+<tr><th colspan="2">Constructor Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#__construct()">__construct</a>(<a href="../../think/model.html">Model</a> model)</p><p class="description">架构函数</p></td>
+</tr>
+</table>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type"> array|string|integer</td>
+<td class="description"><p class="name"><a href="#getRelationInfo()">getRelationInfo</a>(string name)</p><p class="description">获取当前关联信息</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#getRelation()">getRelation</a>(mixed name)</p></td>
+</tr>
+<tr>
+<td class="type"> array</td>
+<td class="description"><p class="name"><a href="#eagerlyResultSet()">eagerlyResultSet</a>(array resultSet, string relation, string class)</p><p class="description">预载入关联查询 返回数据集</p></td>
+</tr>
+<tr>
+<td class="type">protected  mixed</td>
+<td class="description"><p class="name"><a href="#resultSetBuild()">resultSetBuild</a>(array resultSet, string class)</p><p class="description">封装关联数据集</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../../think/model.html">Model</a></td>
+<td class="description"><p class="name"><a href="#eagerlyResult()">eagerlyResult</a>(<a href="../../think/model.html">Model</a> result, string relation, string class)</p><p class="description">预载入关联查询 返回模型对象</p></td>
+</tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#match()">match</a>(string model, string relation, <a href="../../think/model.html">Model</a> result)</p><p class="description">一对一 关联模型预查询拼装</p></td>
+</tr>
+<tr>
+<td class="type">protected  array</td>
+<td class="description"><p class="name"><a href="#eagerlyOneToMany()">eagerlyOneToMany</a>(object model, array where, string relation, string subRelation, bool closure)</p><p class="description">一对多 关联模型预查询</p></td>
+</tr>
+<tr>
+<td class="type">protected  array</td>
+<td class="description"><p class="name"><a href="#eagerlyManyToMany()">eagerlyManyToMany</a>(object model, array where, string relation, string subRelation)</p><p class="description">多对多 关联模型预查询</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#setAlias()">setAlias</a>(array alias)</p><p class="description">设置当前关联定义的数据表别名</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#hasOne()">hasOne</a>(string model, string foreignKey, string localKey, array alias, string joinType)</p><p class="description">HAS ONE 关联定义</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#belongsTo()">belongsTo</a>(string model, string foreignKey, string otherKey, array alias, string joinType)</p><p class="description">BELONGS TO 关联定义</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#hasMany()">hasMany</a>(string model, string foreignKey, string localKey, array alias)</p><p class="description">HAS MANY 关联定义</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#hasManyThrough()">hasManyThrough</a>(string model, string through, string firstkey, string secondKey, string localKey, array alias, mixed foreignKey, mixed throughKey)</p><p class="description">HAS MANY 远程关联定义</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#belongsToMany()">belongsToMany</a>(string model, string table, string foreignKey, string localKey, array alias)</p><p class="description">BELONGS TO MANY 关联定义</p></td>
+</tr>
+<tr>
+<td class="type">protected  \think\db\Query|string</td>
+<td class="description"><p class="name"><a href="#belongsToManyQuery()">belongsToManyQuery</a>(object model, string table, string foreignKey, string localKey, array condition)</p><p class="description">BELONGS TO MANY 关联查询</p></td>
+</tr>
+<tr>
+<td class="type"> integer</td>
+<td class="description"><p class="name"><a href="#save()">save</a>(mixed data, array pivot)</p><p class="description">保存（新增）当前关联数据对象</p></td>
+</tr>
+<tr>
+<td class="type"> integer</td>
+<td class="description"><p class="name"><a href="#saveAll()">saveAll</a>(array dataSet, array pivot)</p><p class="description">批量保存当前关联数据对象</p></td>
+</tr>
+<tr>
+<td class="type"> integer</td>
+<td class="description"><p class="name"><a href="#attach()">attach</a>(mixed data, array pivot)</p><p class="description">附加关联的一个中间表数据</p></td>
+</tr>
+<tr>
+<td class="type"> integer</td>
+<td class="description"><p class="name"><a href="#detach()">detach</a>(integer|array data, bool relationDel)</p><p class="description">解除关联的一个中间表数据</p></td>
+</tr>
+</table>
+
+<h2 id="detail_field">Constant Detail</h2>
+<a href="../../source/library/think/model/relation.php.html#line25" class="location">library\think\model\Relation.php at line 25</a>
+
+<h3 id="BELONGS_TO">BELONGS_TO</h3>
+<code class="signature">public final static  int <strong>BELONGS_TO</strong> = 3</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line26" class="location">library\think\model\Relation.php at line 26</a>
+
+<h3 id="BELONGS_TO_MANY">BELONGS_TO_MANY</h3>
+<code class="signature">public final static  int <strong>BELONGS_TO_MANY</strong> = 4</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line23" class="location">library\think\model\Relation.php at line 23</a>
+
+<h3 id="HAS_MANY">HAS_MANY</h3>
+<code class="signature">public final static  int <strong>HAS_MANY</strong> = 2</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line24" class="location">library\think\model\Relation.php at line 24</a>
+
+<h3 id="HAS_MANY_THROUGH">HAS_MANY_THROUGH</h3>
+<code class="signature">public final static  int <strong>HAS_MANY_THROUGH</strong> = 5</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line22" class="location">library\think\model\Relation.php at line 22</a>
+
+<h3 id="HAS_ONE">HAS_ONE</h3>
+<code class="signature">public final static  int <strong>HAS_ONE</strong> = 1</code>
+<div class="details">
+</div>
+
+<hr>
+
+<h2 id="detail_method">Constructor Detail</h2>
+<a href="../../source/library/think/model/relation.php.html#line56" class="location">library\think\model\Relation.php at line 56</a>
+
+<h3 id="__construct()">__construct</h3>
+<code class="signature">public  void <strong>__construct</strong>(<a href="../../think/model.html">Model</a> model)</code>
+<div class="details">
+<p>架构函数</p><dl>
+<dt>Parameters:</dt>
+<dd>model - 上级模型对象</dd>
+</dl>
+</div>
+
+<hr>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../../source/library/think/model/relation.php.html#line67" class="location">library\think\model\Relation.php at line 67</a>
+
+<h3 id="getRelationInfo()">getRelationInfo</h3>
+<code class="signature">public  array|string|integer <strong>getRelationInfo</strong>(string name)</code>
+<div class="details">
+<p>获取当前关联信息</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 关联信息</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line82" class="location">library\think\model\Relation.php at line 82</a>
+
+<h3 id="getRelation()">getRelation</h3>
+<code class="signature">public  void <strong>getRelation</strong>(mixed name)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line137" class="location">library\think\model\Relation.php at line 137</a>
+
+<h3 id="eagerlyResultSet()">eagerlyResultSet</h3>
+<code class="signature">public  array <strong>eagerlyResultSet</strong>(array resultSet, string relation, string class)</code>
+<div class="details">
+<p>预载入关联查询 返回数据集</p><dl>
+<dt>Parameters:</dt>
+<dd>resultSet - 数据集</dd>
+<dd>relation - 关联名</dd>
+<dd>class - 数据集对象名 为空表示数组</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line233" class="location">library\think\model\Relation.php at line 233</a>
+
+<h3 id="resultSetBuild()">resultSetBuild</h3>
+<code class="signature">protected  mixed <strong>resultSetBuild</strong>(array resultSet, string class)</code>
+<div class="details">
+<p>封装关联数据集</p><dl>
+<dt>Parameters:</dt>
+<dd>resultSet - 数据集</dd>
+<dd>class - 数据集类名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line246" class="location">library\think\model\Relation.php at line 246</a>
+
+<h3 id="eagerlyResult()">eagerlyResult</h3>
+<code class="signature">public  <a href="../../think/model.html">Model</a> <strong>eagerlyResult</strong>(<a href="../../think/model.html">Model</a> result, string relation, string class)</code>
+<div class="details">
+<p>预载入关联查询 返回模型对象</p><dl>
+<dt>Parameters:</dt>
+<dd>result - 数据对象</dd>
+<dd>relation - 关联名</dd>
+<dd>class - 数据集对象名 为空表示数组</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line308" class="location">library\think\model\Relation.php at line 308</a>
+
+<h3 id="match()">match</h3>
+<code class="signature">protected  void <strong>match</strong>(string model, string relation, <a href="../../think/model.html">Model</a> result)</code>
+<div class="details">
+<p>一对一 关联模型预查询拼装</p><dl>
+<dt>Parameters:</dt>
+<dd>model - 模型名称</dd>
+<dd>relation - 关联名</dd>
+<dd>result - 模型对象实例</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line334" class="location">library\think\model\Relation.php at line 334</a>
+
+<h3 id="eagerlyOneToMany()">eagerlyOneToMany</h3>
+<code class="signature">protected  array <strong>eagerlyOneToMany</strong>(object model, array where, string relation, string subRelation, bool closure)</code>
+<div class="details">
+<p>一对多 关联模型预查询</p><dl>
+<dt>Parameters:</dt>
+<dd>model - 关联模型对象</dd>
+<dd>where - 关联预查询条件</dd>
+<dd>relation - 关联名</dd>
+<dd>subRelation - 子关联</dd>
+<dd></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line360" class="location">library\think\model\Relation.php at line 360</a>
+
+<h3 id="eagerlyManyToMany()">eagerlyManyToMany</h3>
+<code class="signature">protected  array <strong>eagerlyManyToMany</strong>(object model, array where, string relation, string subRelation)</code>
+<div class="details">
+<p>多对多 关联模型预查询</p><dl>
+<dt>Parameters:</dt>
+<dd>model - 关联模型对象</dd>
+<dd>where - 关联预查询条件</dd>
+<dd>relation - 关联名</dd>
+<dd>subRelation - 子关联</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line392" class="location">library\think\model\Relation.php at line 392</a>
+
+<h3 id="setAlias()">setAlias</h3>
+<code class="signature">public  $this <strong>setAlias</strong>(array alias)</code>
+<div class="details">
+<p>设置当前关联定义的数据表别名</p><dl>
+<dt>Parameters:</dt>
+<dd>alias - 别名定义</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line408" class="location">library\think\model\Relation.php at line 408</a>
+
+<h3 id="hasOne()">hasOne</h3>
+<code class="signature">public  $this <strong>hasOne</strong>(string model, string foreignKey, string localKey, array alias, string joinType)</code>
+<div class="details">
+<p>HAS ONE 关联定义</p><dl>
+<dt>Parameters:</dt>
+<dd>model - 模型名</dd>
+<dd>foreignKey - 关联外键</dd>
+<dd>localKey - 关联主键</dd>
+<dd>alias - 别名定义</dd>
+<dd>joinType - JOIN类型</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line431" class="location">library\think\model\Relation.php at line 431</a>
+
+<h3 id="belongsTo()">belongsTo</h3>
+<code class="signature">public  $this <strong>belongsTo</strong>(string model, string foreignKey, string otherKey, array alias, string joinType)</code>
+<div class="details">
+<p>BELONGS TO 关联定义</p><dl>
+<dt>Parameters:</dt>
+<dd>model - 模型名</dd>
+<dd>foreignKey - 关联外键</dd>
+<dd>otherKey - 关联主键</dd>
+<dd>alias - 别名定义</dd>
+<dd>joinType - JOIN类型</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line454" class="location">library\think\model\Relation.php at line 454</a>
+
+<h3 id="hasMany()">hasMany</h3>
+<code class="signature">public  $this <strong>hasMany</strong>(string model, string foreignKey, string localKey, array alias)</code>
+<div class="details">
+<p>HAS MANY 关联定义</p><dl>
+<dt>Parameters:</dt>
+<dd>model - 模型名</dd>
+<dd>foreignKey - 关联外键</dd>
+<dd>localKey - 关联主键</dd>
+<dd>alias - 别名定义</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line478" class="location">library\think\model\Relation.php at line 478</a>
+
+<h3 id="hasManyThrough()">hasManyThrough</h3>
+<code class="signature">public  $this <strong>hasManyThrough</strong>(string model, string through, string firstkey, string secondKey, string localKey, array alias, mixed foreignKey, mixed throughKey)</code>
+<div class="details">
+<p>HAS MANY 远程关联定义</p><dl>
+<dt>Parameters:</dt>
+<dd>model - 模型名</dd>
+<dd>through - 中间模型名</dd>
+<dd>firstkey - 关联外键</dd>
+<dd>secondKey - 关联外键</dd>
+<dd>localKey - 关联主键</dd>
+<dd>alias - 别名定义</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line503" class="location">library\think\model\Relation.php at line 503</a>
+
+<h3 id="belongsToMany()">belongsToMany</h3>
+<code class="signature">public  $this <strong>belongsToMany</strong>(string model, string table, string foreignKey, string localKey, array alias)</code>
+<div class="details">
+<p>BELONGS TO MANY 关联定义</p><dl>
+<dt>Parameters:</dt>
+<dd>model - 模型名</dd>
+<dd>table - 中间表名</dd>
+<dd>foreignKey - 关联模型外键</dd>
+<dd>localKey - 当前模型关联键</dd>
+<dd>alias - 别名定义</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line527" class="location">library\think\model\Relation.php at line 527</a>
+
+<h3 id="belongsToManyQuery()">belongsToManyQuery</h3>
+<code class="signature">protected  \think\db\Query|string <strong>belongsToManyQuery</strong>(object model, string table, string foreignKey, string localKey, array condition)</code>
+<div class="details">
+<p>BELONGS TO MANY 关联查询</p><dl>
+<dt>Parameters:</dt>
+<dd>model - 关联模型对象</dd>
+<dd>table - 中间表名</dd>
+<dd>foreignKey - 关联模型关联键</dd>
+<dd>localKey - 当前模型关联键</dd>
+<dd>condition - 关联查询条件</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line545" class="location">library\think\model\Relation.php at line 545</a>
+
+<h3 id="save()">save</h3>
+<code class="signature">public  integer <strong>save</strong>(mixed data, array pivot)</code>
+<div class="details">
+<p>保存（新增）当前关联数据对象</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 数据 可以使用数组 关联模型对象 和 关联对象的主键</dd>
+<dd>pivot - 中间表额外数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line572" class="location">library\think\model\Relation.php at line 572</a>
+
+<h3 id="saveAll()">saveAll</h3>
+<code class="signature">public  integer <strong>saveAll</strong>(array dataSet, array pivot)</code>
+<div class="details">
+<p>批量保存当前关联数据对象</p><dl>
+<dt>Parameters:</dt>
+<dd>dataSet - 数据集</dd>
+<dd>pivot - 中间表额外数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line598" class="location">library\think\model\Relation.php at line 598</a>
+
+<h3 id="attach()">attach</h3>
+<code class="signature">public  integer <strong>attach</strong>(mixed data, array pivot)</code>
+<div class="details">
+<p>附加关联的一个中间表数据</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 数据 可以使用数组、关联模型对象 或者 关联对象的主键</dd>
+<dd>pivot - 中间表额外数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/model/relation.php.html#line633" class="location">library\think\model\Relation.php at line 633</a>
+
+<h3 id="detach()">detach</h3>
+<code class="signature">public  integer <strong>detach</strong>(integer|array data, bool relationDel)</code>
+<div class="details">
+<p>解除关联的一个中间表数据</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 数据 可以使用关联对象的主键</dd>
+<dd>relationDel - 是否同时删除关联表数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../../overview-summary.html">Overview</a></li>
+<li><a href="../../think/model/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../../think/model/package-tree.html">Tree</a></li>
+<li><a href="../../overview-files.html">Files</a></li>
+<li><a href="../../deprecated-list.html">Deprecated</a></li>
+<li><a href="../../todo-list.html">Todo</a></li>
+<li><a href="../../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../../index.html" target="_top">Frames</a>
+<a href="../../think\model\relation.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

@@ -1,0 +1,258 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:04 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>Lang (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\lang.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\Lang</div>
+<a href="../source/library/think/lang.php.html#line18" class="location">library\think\Lang.php at line 18</a>
+
+<h1>Class Lang</h1>
+
+<pre class="tree"><strong>Lang</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>Lang</strong></p>
+
+<hr>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#range()">range</a>(str range)</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#set()">set</a>(string|array name, string value, string range)</p><p class="description">设置语言定义(不区分大小写)</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#load()">load</a>(string file, string range)</p><p class="description">加载语言定义(不区分大小写)</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#has()">has</a>(string|null name, array vars, string range)</p><p class="description">获取语言定义(不区分大小写)</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#get()">get</a>(string|null name, array vars, string range)</p><p class="description">获取语言定义(不区分大小写)</p></td>
+</tr>
+<tr>
+<td class="type">static  string</td>
+<td class="description"><p class="name"><a href="#detect()">detect</a>()</p><p class="description">自动侦测设置获取语言选择</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#setLangDetectVar()">setLangDetectVar</a>(string var)</p><p class="description">设置语言自动侦测的变量</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#setLangCookieVar()">setLangCookieVar</a>(string var)</p><p class="description">设置语言的cookie保存变量</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#setLangCookieExpire()">setLangCookieExpire</a>(string expire)</p><p class="description">设置语言的cookie的过期时间</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#setAllowLangList()">setAllowLangList</a>(array list)</p><p class="description">设置允许的语言列表</p></td>
+</tr>
+</table>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../source/library/think/lang.php.html#line34" class="location">library\think\Lang.php at line 34</a>
+
+<h3 id="range()">range</h3>
+<code class="signature">public static  void <strong>range</strong>(str range)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/lang.php.html#line50" class="location">library\think\Lang.php at line 50</a>
+
+<h3 id="set()">set</h3>
+<code class="signature">public static  mixed <strong>set</strong>(string|array name, string value, string range)</code>
+<div class="details">
+<p>设置语言定义(不区分大小写)</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 语言变量</dd>
+<dd>value - 语言值</dd>
+<dd>range - 语言作用域</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/lang.php.html#line70" class="location">library\think\Lang.php at line 70</a>
+
+<h3 id="load()">load</h3>
+<code class="signature">public static  mixed <strong>load</strong>(string file, string range)</code>
+<div class="details">
+<p>加载语言定义(不区分大小写)</p><dl>
+<dt>Parameters:</dt>
+<dd>file - 语言文件</dd>
+<dd>range - 语言作用域</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/lang.php.html#line104" class="location">library\think\Lang.php at line 104</a>
+
+<h3 id="has()">has</h3>
+<code class="signature">public static  mixed <strong>has</strong>(string|null name, array vars, string range)</code>
+<div class="details">
+<p>获取语言定义(不区分大小写)</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 语言变量</dd>
+<dd>vars - 变量替换</dd>
+<dd>range - 语言作用域</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/lang.php.html#line117" class="location">library\think\Lang.php at line 117</a>
+
+<h3 id="get()">get</h3>
+<code class="signature">public static  mixed <strong>get</strong>(string|null name, array vars, string range)</code>
+<div class="details">
+<p>获取语言定义(不区分大小写)</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 语言变量</dd>
+<dd>vars - 变量替换</dd>
+<dd>range - 语言作用域</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/lang.php.html#line155" class="location">library\think\Lang.php at line 155</a>
+
+<h3 id="detect()">detect</h3>
+<code class="signature">public static  string <strong>detect</strong>()</code>
+<div class="details">
+<p>自动侦测设置获取语言选择</p></div>
+
+<hr>
+
+<a href="../source/library/think/lang.php.html#line187" class="location">library\think\Lang.php at line 187</a>
+
+<h3 id="setLangDetectVar()">setLangDetectVar</h3>
+<code class="signature">public static  void <strong>setLangDetectVar</strong>(string var)</code>
+<div class="details">
+<p>设置语言自动侦测的变量</p><dl>
+<dt>Parameters:</dt>
+<dd>var - 变量名称</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/lang.php.html#line197" class="location">library\think\Lang.php at line 197</a>
+
+<h3 id="setLangCookieVar()">setLangCookieVar</h3>
+<code class="signature">public static  void <strong>setLangCookieVar</strong>(string var)</code>
+<div class="details">
+<p>设置语言的cookie保存变量</p><dl>
+<dt>Parameters:</dt>
+<dd>var - 变量名称</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/lang.php.html#line207" class="location">library\think\Lang.php at line 207</a>
+
+<h3 id="setLangCookieExpire()">setLangCookieExpire</h3>
+<code class="signature">public static  void <strong>setLangCookieExpire</strong>(string expire)</code>
+<div class="details">
+<p>设置语言的cookie的过期时间</p><dl>
+<dt>Parameters:</dt>
+<dd>expire - 过期时间</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/lang.php.html#line217" class="location">library\think\Lang.php at line 217</a>
+
+<h3 id="setAllowLangList()">setAllowLangList</h3>
+<code class="signature">public static  void <strong>setAllowLangList</strong>(array list)</code>
+<div class="details">
+<p>设置允许的语言列表</p><dl>
+<dt>Parameters:</dt>
+<dd>list - 语言列表</dd>
+</dl>
+</div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\lang.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

@@ -1,0 +1,177 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:04 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>Error (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\error.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\Error</div>
+<a href="../source/library/think/error.php.html#line19" class="location">library\think\Error.php at line 19</a>
+
+<h1>Class Error</h1>
+
+<pre class="tree"><strong>Error</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>Error</strong></p>
+
+<hr>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#register()">register</a>()</p><p class="description">注册异常处理</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#appException()">appException</a>(\Exception|\Throwable e)</p><p class="description">Exception Handler</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#appError()">appError</a>(integer errno, integer errstr, string errfile, integer errline, array errcontext)</p><p class="description">Error Handler</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#appShutdown()">appShutdown</a>()</p><p class="description">Shutdown Handler</p></td>
+</tr>
+<tr>
+<td class="type">protected static  bool</td>
+<td class="description"><p class="name"><a href="#isFatal()">isFatal</a>(int type)</p><p class="description">确定错误类型是否致命</p></td>
+</tr>
+<tr>
+<td class="type">static  <a href="../think/exception/handle.html">Handle</a></td>
+<td class="description"><p class="name"><a href="#getExceptionHandler()">getExceptionHandler</a>()</p><p class="description">Get an instance of the exception handler.</p></td>
+</tr>
+</table>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../source/library/think/error.php.html#line25" class="location">library\think\Error.php at line 25</a>
+
+<h3 id="register()">register</h3>
+<code class="signature">public static  void <strong>register</strong>()</code>
+<div class="details">
+<p>注册异常处理</p></div>
+
+<hr>
+
+<a href="../source/library/think/error.php.html#line37" class="location">library\think\Error.php at line 37</a>
+
+<h3 id="appException()">appException</h3>
+<code class="signature">public static  void <strong>appException</strong>(\Exception|\Throwable e)</code>
+<div class="details">
+<p>Exception Handler</p></div>
+
+<hr>
+
+<a href="../source/library/think/error.php.html#line60" class="location">library\think\Error.php at line 60</a>
+
+<h3 id="appError()">appError</h3>
+<code class="signature">public static  void <strong>appError</strong>(integer errno, integer errstr, string errfile, integer errline, array errcontext)</code>
+<div class="details">
+<p>Error Handler</p><dl>
+<dt>Parameters:</dt>
+<dd>errno - 错误编号</dd>
+<dd>errstr - 详细错误信息</dd>
+<dd>errfile - 出错的文件</dd>
+<dd>errline - 出错行号</dd>
+<dd></dd>
+<dt>Throws:</dt>
+<dd><a href="../think/exception/errorexception.html">ErrorException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/error.php.html#line74" class="location">library\think\Error.php at line 74</a>
+
+<h3 id="appShutdown()">appShutdown</h3>
+<code class="signature">public static  void <strong>appShutdown</strong>()</code>
+<div class="details">
+<p>Shutdown Handler</p></div>
+
+<hr>
+
+<a href="../source/library/think/error.php.html#line93" class="location">library\think\Error.php at line 93</a>
+
+<h3 id="isFatal()">isFatal</h3>
+<code class="signature">protected static  bool <strong>isFatal</strong>(int type)</code>
+<div class="details">
+<p>确定错误类型是否致命</p></div>
+
+<hr>
+
+<a href="../source/library/think/error.php.html#line103" class="location">library\think\Error.php at line 103</a>
+
+<h3 id="getExceptionHandler()">getExceptionHandler</h3>
+<code class="signature">public static  <a href="../think/exception/handle.html">Handle</a> <strong>getExceptionHandler</strong>()</code>
+<div class="details">
+<p>Get an instance of the exception handler.</p></div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\error.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

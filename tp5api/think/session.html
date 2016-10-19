@@ -1,0 +1,279 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:04 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>Session (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\session.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\Session</div>
+<a href="../source/library/think/session.php.html#line17" class="location">library\think\Session.php at line 17</a>
+
+<h1>Class Session</h1>
+
+<pre class="tree"><strong>Session</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>Session</strong></p>
+
+<hr>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type">static  string|void</td>
+<td class="description"><p class="name"><a href="#prefix()">prefix</a>(string prefix)</p><p class="description">设置或者获取session作用域（前缀）</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#init()">init</a>(array config)</p><p class="description">session初始化</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#boot()">boot</a>()</p><p class="description">session自动启动或者初始化</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#set()">set</a>(string name, mixed value, string|null prefix)</p><p class="description">session设置</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#get()">get</a>(string name, string|null prefix)</p><p class="description">session获取</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#pull()">pull</a>(string name, string|null prefix)</p><p class="description">session获取并删除</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#delete()">delete</a>(string name, string|null prefix)</p><p class="description">删除session数据</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#clear()">clear</a>(string|null prefix)</p><p class="description">清空session数据</p></td>
+</tr>
+<tr>
+<td class="type">static  bool</td>
+<td class="description"><p class="name"><a href="#has()">has</a>(string name, string|null prefix)</p><p class="description">判断session数据</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#start()">start</a>()</p><p class="description">启动session</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#destroy()">destroy</a>()</p><p class="description">销毁session</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#pause()">pause</a>()</p><p class="description">暂停session</p></td>
+</tr>
+</table>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../source/library/think/session.php.html#line27" class="location">library\think\Session.php at line 27</a>
+
+<h3 id="prefix()">prefix</h3>
+<code class="signature">public static  string|void <strong>prefix</strong>(string prefix)</code>
+<div class="details">
+<p>设置或者获取session作用域（前缀）</p></div>
+
+<hr>
+
+<a href="../source/library/think/session.php.html#line42" class="location">library\think\Session.php at line 42</a>
+
+<h3 id="init()">init</h3>
+<code class="signature">public static  void <strong>init</strong>(array config)</code>
+<div class="details">
+<p>session初始化</p><dl>
+<dt>Throws:</dt>
+<dd><a href="../think/exception.html">\think\Exception</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/session.php.html#line112" class="location">library\think\Session.php at line 112</a>
+
+<h3 id="boot()">boot</h3>
+<code class="signature">public static  void <strong>boot</strong>()</code>
+<div class="details">
+<p>session自动启动或者初始化</p></div>
+
+<hr>
+
+<a href="../source/library/think/session.php.html#line129" class="location">library\think\Session.php at line 129</a>
+
+<h3 id="set()">set</h3>
+<code class="signature">public static  void <strong>set</strong>(string name, mixed value, string|null prefix)</code>
+<div class="details">
+<p>session设置</p><dl>
+<dt>Parameters:</dt>
+<dd>name - session名称</dd>
+<dd>value - session值</dd>
+<dd>prefix - 作用域（前缀）</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/session.php.html#line155" class="location">library\think\Session.php at line 155</a>
+
+<h3 id="get()">get</h3>
+<code class="signature">public static  mixed <strong>get</strong>(string name, string|null prefix)</code>
+<div class="details">
+<p>session获取</p><dl>
+<dt>Parameters:</dt>
+<dd>name - session名称</dd>
+<dd>prefix - 作用域（前缀）</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/session.php.html#line187" class="location">library\think\Session.php at line 187</a>
+
+<h3 id="pull()">pull</h3>
+<code class="signature">public static  mixed <strong>pull</strong>(string name, string|null prefix)</code>
+<div class="details">
+<p>session获取并删除</p><dl>
+<dt>Parameters:</dt>
+<dd>name - session名称</dd>
+<dd>prefix - 作用域（前缀）</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/session.php.html#line204" class="location">library\think\Session.php at line 204</a>
+
+<h3 id="delete()">delete</h3>
+<code class="signature">public static  void <strong>delete</strong>(string name, string|null prefix)</code>
+<div class="details">
+<p>删除session数据</p><dl>
+<dt>Parameters:</dt>
+<dd>name - session名称</dd>
+<dd>prefix - 作用域（前缀）</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/session.php.html#line229" class="location">library\think\Session.php at line 229</a>
+
+<h3 id="clear()">clear</h3>
+<code class="signature">public static  void <strong>clear</strong>(string|null prefix)</code>
+<div class="details">
+<p>清空session数据</p><dl>
+<dt>Parameters:</dt>
+<dd>prefix - 作用域（前缀）</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/session.php.html#line246" class="location">library\think\Session.php at line 246</a>
+
+<h3 id="has()">has</h3>
+<code class="signature">public static  bool <strong>has</strong>(string name, string|null prefix)</code>
+<div class="details">
+<p>判断session数据</p><dl>
+<dt>Parameters:</dt>
+<dd>name - session名称</dd>
+<dd></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/session.php.html#line263" class="location">library\think\Session.php at line 263</a>
+
+<h3 id="start()">start</h3>
+<code class="signature">public static  void <strong>start</strong>()</code>
+<div class="details">
+<p>启动session</p></div>
+
+<hr>
+
+<a href="../source/library/think/session.php.html#line273" class="location">library\think\Session.php at line 273</a>
+
+<h3 id="destroy()">destroy</h3>
+<code class="signature">public static  void <strong>destroy</strong>()</code>
+<div class="details">
+<p>销毁session</p></div>
+
+<hr>
+
+<a href="../source/library/think/session.php.html#line297" class="location">library\think\Session.php at line 297</a>
+
+<h3 id="pause()">pause</h3>
+<code class="signature">public static  void <strong>pause</strong>()</code>
+<div class="details">
+<p>暂停session</p></div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\session.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

@@ -1,0 +1,827 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\db\Builder.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\db\builder.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\db\Builder.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think\db;
+<a name="line13"></a>
+<a name="line14"></a>use PDO;
+<a name="line15"></a>use think\Db;
+<a name="line16"></a>use think\db\Connection;
+<a name="line17"></a>use think\db\Query;
+<a name="line18"></a>use think\Exception;
+<a name="line19"></a>
+<a name="line20"></a>abstract class Builder
+<a name="line21"></a>{
+<a name="line22"></a>    // connection对象实例
+<a name="line23"></a>    protected $connection;
+<a name="line24"></a>    // 查询对象实例
+<a name="line25"></a>    protected $query;
+<a name="line26"></a>
+<a name="line27"></a>    // 数据库表达式
+<a name="line28"></a>    protected $exp = ['eq' => '=', 'neq' => '<>', 'gt' => '>', 'egt' => '>=', 'lt' => '<', 'elt' => '<=', 'notlike' => 'NOT LIKE', 'like' => 'LIKE', 'in' => 'IN', 'exp' => 'EXP', 'notin' => 'NOT IN', 'not in' => 'NOT IN', 'between' => 'BETWEEN', 'not between' => 'NOT BETWEEN', 'notbetween' => 'NOT BETWEEN', 'exists' => 'EXISTS', 'notexists' => 'NOT EXISTS', 'not exists' => 'NOT EXISTS', 'null' => 'NULL', 'notnull' => 'NOT NULL', 'not null' => 'NOT NULL', '> time' => '> TIME', '< time' => '< TIME', '>= time' => '>= TIME', '<= time' => '<= TIME', 'between time' => 'BETWEEN TIME', 'not between time' => 'NOT BETWEEN TIME', 'notbetween time' => 'NOT BETWEEN TIME'];
+<a name="line29"></a>
+<a name="line30"></a>    // SQL表达式
+<a name="line31"></a>    protected $selectSql    = 'SELECT%DISTINCT% %FIELD% FROM %TABLE%%FORCE%%JOIN%%WHERE%%GROUP%%HAVING%%ORDER%%LIMIT% %UNION%%LOCK%%COMMENT%';
+<a name="line32"></a>    protected $insertSql    = '%INSERT% INTO %TABLE% (%FIELD%) VALUES (%DATA%) %COMMENT%';
+<a name="line33"></a>    protected $insertAllSql = 'INSERT INTO %TABLE% (%FIELD%) %DATA% %COMMENT%';
+<a name="line34"></a>    protected $updateSql    = 'UPDATE %TABLE% SET %SET% %JOIN% %WHERE% %ORDER%%LIMIT% %LOCK%%COMMENT%';
+<a name="line35"></a>    protected $deleteSql    = 'DELETE FROM %TABLE% %USING% %JOIN% %WHERE% %ORDER%%LIMIT% %LOCK%%COMMENT%';
+<a name="line36"></a>
+<a name="line37"></a>    /**
+<a name="line38"></a>     * 架构函数
+<a name="line39"></a>     * @access public
+<a name="line40"></a>     * @param Connection $connection 数据库连接对象实例
+<a name="line41"></a>     */
+<a name="line42"></a>    public function __construct(Connection $connection)
+<a name="line43"></a>    {
+<a name="line44"></a>        $this->connection = $connection;
+<a name="line45"></a>    }
+<a name="line46"></a>
+<a name="line47"></a>    /**
+<a name="line48"></a>     * 设置当前的Query对象实例
+<a name="line49"></a>     * @access protected
+<a name="line50"></a>     * @param Query $query 当前查询对象实例
+<a name="line51"></a>     * @return void
+<a name="line52"></a>     */
+<a name="line53"></a>    public function setQuery(Query $query)
+<a name="line54"></a>    {
+<a name="line55"></a>        $this->query = $query;
+<a name="line56"></a>    }
+<a name="line57"></a>
+<a name="line58"></a>    /**
+<a name="line59"></a>     * 将SQL语句中的__TABLE_NAME__字符串替换成带前缀的表名（小写）
+<a name="line60"></a>     * @access protected
+<a name="line61"></a>     * @param string $sql sql语句
+<a name="line62"></a>     * @return string
+<a name="line63"></a>     */
+<a name="line64"></a>    protected function parseSqlTable($sql)
+<a name="line65"></a>    {
+<a name="line66"></a>        return $this->query->parseSqlTable($sql);
+<a name="line67"></a>    }
+<a name="line68"></a>
+<a name="line69"></a>    /**
+<a name="line70"></a>     * 数据分析
+<a name="line71"></a>     * @access protected
+<a name="line72"></a>     * @param array     $data 数据
+<a name="line73"></a>     * @param array     $options 查询参数
+<a name="line74"></a>     * @return array
+<a name="line75"></a>     */
+<a name="line76"></a>    protected function parseData($data, $options)
+<a name="line77"></a>    {
+<a name="line78"></a>        if (empty($data)) {
+<a name="line79"></a>            return [];
+<a name="line80"></a>        }
+<a name="line81"></a>
+<a name="line82"></a>        // 获取绑定信息
+<a name="line83"></a>        $bind = $this->query->getFieldsBind($options);
+<a name="line84"></a>        if ('*' == $options['field']) {
+<a name="line85"></a>            $fields = array_keys($bind);
+<a name="line86"></a>        } else {
+<a name="line87"></a>            $fields = $options['field'];
+<a name="line88"></a>        }
+<a name="line89"></a>
+<a name="line90"></a>        $result = [];
+<a name="line91"></a>        foreach ($data as $key => $val) {
+<a name="line92"></a>            $item = $this->parseKey($key, $options);
+<a name="line93"></a>            if (!in_array($key, $fields, true)) {
+<a name="line94"></a>                if ($options['strict']) {
+<a name="line95"></a>                    throw new Exception('fields not exists:[' . $key . ']');
+<a name="line96"></a>                }
+<a name="line97"></a>            } elseif (isset($val[0]) && 'exp' == $val[0]) {
+<a name="line98"></a>                $result[$item] = $val[1];
+<a name="line99"></a>            } elseif (is_null($val)) {
+<a name="line100"></a>                $result[$item] = 'NULL';
+<a name="line101"></a>            } elseif (is_scalar($val)) {
+<a name="line102"></a>                // 过滤非标量数据
+<a name="line103"></a>                if ($this->query->isBind(substr($val, 1))) {
+<a name="line104"></a>                    $result[$item] = $val;
+<a name="line105"></a>                } else {
+<a name="line106"></a>                    $this->query->bind($key, $val, isset($bind[$key]) ? $bind[$key] : PDO::PARAM_STR);
+<a name="line107"></a>                    $result[$item] = ':' . $key;
+<a name="line108"></a>                }
+<a name="line109"></a>            }
+<a name="line110"></a>        }
+<a name="line111"></a>        return $result;
+<a name="line112"></a>    }
+<a name="line113"></a>
+<a name="line114"></a>    /**
+<a name="line115"></a>     * 字段名分析
+<a name="line116"></a>     * @access protected
+<a name="line117"></a>     * @param string $key
+<a name="line118"></a>     * @param array  $options
+<a name="line119"></a>     * @return string
+<a name="line120"></a>     */
+<a name="line121"></a>    protected function parseKey($key, $options = [])
+<a name="line122"></a>    {
+<a name="line123"></a>        return $key;
+<a name="line124"></a>    }
+<a name="line125"></a>
+<a name="line126"></a>    /**
+<a name="line127"></a>     * value分析
+<a name="line128"></a>     * @access protected
+<a name="line129"></a>     * @param mixed     $value
+<a name="line130"></a>     * @param string    $field
+<a name="line131"></a>     * @return string|array
+<a name="line132"></a>     */
+<a name="line133"></a>    protected function parseValue($value, $field = '')
+<a name="line134"></a>    {
+<a name="line135"></a>        if (is_string($value)) {
+<a name="line136"></a>            $value = strpos($value, ':') === 0 && $this->query->isBind(substr($value, 1)) ? $value : $this->connection->quote($value);
+<a name="line137"></a>        } elseif (is_array($value)) {
+<a name="line138"></a>            $value = array_map([$this, 'parseValue'], $value);
+<a name="line139"></a>        } elseif (is_bool($value)) {
+<a name="line140"></a>            $value = $value ? '1' : '0';
+<a name="line141"></a>        } elseif (is_null($value)) {
+<a name="line142"></a>            $value = 'null';
+<a name="line143"></a>        }
+<a name="line144"></a>        return $value;
+<a name="line145"></a>    }
+<a name="line146"></a>
+<a name="line147"></a>    /**
+<a name="line148"></a>     * field分析
+<a name="line149"></a>     * @access protected
+<a name="line150"></a>     * @param mixed     $fields
+<a name="line151"></a>     * @param array     $options
+<a name="line152"></a>     * @return string
+<a name="line153"></a>     */
+<a name="line154"></a>    protected function parseField($fields, $options = [])
+<a name="line155"></a>    {
+<a name="line156"></a>        if ('*' == $fields || empty($fields)) {
+<a name="line157"></a>            $fieldsStr = '*';
+<a name="line158"></a>        } elseif (is_array($fields)) {
+<a name="line159"></a>            // 支持 'field1'=>'field2' 这样的字段别名定义
+<a name="line160"></a>            $array = [];
+<a name="line161"></a>            foreach ($fields as $key => $field) {
+<a name="line162"></a>                if (!is_numeric($key)) {
+<a name="line163"></a>                    $array[] = $this->parseKey($key, $options) . ' AS ' . $this->parseKey($field, $options);
+<a name="line164"></a>                } else {
+<a name="line165"></a>                    $array[] = $this->parseKey($field, $options);
+<a name="line166"></a>                }
+<a name="line167"></a>            }
+<a name="line168"></a>            $fieldsStr = implode(',', $array);
+<a name="line169"></a>        }
+<a name="line170"></a>        return $fieldsStr;
+<a name="line171"></a>    }
+<a name="line172"></a>
+<a name="line173"></a>    /**
+<a name="line174"></a>     * table分析
+<a name="line175"></a>     * @access protected
+<a name="line176"></a>     * @param mixed $tables
+<a name="line177"></a>     * @param array $options
+<a name="line178"></a>     * @return string
+<a name="line179"></a>     */
+<a name="line180"></a>    protected function parseTable($tables, $options = [])
+<a name="line181"></a>    {
+<a name="line182"></a>        $item = [];
+<a name="line183"></a>        foreach ((array) $tables as $key => $table) {
+<a name="line184"></a>            if (!is_numeric($key)) {
+<a name="line185"></a>                $key    = $this->parseSqlTable($key);
+<a name="line186"></a>                $item[] = $this->parseKey($key) . ' ' . $this->parseKey($table);
+<a name="line187"></a>            } else {
+<a name="line188"></a>                $table = $this->parseSqlTable($table);
+<a name="line189"></a>                if (isset($options['alias'][$table])) {
+<a name="line190"></a>                    $item[] = $this->parseKey($table) . ' ' . $this->parseKey($options['alias'][$table]);
+<a name="line191"></a>                } else {
+<a name="line192"></a>                    $item[] = $this->parseKey($table);
+<a name="line193"></a>                }
+<a name="line194"></a>            }
+<a name="line195"></a>        }
+<a name="line196"></a>        return implode(',', $item);
+<a name="line197"></a>    }
+<a name="line198"></a>
+<a name="line199"></a>    /**
+<a name="line200"></a>     * where分析
+<a name="line201"></a>     * @access protected
+<a name="line202"></a>     * @param mixed $where   查询条件
+<a name="line203"></a>     * @param array $options 查询参数
+<a name="line204"></a>     * @return string
+<a name="line205"></a>     */
+<a name="line206"></a>    protected function parseWhere($where, $options)
+<a name="line207"></a>    {
+<a name="line208"></a>        $whereStr = $this->buildWhere($where, $options);
+<a name="line209"></a>        return empty($whereStr) ? '' : ' WHERE ' . $whereStr;
+<a name="line210"></a>    }
+<a name="line211"></a>
+<a name="line212"></a>    /**
+<a name="line213"></a>     * 生成查询条件SQL
+<a name="line214"></a>     * @access public
+<a name="line215"></a>     * @param mixed     $where
+<a name="line216"></a>     * @param array     $options
+<a name="line217"></a>     * @return string
+<a name="line218"></a>     */
+<a name="line219"></a>    public function buildWhere($where, $options)
+<a name="line220"></a>    {
+<a name="line221"></a>        if (empty($where)) {
+<a name="line222"></a>            $where = [];
+<a name="line223"></a>        }
+<a name="line224"></a>
+<a name="line225"></a>        if ($where instanceof Query) {
+<a name="line226"></a>            return $this->buildWhere($where->getOptions('where'), $options);
+<a name="line227"></a>        }
+<a name="line228"></a>
+<a name="line229"></a>        $whereStr = '';
+<a name="line230"></a>        $binds    = $this->query->getFieldsBind($options);
+<a name="line231"></a>        foreach ($where as $key => $val) {
+<a name="line232"></a>            $str = [];
+<a name="line233"></a>            foreach ($val as $field => $value) {
+<a name="line234"></a>                if ($value instanceof \Closure) {
+<a name="line235"></a>                    // 使用闭包查询
+<a name="line236"></a>                    $query = new Query($this->connection);
+<a name="line237"></a>                    call_user_func_array($value, [ & $query]);
+<a name="line238"></a>                    $str[] = ' ' . $key . ' ( ' . $this->buildWhere($query->getOptions('where'), $options) . ' )';
+<a name="line239"></a>                } elseif (strpos($field, '|')) {
+<a name="line240"></a>                    // 不同字段使用相同查询条件（OR）
+<a name="line241"></a>                    $array = explode('|', $field);
+<a name="line242"></a>                    $item  = [];
+<a name="line243"></a>                    foreach ($array as $k) {
+<a name="line244"></a>                        $item[] = $this->parseWhereItem($k, $value, '', $options, $binds);
+<a name="line245"></a>                    }
+<a name="line246"></a>                    $str[] = ' ' . $key . ' ( ' . implode(' OR ', $item) . ' )';
+<a name="line247"></a>                } elseif (strpos($field, '&')) {
+<a name="line248"></a>                    // 不同字段使用相同查询条件（AND）
+<a name="line249"></a>                    $array = explode('&', $field);
+<a name="line250"></a>                    $item  = [];
+<a name="line251"></a>                    foreach ($array as $k) {
+<a name="line252"></a>                        $item[] = $this->parseWhereItem($k, $value, '', $options, $binds);
+<a name="line253"></a>                    }
+<a name="line254"></a>                    $str[] = ' ' . $key . ' ( ' . implode(' AND ', $item) . ' )';
+<a name="line255"></a>                } else {
+<a name="line256"></a>                    // 对字段使用表达式查询
+<a name="line257"></a>                    $field = is_string($field) ? $field : '';
+<a name="line258"></a>                    $str[] = ' ' . $key . ' ' . $this->parseWhereItem($field, $value, $key, $options, $binds);
+<a name="line259"></a>                }
+<a name="line260"></a>            }
+<a name="line261"></a>
+<a name="line262"></a>            $whereStr .= empty($whereStr) ? substr(implode(' ', $str), strlen($key) + 1) : implode(' ', $str);
+<a name="line263"></a>        }
+<a name="line264"></a>        return $whereStr;
+<a name="line265"></a>    }
+<a name="line266"></a>
+<a name="line267"></a>    // where子单元分析
+<a name="line268"></a>    protected function parseWhereItem($field, $val, $rule = '', $options = [], $binds = [], $bindName = null)
+<a name="line269"></a>    {
+<a name="line270"></a>        // 字段分析
+<a name="line271"></a>        $key = $field ? $this->parseKey($field, $options) : '';
+<a name="line272"></a>
+<a name="line273"></a>        // 查询规则和条件
+<a name="line274"></a>        if (!is_array($val)) {
+<a name="line275"></a>            $val = ['=', $val];
+<a name="line276"></a>        }
+<a name="line277"></a>        list($exp, $value) = $val;
+<a name="line278"></a>
+<a name="line279"></a>        // 对一个字段使用多个查询条件
+<a name="line280"></a>        if (is_array($exp)) {
+<a name="line281"></a>            $item = array_pop($val);
+<a name="line282"></a>            // 传入 or 或者 and
+<a name="line283"></a>            if (is_string($item) && in_array($item, ['AND', 'and', 'OR', 'or'])) {
+<a name="line284"></a>                $rule = $item;
+<a name="line285"></a>            } else {
+<a name="line286"></a>                array_push($val, $item);
+<a name="line287"></a>            }
+<a name="line288"></a>            foreach ($val as $k => $item) {
+<a name="line289"></a>                $bindName = 'where_' . str_replace('.', '_', $field) . '_' . $k;
+<a name="line290"></a>                $str[]    = $this->parseWhereItem($field, $item, $rule, $options, $binds, $bindName);
+<a name="line291"></a>            }
+<a name="line292"></a>            return '( ' . implode(' ' . $rule . ' ', $str) . ' )';
+<a name="line293"></a>        }
+<a name="line294"></a>
+<a name="line295"></a>        // 检测操作符
+<a name="line296"></a>        if (!in_array($exp, $this->exp)) {
+<a name="line297"></a>            $exp = strtolower($exp);
+<a name="line298"></a>            if (isset($this->exp[$exp])) {
+<a name="line299"></a>                $exp = $this->exp[$exp];
+<a name="line300"></a>            } else {
+<a name="line301"></a>                throw new Exception('where express error:' . $exp);
+<a name="line302"></a>            }
+<a name="line303"></a>        }
+<a name="line304"></a>        $bindName = $bindName ?: 'where_' . str_replace('.', '_', $field);
+<a name="line305"></a>        $bindType = isset($binds[$field]) ? $binds[$field] : PDO::PARAM_STR;
+<a name="line306"></a>        if (is_scalar($value) && array_key_exists($field, $binds) && !in_array($exp, ['EXP', 'NOT NULL', 'NULL', 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN']) && strpos($exp, 'TIME') === false) {
+<a name="line307"></a>            if (strpos($value, ':') !== 0 || !$this->query->isBind(substr($value, 1))) {
+<a name="line308"></a>                if ($this->query->isBind($bindName)) {
+<a name="line309"></a>                    $bindName .= '_' . uniqid();
+<a name="line310"></a>                }
+<a name="line311"></a>                $this->query->bind($bindName, $value, $bindType);
+<a name="line312"></a>                $value = ':' . $bindName;
+<a name="line313"></a>            }
+<a name="line314"></a>        }
+<a name="line315"></a>
+<a name="line316"></a>        $whereStr = '';
+<a name="line317"></a>        if (in_array($exp, ['=', '<>', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE'])) {
+<a name="line318"></a>            // 比较运算 及 模糊匹配
+<a name="line319"></a>            $whereStr .= $key . ' ' . $exp . ' ' . $this->parseValue($value, $field);
+<a name="line320"></a>        } elseif ('EXP' == $exp) {
+<a name="line321"></a>            // 表达式查询
+<a name="line322"></a>            $whereStr .= '( ' . $key . ' ' . $value . ' )';
+<a name="line323"></a>        } elseif (in_array($exp, ['NOT NULL', 'NULL'])) {
+<a name="line324"></a>            // NULL 查询
+<a name="line325"></a>            $whereStr .= $key . ' IS ' . $exp;
+<a name="line326"></a>        } elseif (in_array($exp, ['NOT IN', 'IN'])) {
+<a name="line327"></a>            // IN 查询
+<a name="line328"></a>            if ($value instanceof \Closure) {
+<a name="line329"></a>                $whereStr .= $key . ' ' . $exp . ' ' . $this->parseClosure($value);
+<a name="line330"></a>            } else {
+<a name="line331"></a>                $value = is_array($value) ? $value : explode(',', $value);
+<a name="line332"></a>                if (array_key_exists($field, $binds)) {
+<a name="line333"></a>                    $bind  = [];
+<a name="line334"></a>                    $array = [];
+<a name="line335"></a>                    foreach ($value as $k => $v) {
+<a name="line336"></a>                        $bind[$bindName . '_in_' . $k] = [$v, $bindType];
+<a name="line337"></a>                        $array[]                       = ':' . $bindName . '_in_' . $k;
+<a name="line338"></a>                    }
+<a name="line339"></a>                    $this->query->bind($bind);
+<a name="line340"></a>                    $zone = implode(',', $array);
+<a name="line341"></a>                } else {
+<a name="line342"></a>                    $zone = implode(',', $this->parseValue($value, $field));
+<a name="line343"></a>                }
+<a name="line344"></a>                $whereStr .= $key . ' ' . $exp . ' (' . $zone . ')';
+<a name="line345"></a>            }
+<a name="line346"></a>        } elseif (in_array($exp, ['NOT BETWEEN', 'BETWEEN'])) {
+<a name="line347"></a>            // BETWEEN 查询
+<a name="line348"></a>            $data = is_array($value) ? $value : explode(',', $value);
+<a name="line349"></a>            if (array_key_exists($field, $binds)) {
+<a name="line350"></a>                $bind = [
+<a name="line351"></a>                    $bindName . '_between_1' => [$data[0], $bindType],
+<a name="line352"></a>                    $bindName . '_between_2' => [$data[1], $bindType],
+<a name="line353"></a>                ];
+<a name="line354"></a>                $this->query->bind($bind);
+<a name="line355"></a>                $between = ':' . $bindName . '_between_1' . ' AND :' . $bindName . '_between_2';
+<a name="line356"></a>            } else {
+<a name="line357"></a>                $between = $this->parseValue($data[0], $field) . ' AND ' . $this->parseValue($data[1], $field);
+<a name="line358"></a>            }
+<a name="line359"></a>            $whereStr .= $key . ' ' . $exp . ' ' . $between;
+<a name="line360"></a>        } elseif (in_array($exp, ['NOT EXISTS', 'EXISTS'])) {
+<a name="line361"></a>            // EXISTS 查询
+<a name="line362"></a>            if ($value instanceof \Closure) {
+<a name="line363"></a>                $whereStr .= $exp . ' ' . $this->parseClosure($value);
+<a name="line364"></a>            } else {
+<a name="line365"></a>                $whereStr .= $exp . ' (' . $value . ')';
+<a name="line366"></a>            }
+<a name="line367"></a>        } elseif (in_array($exp, ['< TIME', '> TIME', '<= TIME', '>= TIME'])) {
+<a name="line368"></a>            $whereStr .= $key . ' ' . substr($exp, 0, 2) . ' ' . $this->parseDateTime($value, $field, $options, $bindName, $bindType);
+<a name="line369"></a>        } elseif (in_array($exp, ['BETWEEN TIME', 'NOT BETWEEN TIME'])) {
+<a name="line370"></a>            if (is_string($value)) {
+<a name="line371"></a>                $value = explode(',', $value);
+<a name="line372"></a>            }
+<a name="line373"></a>
+<a name="line374"></a>            $whereStr .= $key . ' ' . substr($exp, 0, -4) . $this->parseDateTime($value[0], $field, $options, $bindName . '_between_1', $bindType) . ' AND ' . $this->parseDateTime($value[1], $field, $options, $bindName . '_between_2', $bindType);
+<a name="line375"></a>        }
+<a name="line376"></a>        return $whereStr;
+<a name="line377"></a>    }
+<a name="line378"></a>
+<a name="line379"></a>    // 执行闭包子查询
+<a name="line380"></a>    protected function parseClosure($call, $show = true)
+<a name="line381"></a>    {
+<a name="line382"></a>        $query = new Query($this->connection);
+<a name="line383"></a>        call_user_func_array($call, [ & $query]);
+<a name="line384"></a>        return $query->buildSql($show);
+<a name="line385"></a>    }
+<a name="line386"></a>
+<a name="line387"></a>    /**
+<a name="line388"></a>     * 日期时间条件解析
+<a name="line389"></a>     * @access protected
+<a name="line390"></a>     * @param string    $value
+<a name="line391"></a>     * @param string    $key
+<a name="line392"></a>     * @param array     $options
+<a name="line393"></a>     * @param string    $bindName
+<a name="line394"></a>     * @param integer   $bindType
+<a name="line395"></a>     * @return string
+<a name="line396"></a>     */
+<a name="line397"></a>    protected function parseDateTime($value, $key, $options = [], $bindName = null, $bindType = null)
+<a name="line398"></a>    {
+<a name="line399"></a>        // 获取时间字段类型
+<a name="line400"></a>        $type = $this->query->getFieldsType($options);
+<a name="line401"></a>        if (isset($type[$key])) {
+<a name="line402"></a>            $info = $type[$key];
+<a name="line403"></a>        }
+<a name="line404"></a>        if (isset($info)) {
+<a name="line405"></a>            $value = strtotime($value) ?: $value;
+<a name="line406"></a>            if (preg_match('/(datetime|timestamp)/is', $info)) {
+<a name="line407"></a>                // 日期及时间戳类型
+<a name="line408"></a>                $value = date('Y-m-d H:i:s', $value);
+<a name="line409"></a>            } elseif (preg_match('/(date)/is', $info)) {
+<a name="line410"></a>                // 日期及时间戳类型
+<a name="line411"></a>                $value = date('Y-m-d', $value);
+<a name="line412"></a>            }
+<a name="line413"></a>        }
+<a name="line414"></a>        $bindName = $bindName ?: $key;
+<a name="line415"></a>        $this->query->bind($bindName, $value, $bindType);
+<a name="line416"></a>        return ':' . $bindName;
+<a name="line417"></a>    }
+<a name="line418"></a>
+<a name="line419"></a>    /**
+<a name="line420"></a>     * limit分析
+<a name="line421"></a>     * @access protected
+<a name="line422"></a>     * @param mixed $lmit
+<a name="line423"></a>     * @return string
+<a name="line424"></a>     */
+<a name="line425"></a>    protected function parseLimit($limit)
+<a name="line426"></a>    {
+<a name="line427"></a>        return (!empty($limit) && false === strpos($limit, '(')) ? ' LIMIT ' . $limit . ' ' : '';
+<a name="line428"></a>    }
+<a name="line429"></a>
+<a name="line430"></a>    /**
+<a name="line431"></a>     * join分析
+<a name="line432"></a>     * @access protected
+<a name="line433"></a>     * @param array $join
+<a name="line434"></a>     * @param array $options 查询条件
+<a name="line435"></a>     * @return string
+<a name="line436"></a>     */
+<a name="line437"></a>    protected function parseJoin($join, $options = [])
+<a name="line438"></a>    {
+<a name="line439"></a>        $joinStr = '';
+<a name="line440"></a>        if (!empty($join)) {
+<a name="line441"></a>            foreach ($join as $item) {
+<a name="line442"></a>                list($table, $type, $on) = $item;
+<a name="line443"></a>                $condition               = [];
+<a name="line444"></a>                foreach ((array) $on as $val) {
+<a name="line445"></a>                    if (strpos($val, '=')) {
+<a name="line446"></a>                        list($val1, $val2) = explode('=', $val, 2);
+<a name="line447"></a>                        $condition[]       = $this->parseKey($val1, $options) . '=' . $this->parseKey($val2, $options);
+<a name="line448"></a>                    } else {
+<a name="line449"></a>                        $condition[] = $val;
+<a name="line450"></a>                    }
+<a name="line451"></a>                }
+<a name="line452"></a>
+<a name="line453"></a>                $table = $this->parseTable($table, $options);
+<a name="line454"></a>                $joinStr .= ' ' . $type . ' JOIN ' . $table . ' ON ' . implode(' AND ', $condition);
+<a name="line455"></a>            }
+<a name="line456"></a>        }
+<a name="line457"></a>        return $joinStr;
+<a name="line458"></a>    }
+<a name="line459"></a>
+<a name="line460"></a>    /**
+<a name="line461"></a>     * order分析
+<a name="line462"></a>     * @access protected
+<a name="line463"></a>     * @param mixed $order
+<a name="line464"></a>     * @param array $options 查询条件
+<a name="line465"></a>     * @return string
+<a name="line466"></a>     */
+<a name="line467"></a>    protected function parseOrder($order, $options = [])
+<a name="line468"></a>    {
+<a name="line469"></a>        if (is_array($order)) {
+<a name="line470"></a>            $array = [];
+<a name="line471"></a>            foreach ($order as $key => $val) {
+<a name="line472"></a>                if (is_numeric($key)) {
+<a name="line473"></a>                    if (false === strpos($val, '(')) {
+<a name="line474"></a>                        $array[] = $this->parseKey($val, $options);
+<a name="line475"></a>                    } elseif ('[rand]' == $val) {
+<a name="line476"></a>                        $array[] = $this->parseRand();
+<a name="line477"></a>                    }
+<a name="line478"></a>                } else {
+<a name="line479"></a>                    $sort    = in_array(strtolower(trim($val)), ['asc', 'desc']) ? ' ' . $val : '';
+<a name="line480"></a>                    $array[] = $this->parseKey($key, $options) . ' ' . $sort;
+<a name="line481"></a>                }
+<a name="line482"></a>            }
+<a name="line483"></a>            $order = implode(',', $array);
+<a name="line484"></a>        }
+<a name="line485"></a>        return !empty($order) ? ' ORDER BY ' . $order : '';
+<a name="line486"></a>    }
+<a name="line487"></a>
+<a name="line488"></a>    /**
+<a name="line489"></a>     * group分析
+<a name="line490"></a>     * @access protected
+<a name="line491"></a>     * @param mixed $group
+<a name="line492"></a>     * @return string
+<a name="line493"></a>     */
+<a name="line494"></a>    protected function parseGroup($group)
+<a name="line495"></a>    {
+<a name="line496"></a>        return !empty($group) ? ' GROUP BY ' . $group : '';
+<a name="line497"></a>    }
+<a name="line498"></a>
+<a name="line499"></a>    /**
+<a name="line500"></a>     * having分析
+<a name="line501"></a>     * @access protected
+<a name="line502"></a>     * @param string $having
+<a name="line503"></a>     * @return string
+<a name="line504"></a>     */
+<a name="line505"></a>    protected function parseHaving($having)
+<a name="line506"></a>    {
+<a name="line507"></a>        return !empty($having) ? ' HAVING ' . $having : '';
+<a name="line508"></a>    }
+<a name="line509"></a>
+<a name="line510"></a>    /**
+<a name="line511"></a>     * comment分析
+<a name="line512"></a>     * @access protected
+<a name="line513"></a>     * @param string $comment
+<a name="line514"></a>     * @return string
+<a name="line515"></a>     */
+<a name="line516"></a>    protected function parseComment($comment)
+<a name="line517"></a>    {
+<a name="line518"></a>        return !empty($comment) ? ' /* ' . $comment . ' */' : '';
+<a name="line519"></a>    }
+<a name="line520"></a>
+<a name="line521"></a>    /**
+<a name="line522"></a>     * distinct分析
+<a name="line523"></a>     * @access protected
+<a name="line524"></a>     * @param mixed $distinct
+<a name="line525"></a>     * @return string
+<a name="line526"></a>     */
+<a name="line527"></a>    protected function parseDistinct($distinct)
+<a name="line528"></a>    {
+<a name="line529"></a>        return !empty($distinct) ? ' DISTINCT ' : '';
+<a name="line530"></a>    }
+<a name="line531"></a>
+<a name="line532"></a>    /**
+<a name="line533"></a>     * union分析
+<a name="line534"></a>     * @access protected
+<a name="line535"></a>     * @param mixed $union
+<a name="line536"></a>     * @return string
+<a name="line537"></a>     */
+<a name="line538"></a>    protected function parseUnion($union)
+<a name="line539"></a>    {
+<a name="line540"></a>        if (empty($union)) {
+<a name="line541"></a>            return '';
+<a name="line542"></a>        }
+<a name="line543"></a>        $type = $union['type'];
+<a name="line544"></a>        unset($union['type']);
+<a name="line545"></a>        foreach ($union as $u) {
+<a name="line546"></a>            if ($u instanceof \Closure) {
+<a name="line547"></a>                $sql[] = $type . ' ' . $this->parseClosure($u, false);
+<a name="line548"></a>            } elseif (is_string($u)) {
+<a name="line549"></a>                $sql[] = $type . ' ' . $this->parseSqlTable($u);
+<a name="line550"></a>            }
+<a name="line551"></a>        }
+<a name="line552"></a>        return implode(' ', $sql);
+<a name="line553"></a>    }
+<a name="line554"></a>
+<a name="line555"></a>    /**
+<a name="line556"></a>     * index分析，可在操作链中指定需要强制使用的索引
+<a name="line557"></a>     * @access protected
+<a name="line558"></a>     * @param mixed $index
+<a name="line559"></a>     * @return string
+<a name="line560"></a>     */
+<a name="line561"></a>    protected function parseForce($index)
+<a name="line562"></a>    {
+<a name="line563"></a>        if (empty($index)) {
+<a name="line564"></a>            return '';
+<a name="line565"></a>        }
+<a name="line566"></a>
+<a name="line567"></a>        if (is_array($index)) {
+<a name="line568"></a>            $index = join(",", $index);
+<a name="line569"></a>        }
+<a name="line570"></a>
+<a name="line571"></a>        return sprintf(" FORCE INDEX ( %s ) ", $index);
+<a name="line572"></a>    }
+<a name="line573"></a>
+<a name="line574"></a>    /**
+<a name="line575"></a>     * 设置锁机制
+<a name="line576"></a>     * @access protected
+<a name="line577"></a>     * @param bool $locl
+<a name="line578"></a>     * @return string
+<a name="line579"></a>     */
+<a name="line580"></a>    protected function parseLock($lock = false)
+<a name="line581"></a>    {
+<a name="line582"></a>        return $lock ? ' FOR UPDATE ' : '';
+<a name="line583"></a>    }
+<a name="line584"></a>
+<a name="line585"></a>    /**
+<a name="line586"></a>     * 生成查询SQL
+<a name="line587"></a>     * @access public
+<a name="line588"></a>     * @param array $options 表达式
+<a name="line589"></a>     * @return string
+<a name="line590"></a>     */
+<a name="line591"></a>    public function select($options = [])
+<a name="line592"></a>    {
+<a name="line593"></a>        $sql = str_replace(
+<a name="line594"></a>            ['%TABLE%', '%DISTINCT%', '%FIELD%', '%JOIN%', '%WHERE%', '%GROUP%', '%HAVING%', '%ORDER%', '%LIMIT%', '%UNION%', '%LOCK%', '%COMMENT%', '%FORCE%'],
+<a name="line595"></a>            [
+<a name="line596"></a>                $this->parseTable($options['table'], $options),
+<a name="line597"></a>                $this->parseDistinct($options['distinct']),
+<a name="line598"></a>                $this->parseField($options['field'], $options),
+<a name="line599"></a>                $this->parseJoin($options['join'], $options),
+<a name="line600"></a>                $this->parseWhere($options['where'], $options),
+<a name="line601"></a>                $this->parseGroup($options['group']),
+<a name="line602"></a>                $this->parseHaving($options['having']),
+<a name="line603"></a>                $this->parseOrder($options['order'], $options),
+<a name="line604"></a>                $this->parseLimit($options['limit']),
+<a name="line605"></a>                $this->parseUnion($options['union']),
+<a name="line606"></a>                $this->parseLock($options['lock']),
+<a name="line607"></a>                $this->parseComment($options['comment']),
+<a name="line608"></a>                $this->parseForce($options['force']),
+<a name="line609"></a>            ], $this->selectSql);
+<a name="line610"></a>        return $sql;
+<a name="line611"></a>    }
+<a name="line612"></a>
+<a name="line613"></a>    /**
+<a name="line614"></a>     * 生成insert SQL
+<a name="line615"></a>     * @access public
+<a name="line616"></a>     * @param array     $data 数据
+<a name="line617"></a>     * @param array     $options 表达式
+<a name="line618"></a>     * @param bool      $replace 是否replace
+<a name="line619"></a>     * @return string
+<a name="line620"></a>     */
+<a name="line621"></a>    public function insert(array $data, $options = [], $replace = false)
+<a name="line622"></a>    {
+<a name="line623"></a>        // 分析并处理数据
+<a name="line624"></a>        $data = $this->parseData($data, $options);
+<a name="line625"></a>        if (empty($data)) {
+<a name="line626"></a>            return 0;
+<a name="line627"></a>        }
+<a name="line628"></a>        $fields = array_keys($data);
+<a name="line629"></a>        $values = array_values($data);
+<a name="line630"></a>
+<a name="line631"></a>        $sql = str_replace(
+<a name="line632"></a>            ['%INSERT%', '%TABLE%', '%FIELD%', '%DATA%', '%COMMENT%'],
+<a name="line633"></a>            [
+<a name="line634"></a>                $replace ? 'REPLACE' : 'INSERT',
+<a name="line635"></a>                $this->parseTable($options['table'], $options),
+<a name="line636"></a>                implode(' , ', $fields),
+<a name="line637"></a>                implode(' , ', $values),
+<a name="line638"></a>                $this->parseComment($options['comment']),
+<a name="line639"></a>            ], $this->insertSql);
+<a name="line640"></a>
+<a name="line641"></a>        return $sql;
+<a name="line642"></a>    }
+<a name="line643"></a>
+<a name="line644"></a>    /**
+<a name="line645"></a>     * 生成insertall SQL
+<a name="line646"></a>     * @access public
+<a name="line647"></a>     * @param array     $dataSet 数据集
+<a name="line648"></a>     * @param array     $options 表达式
+<a name="line649"></a>     * @return string
+<a name="line650"></a>     */
+<a name="line651"></a>    public function insertAll($dataSet, $options)
+<a name="line652"></a>    {
+<a name="line653"></a>        // 获取合法的字段
+<a name="line654"></a>        if ('*' == $options['field']) {
+<a name="line655"></a>            $fields = array_keys($this->query->getFieldsType($options));
+<a name="line656"></a>        } else {
+<a name="line657"></a>            $fields = $options['field'];
+<a name="line658"></a>        }
+<a name="line659"></a>
+<a name="line660"></a>        foreach ($dataSet as &$data) {
+<a name="line661"></a>            foreach ($data as $key => $val) {
+<a name="line662"></a>                if (!in_array($key, $fields, true)) {
+<a name="line663"></a>                    if ($options['strict']) {
+<a name="line664"></a>                        throw new Exception('fields not exists:[' . $key . ']');
+<a name="line665"></a>                    }
+<a name="line666"></a>                    unset($data[$key]);
+<a name="line667"></a>                } elseif (is_scalar($val)) {
+<a name="line668"></a>                    $data[$key] = $this->parseValue($val, $key);
+<a name="line669"></a>                } else {
+<a name="line670"></a>                    // 过滤掉非标量数据
+<a name="line671"></a>                    unset($data[$key]);
+<a name="line672"></a>                }
+<a name="line673"></a>            }
+<a name="line674"></a>            $value    = array_values($data);
+<a name="line675"></a>            $values[] = 'SELECT ' . implode(',', $value);
+<a name="line676"></a>        }
+<a name="line677"></a>        $fields = array_map([$this, 'parseKey'], array_keys(reset($dataSet)));
+<a name="line678"></a>        $sql    = str_replace(
+<a name="line679"></a>            ['%TABLE%', '%FIELD%', '%DATA%', '%COMMENT%'],
+<a name="line680"></a>            [
+<a name="line681"></a>                $this->parseTable($options['table'], $options),
+<a name="line682"></a>                implode(' , ', $fields),
+<a name="line683"></a>                implode(' UNION ALL ', $values),
+<a name="line684"></a>                $this->parseComment($options['comment']),
+<a name="line685"></a>            ], $this->insertAllSql);
+<a name="line686"></a>
+<a name="line687"></a>        return $sql;
+<a name="line688"></a>    }
+<a name="line689"></a>
+<a name="line690"></a>    /**
+<a name="line691"></a>     * 生成slectinsert SQL
+<a name="line692"></a>     * @access public
+<a name="line693"></a>     * @param array     $fields 数据
+<a name="line694"></a>     * @param string    $table 数据表
+<a name="line695"></a>     * @param array     $options 表达式
+<a name="line696"></a>     * @return string
+<a name="line697"></a>     */
+<a name="line698"></a>    public function selectInsert($fields, $table, $options)
+<a name="line699"></a>    {
+<a name="line700"></a>        if (is_string($fields)) {
+<a name="line701"></a>            $fields = explode(',', $fields);
+<a name="line702"></a>        }
+<a name="line703"></a>
+<a name="line704"></a>        $fields = array_map([$this, 'parseKey'], $fields);
+<a name="line705"></a>        $sql    = 'INSERT INTO ' . $this->parseTable($table, $options) . ' (' . implode(',', $fields) . ') ' . $this->select($options);
+<a name="line706"></a>        return $sql;
+<a name="line707"></a>    }
+<a name="line708"></a>
+<a name="line709"></a>    /**
+<a name="line710"></a>     * 生成update SQL
+<a name="line711"></a>     * @access public
+<a name="line712"></a>     * @param array     $fields 数据
+<a name="line713"></a>     * @param array     $options 表达式
+<a name="line714"></a>     * @return string
+<a name="line715"></a>     */
+<a name="line716"></a>    public function update($data, $options)
+<a name="line717"></a>    {
+<a name="line718"></a>        $table = $this->parseTable($options['table'], $options);
+<a name="line719"></a>        $data  = $this->parseData($data, $options);
+<a name="line720"></a>        if (empty($data)) {
+<a name="line721"></a>            return '';
+<a name="line722"></a>        }
+<a name="line723"></a>        foreach ($data as $key => $val) {
+<a name="line724"></a>            $set[] = $key . '=' . $val;
+<a name="line725"></a>        }
+<a name="line726"></a>
+<a name="line727"></a>        $sql = str_replace(
+<a name="line728"></a>            ['%TABLE%', '%SET%', '%JOIN%', '%WHERE%', '%ORDER%', '%LIMIT%', '%LOCK%', '%COMMENT%'],
+<a name="line729"></a>            [
+<a name="line730"></a>                $this->parseTable($options['table'], $options),
+<a name="line731"></a>                implode(',', $set),
+<a name="line732"></a>                $this->parseJoin($options['join'], $options),
+<a name="line733"></a>                $this->parseWhere($options['where'], $options),
+<a name="line734"></a>                $this->parseOrder($options['order'], $options),
+<a name="line735"></a>                $this->parseLimit($options['limit']),
+<a name="line736"></a>                $this->parseLock($options['lock']),
+<a name="line737"></a>                $this->parseComment($options['comment']),
+<a name="line738"></a>            ], $this->updateSql);
+<a name="line739"></a>
+<a name="line740"></a>        return $sql;
+<a name="line741"></a>    }
+<a name="line742"></a>
+<a name="line743"></a>    /**
+<a name="line744"></a>     * 生成delete SQL
+<a name="line745"></a>     * @access public
+<a name="line746"></a>     * @param array $options 表达式
+<a name="line747"></a>     * @return string
+<a name="line748"></a>     */
+<a name="line749"></a>    public function delete($options)
+<a name="line750"></a>    {
+<a name="line751"></a>        $sql = str_replace(
+<a name="line752"></a>            ['%TABLE%', '%USING%', '%JOIN%', '%WHERE%', '%ORDER%', '%LIMIT%', '%LOCK%', '%COMMENT%'],
+<a name="line753"></a>            [
+<a name="line754"></a>                $this->parseTable($options['table'], $options),
+<a name="line755"></a>                !empty($options['using']) ? ' USING ' . $this->parseTable($options['using'], $options) . ' ' : '',
+<a name="line756"></a>                $this->parseJoin($options['join'], $options),
+<a name="line757"></a>                $this->parseWhere($options['where'], $options),
+<a name="line758"></a>                $this->parseOrder($options['order'], $options),
+<a name="line759"></a>                $this->parseLimit($options['limit']),
+<a name="line760"></a>                $this->parseLock($options['lock']),
+<a name="line761"></a>                $this->parseComment($options['comment']),
+<a name="line762"></a>            ], $this->deleteSql);
+<a name="line763"></a>
+<a name="line764"></a>        return $sql;
+<a name="line765"></a>    }
+<a name="line766"></a>}
+<a name="line767"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\db\builder.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

@@ -1,0 +1,779 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\Console.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\console.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\Console.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | TopThink [ WE CAN DO IT JUST THINK IT ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2015 http://www.topthink.com All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Author: zhangyajun <448901948@qq.com>
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>
+<a name="line10"></a>namespace think;
+<a name="line11"></a>
+<a name="line12"></a>use think\console\Command;
+<a name="line13"></a>use think\console\command\Help as HelpCommand;
+<a name="line14"></a>use think\console\Input;
+<a name="line15"></a>use think\console\input\Argument as InputArgument;
+<a name="line16"></a>use think\console\input\Definition as InputDefinition;
+<a name="line17"></a>use think\console\input\Option as InputOption;
+<a name="line18"></a>use think\console\Output;
+<a name="line19"></a>use think\console\output\driver\Buffer;
+<a name="line20"></a>
+<a name="line21"></a>class Console
+<a name="line22"></a>{
+<a name="line23"></a>
+<a name="line24"></a>    private $name;
+<a name="line25"></a>    private $version;
+<a name="line26"></a>
+<a name="line27"></a>    /** @var Command[] */
+<a name="line28"></a>    private $commands = [];
+<a name="line29"></a>
+<a name="line30"></a>    private $wantHelps = false;
+<a name="line31"></a>
+<a name="line32"></a>    private $catchExceptions = true;
+<a name="line33"></a>    private $autoExit        = true;
+<a name="line34"></a>    private $definition;
+<a name="line35"></a>    private $defaultCommand;
+<a name="line36"></a>
+<a name="line37"></a>    private static $defaultCommands = [
+<a name="line38"></a>        "think\\console\\command\\Help",
+<a name="line39"></a>        "think\\console\\command\\Lists",
+<a name="line40"></a>        "think\\console\\command\\Build",
+<a name="line41"></a>        "think\\console\\command\\Clear",
+<a name="line42"></a>        "think\\console\\command\\make\\Controller",
+<a name="line43"></a>        "think\\console\\command\\make\\Model",
+<a name="line44"></a>        "think\\console\\command\\optimize\\Autoload",
+<a name="line45"></a>        "think\\console\\command\\optimize\\Config",
+<a name="line46"></a>        "think\\console\\command\\optimize\\Route",
+<a name="line47"></a>        "think\\console\\command\\optimize\\Schema",
+<a name="line48"></a>    ];
+<a name="line49"></a>
+<a name="line50"></a>    public function __construct($name = 'UNKNOWN', $version = 'UNKNOWN')
+<a name="line51"></a>    {
+<a name="line52"></a>        $this->name    = $name;
+<a name="line53"></a>        $this->version = $version;
+<a name="line54"></a>
+<a name="line55"></a>        $this->defaultCommand = 'list';
+<a name="line56"></a>        $this->definition     = $this->getDefaultInputDefinition();
+<a name="line57"></a>
+<a name="line58"></a>        foreach ($this->getDefaultCommands() as $command) {
+<a name="line59"></a>            $this->add($command);
+<a name="line60"></a>        }
+<a name="line61"></a>    }
+<a name="line62"></a>
+<a name="line63"></a>    public static function init($run = true)
+<a name="line64"></a>    {
+<a name="line65"></a>        static $console;
+<a name="line66"></a>        if (!$console) {
+<a name="line67"></a>            // 实例化console
+<a name="line68"></a>            $console = new self('Think Console', '0.1');
+<a name="line69"></a>            // 读取指令集
+<a name="line70"></a>            if (is_file(CONF_PATH . 'command' . EXT)) {
+<a name="line71"></a>                $commands = include CONF_PATH . 'command' . EXT;
+<a name="line72"></a>                if (is_array($commands)) {
+<a name="line73"></a>                    foreach ($commands as $command) {
+<a name="line74"></a>                        if (class_exists($command) && is_subclass_of($command, "\\think\\console\\Command")) {
+<a name="line75"></a>                            // 注册指令
+<a name="line76"></a>                            $console->add(new $command());
+<a name="line77"></a>                        }
+<a name="line78"></a>                    }
+<a name="line79"></a>                }
+<a name="line80"></a>            }
+<a name="line81"></a>        }
+<a name="line82"></a>        if ($run) {
+<a name="line83"></a>            // 运行
+<a name="line84"></a>            return $console->run();
+<a name="line85"></a>        } else {
+<a name="line86"></a>            return $console;
+<a name="line87"></a>        }
+<a name="line88"></a>    }
+<a name="line89"></a>
+<a name="line90"></a>    /**
+<a name="line91"></a>     * @param       $command
+<a name="line92"></a>     * @param array $parameters
+<a name="line93"></a>     * @return Output|Buffer
+<a name="line94"></a>     */
+<a name="line95"></a>    public static function call($command, array $parameters = [])
+<a name="line96"></a>    {
+<a name="line97"></a>        $console = self::init(false);
+<a name="line98"></a>
+<a name="line99"></a>        array_unshift($parameters, $command);
+<a name="line100"></a>
+<a name="line101"></a>        $input  = new Input($parameters);
+<a name="line102"></a>        $output = new Output('buffer');
+<a name="line103"></a>
+<a name="line104"></a>        $console->setCatchExceptions(false);
+<a name="line105"></a>        $console->find($command)->run($input, $output);
+<a name="line106"></a>
+<a name="line107"></a>        return $output;
+<a name="line108"></a>    }
+<a name="line109"></a>
+<a name="line110"></a>    /**
+<a name="line111"></a>     * 执行当前的指令
+<a name="line112"></a>     * @return int
+<a name="line113"></a>     * @throws \Exception
+<a name="line114"></a>     * @api
+<a name="line115"></a>     */
+<a name="line116"></a>    public function run()
+<a name="line117"></a>    {
+<a name="line118"></a>        $input  = new Input();
+<a name="line119"></a>        $output = new Output();
+<a name="line120"></a>
+<a name="line121"></a>        $this->configureIO($input, $output);
+<a name="line122"></a>
+<a name="line123"></a>        try {
+<a name="line124"></a>            $exitCode = $this->doRun($input, $output);
+<a name="line125"></a>        } catch (\Exception $e) {
+<a name="line126"></a>            if (!$this->catchExceptions) {
+<a name="line127"></a>                throw $e;
+<a name="line128"></a>            }
+<a name="line129"></a>
+<a name="line130"></a>            $output->renderException($e);
+<a name="line131"></a>
+<a name="line132"></a>            $exitCode = $e->getCode();
+<a name="line133"></a>            if (is_numeric($exitCode)) {
+<a name="line134"></a>                $exitCode = (int) $exitCode;
+<a name="line135"></a>                if (0 === $exitCode) {
+<a name="line136"></a>                    $exitCode = 1;
+<a name="line137"></a>                }
+<a name="line138"></a>            } else {
+<a name="line139"></a>                $exitCode = 1;
+<a name="line140"></a>            }
+<a name="line141"></a>        }
+<a name="line142"></a>
+<a name="line143"></a>        if ($this->autoExit) {
+<a name="line144"></a>            if ($exitCode > 255) {
+<a name="line145"></a>                $exitCode = 255;
+<a name="line146"></a>            }
+<a name="line147"></a>
+<a name="line148"></a>            exit($exitCode);
+<a name="line149"></a>        }
+<a name="line150"></a>
+<a name="line151"></a>        return $exitCode;
+<a name="line152"></a>    }
+<a name="line153"></a>
+<a name="line154"></a>    /**
+<a name="line155"></a>     * 执行指令
+<a name="line156"></a>     * @param Input  $input
+<a name="line157"></a>     * @param Output $output
+<a name="line158"></a>     * @return int
+<a name="line159"></a>     */
+<a name="line160"></a>    public function doRun(Input $input, Output $output)
+<a name="line161"></a>    {
+<a name="line162"></a>        if (true === $input->hasParameterOption(['--version', '-V'])) {
+<a name="line163"></a>            $output->writeln($this->getLongVersion());
+<a name="line164"></a>
+<a name="line165"></a>            return 0;
+<a name="line166"></a>        }
+<a name="line167"></a>
+<a name="line168"></a>        $name = $this->getCommandName($input);
+<a name="line169"></a>
+<a name="line170"></a>        if (true === $input->hasParameterOption(['--help', '-h'])) {
+<a name="line171"></a>            if (!$name) {
+<a name="line172"></a>                $name  = 'help';
+<a name="line173"></a>                $input = new Input(['help']);
+<a name="line174"></a>            } else {
+<a name="line175"></a>                $this->wantHelps = true;
+<a name="line176"></a>            }
+<a name="line177"></a>        }
+<a name="line178"></a>
+<a name="line179"></a>        if (!$name) {
+<a name="line180"></a>            $name  = $this->defaultCommand;
+<a name="line181"></a>            $input = new Input([$this->defaultCommand]);
+<a name="line182"></a>        }
+<a name="line183"></a>
+<a name="line184"></a>        $command = $this->find($name);
+<a name="line185"></a>
+<a name="line186"></a>        $exitCode = $this->doRunCommand($command, $input, $output);
+<a name="line187"></a>
+<a name="line188"></a>        return $exitCode;
+<a name="line189"></a>    }
+<a name="line190"></a>
+<a name="line191"></a>    /**
+<a name="line192"></a>     * 设置输入参数定义
+<a name="line193"></a>     * @param InputDefinition $definition
+<a name="line194"></a>     */
+<a name="line195"></a>    public function setDefinition(InputDefinition $definition)
+<a name="line196"></a>    {
+<a name="line197"></a>        $this->definition = $definition;
+<a name="line198"></a>    }
+<a name="line199"></a>
+<a name="line200"></a>    /**
+<a name="line201"></a>     * 获取输入参数定义
+<a name="line202"></a>     * @return InputDefinition The InputDefinition instance
+<a name="line203"></a>     */
+<a name="line204"></a>    public function getDefinition()
+<a name="line205"></a>    {
+<a name="line206"></a>        return $this->definition;
+<a name="line207"></a>    }
+<a name="line208"></a>
+<a name="line209"></a>    /**
+<a name="line210"></a>     * Gets the help message.
+<a name="line211"></a>     * @return string A help message.
+<a name="line212"></a>     */
+<a name="line213"></a>    public function getHelp()
+<a name="line214"></a>    {
+<a name="line215"></a>        return $this->getLongVersion();
+<a name="line216"></a>    }
+<a name="line217"></a>
+<a name="line218"></a>    /**
+<a name="line219"></a>     * 是否捕获异常
+<a name="line220"></a>     * @param bool $boolean
+<a name="line221"></a>     * @api
+<a name="line222"></a>     */
+<a name="line223"></a>    public function setCatchExceptions($boolean)
+<a name="line224"></a>    {
+<a name="line225"></a>        $this->catchExceptions = (bool) $boolean;
+<a name="line226"></a>    }
+<a name="line227"></a>
+<a name="line228"></a>    /**
+<a name="line229"></a>     * 是否自动退出
+<a name="line230"></a>     * @param bool $boolean
+<a name="line231"></a>     * @api
+<a name="line232"></a>     */
+<a name="line233"></a>    public function setAutoExit($boolean)
+<a name="line234"></a>    {
+<a name="line235"></a>        $this->autoExit = (bool) $boolean;
+<a name="line236"></a>    }
+<a name="line237"></a>
+<a name="line238"></a>    /**
+<a name="line239"></a>     * 获取名称
+<a name="line240"></a>     * @return string
+<a name="line241"></a>     */
+<a name="line242"></a>    public function getName()
+<a name="line243"></a>    {
+<a name="line244"></a>        return $this->name;
+<a name="line245"></a>    }
+<a name="line246"></a>
+<a name="line247"></a>    /**
+<a name="line248"></a>     * 设置名称
+<a name="line249"></a>     * @param string $name
+<a name="line250"></a>     */
+<a name="line251"></a>    public function setName($name)
+<a name="line252"></a>    {
+<a name="line253"></a>        $this->name = $name;
+<a name="line254"></a>    }
+<a name="line255"></a>
+<a name="line256"></a>    /**
+<a name="line257"></a>     * 获取版本
+<a name="line258"></a>     * @return string
+<a name="line259"></a>     * @api
+<a name="line260"></a>     */
+<a name="line261"></a>    public function getVersion()
+<a name="line262"></a>    {
+<a name="line263"></a>        return $this->version;
+<a name="line264"></a>    }
+<a name="line265"></a>
+<a name="line266"></a>    /**
+<a name="line267"></a>     * 设置版本
+<a name="line268"></a>     * @param string $version
+<a name="line269"></a>     */
+<a name="line270"></a>    public function setVersion($version)
+<a name="line271"></a>    {
+<a name="line272"></a>        $this->version = $version;
+<a name="line273"></a>    }
+<a name="line274"></a>
+<a name="line275"></a>    /**
+<a name="line276"></a>     * 获取完整的版本号
+<a name="line277"></a>     * @return string
+<a name="line278"></a>     */
+<a name="line279"></a>    public function getLongVersion()
+<a name="line280"></a>    {
+<a name="line281"></a>        if ('UNKNOWN' !== $this->getName() && 'UNKNOWN' !== $this->getVersion()) {
+<a name="line282"></a>            return sprintf('<info>%s</info> version <comment>%s</comment>', $this->getName(), $this->getVersion());
+<a name="line283"></a>        }
+<a name="line284"></a>
+<a name="line285"></a>        return '<info>Console Tool</info>';
+<a name="line286"></a>    }
+<a name="line287"></a>
+<a name="line288"></a>    /**
+<a name="line289"></a>     * 注册一个指令
+<a name="line290"></a>     * @param string $name
+<a name="line291"></a>     * @return Command
+<a name="line292"></a>     */
+<a name="line293"></a>    public function register($name)
+<a name="line294"></a>    {
+<a name="line295"></a>        return $this->add(new Command($name));
+<a name="line296"></a>    }
+<a name="line297"></a>
+<a name="line298"></a>    /**
+<a name="line299"></a>     * 添加指令
+<a name="line300"></a>     * @param Command[] $commands
+<a name="line301"></a>     */
+<a name="line302"></a>    public function addCommands(array $commands)
+<a name="line303"></a>    {
+<a name="line304"></a>        foreach ($commands as $command) {
+<a name="line305"></a>            $this->add($command);
+<a name="line306"></a>        }
+<a name="line307"></a>    }
+<a name="line308"></a>
+<a name="line309"></a>    /**
+<a name="line310"></a>     * 添加一个指令
+<a name="line311"></a>     * @param Command $command
+<a name="line312"></a>     * @return Command
+<a name="line313"></a>     */
+<a name="line314"></a>    public function add(Command $command)
+<a name="line315"></a>    {
+<a name="line316"></a>        $command->setConsole($this);
+<a name="line317"></a>
+<a name="line318"></a>        if (!$command->isEnabled()) {
+<a name="line319"></a>            $command->setConsole(null);
+<a name="line320"></a>            return null;
+<a name="line321"></a>        }
+<a name="line322"></a>
+<a name="line323"></a>        if (null === $command->getDefinition()) {
+<a name="line324"></a>            throw new \LogicException(sprintf('Command class "%s" is not correctly initialized. You probably forgot to call the parent constructor.', get_class($command)));
+<a name="line325"></a>        }
+<a name="line326"></a>
+<a name="line327"></a>        $this->commands[$command->getName()] = $command;
+<a name="line328"></a>
+<a name="line329"></a>        foreach ($command->getAliases() as $alias) {
+<a name="line330"></a>            $this->commands[$alias] = $command;
+<a name="line331"></a>        }
+<a name="line332"></a>
+<a name="line333"></a>        return $command;
+<a name="line334"></a>    }
+<a name="line335"></a>
+<a name="line336"></a>    /**
+<a name="line337"></a>     * 获取指令
+<a name="line338"></a>     * @param string $name 指令名称
+<a name="line339"></a>     * @return Command
+<a name="line340"></a>     * @throws \InvalidArgumentException
+<a name="line341"></a>     */
+<a name="line342"></a>    public function get($name)
+<a name="line343"></a>    {
+<a name="line344"></a>        if (!isset($this->commands[$name])) {
+<a name="line345"></a>            throw new \InvalidArgumentException(sprintf('The command "%s" does not exist.', $name));
+<a name="line346"></a>        }
+<a name="line347"></a>
+<a name="line348"></a>        $command = $this->commands[$name];
+<a name="line349"></a>
+<a name="line350"></a>        if ($this->wantHelps) {
+<a name="line351"></a>            $this->wantHelps = false;
+<a name="line352"></a>
+<a name="line353"></a>            /** @var HelpCommand $helpCommand */
+<a name="line354"></a>            $helpCommand = $this->get('help');
+<a name="line355"></a>            $helpCommand->setCommand($command);
+<a name="line356"></a>
+<a name="line357"></a>            return $helpCommand;
+<a name="line358"></a>        }
+<a name="line359"></a>
+<a name="line360"></a>        return $command;
+<a name="line361"></a>    }
+<a name="line362"></a>
+<a name="line363"></a>    /**
+<a name="line364"></a>     * 某个指令是否存在
+<a name="line365"></a>     * @param string $name 指令名称
+<a name="line366"></a>     * @return bool
+<a name="line367"></a>     */
+<a name="line368"></a>    public function has($name)
+<a name="line369"></a>    {
+<a name="line370"></a>        return isset($this->commands[$name]);
+<a name="line371"></a>    }
+<a name="line372"></a>
+<a name="line373"></a>    /**
+<a name="line374"></a>     * 获取所有的命名空间
+<a name="line375"></a>     * @return array
+<a name="line376"></a>     */
+<a name="line377"></a>    public function getNamespaces()
+<a name="line378"></a>    {
+<a name="line379"></a>        $namespaces = [];
+<a name="line380"></a>        foreach ($this->commands as $command) {
+<a name="line381"></a>            $namespaces = array_merge($namespaces, $this->extractAllNamespaces($command->getName()));
+<a name="line382"></a>
+<a name="line383"></a>            foreach ($command->getAliases() as $alias) {
+<a name="line384"></a>                $namespaces = array_merge($namespaces, $this->extractAllNamespaces($alias));
+<a name="line385"></a>            }
+<a name="line386"></a>        }
+<a name="line387"></a>
+<a name="line388"></a>        return array_values(array_unique(array_filter($namespaces)));
+<a name="line389"></a>    }
+<a name="line390"></a>
+<a name="line391"></a>    /**
+<a name="line392"></a>     * 查找注册命名空间中的名称或缩写。
+<a name="line393"></a>     * @param string $namespace
+<a name="line394"></a>     * @return string
+<a name="line395"></a>     * @throws \InvalidArgumentException
+<a name="line396"></a>     */
+<a name="line397"></a>    public function findNamespace($namespace)
+<a name="line398"></a>    {
+<a name="line399"></a>        $allNamespaces = $this->getNamespaces();
+<a name="line400"></a>        $expr          = preg_replace_callback('{([^:]+|)}', function ($matches) {
+<a name="line401"></a>            return preg_quote($matches[1]) . '[^:]*';
+<a name="line402"></a>        }, $namespace);
+<a name="line403"></a>        $namespaces = preg_grep('{^' . $expr . '}', $allNamespaces);
+<a name="line404"></a>
+<a name="line405"></a>        if (empty($namespaces)) {
+<a name="line406"></a>            $message = sprintf('There are no commands defined in the "%s" namespace.', $namespace);
+<a name="line407"></a>
+<a name="line408"></a>            if ($alternatives = $this->findAlternatives($namespace, $allNamespaces)) {
+<a name="line409"></a>                if (1 == count($alternatives)) {
+<a name="line410"></a>                    $message .= "\n\nDid you mean this?\n    ";
+<a name="line411"></a>                } else {
+<a name="line412"></a>                    $message .= "\n\nDid you mean one of these?\n    ";
+<a name="line413"></a>                }
+<a name="line414"></a>
+<a name="line415"></a>                $message .= implode("\n    ", $alternatives);
+<a name="line416"></a>            }
+<a name="line417"></a>
+<a name="line418"></a>            throw new \InvalidArgumentException($message);
+<a name="line419"></a>        }
+<a name="line420"></a>
+<a name="line421"></a>        $exact = in_array($namespace, $namespaces, true);
+<a name="line422"></a>        if (count($namespaces) > 1 && !$exact) {
+<a name="line423"></a>            throw new \InvalidArgumentException(sprintf('The namespace "%s" is ambiguous (%s).', $namespace, $this->getAbbreviationSuggestions(array_values($namespaces))));
+<a name="line424"></a>        }
+<a name="line425"></a>
+<a name="line426"></a>        return $exact ? $namespace : reset($namespaces);
+<a name="line427"></a>    }
+<a name="line428"></a>
+<a name="line429"></a>    /**
+<a name="line430"></a>     * 查找指令
+<a name="line431"></a>     * @param string $name 名称或者别名
+<a name="line432"></a>     * @return Command
+<a name="line433"></a>     * @throws \InvalidArgumentException
+<a name="line434"></a>     */
+<a name="line435"></a>    public function find($name)
+<a name="line436"></a>    {
+<a name="line437"></a>        $allCommands = array_keys($this->commands);
+<a name="line438"></a>        $expr        = preg_replace_callback('{([^:]+|)}', function ($matches) {
+<a name="line439"></a>            return preg_quote($matches[1]) . '[^:]*';
+<a name="line440"></a>        }, $name);
+<a name="line441"></a>        $commands = preg_grep('{^' . $expr . '}', $allCommands);
+<a name="line442"></a>
+<a name="line443"></a>        if (empty($commands) || count(preg_grep('{^' . $expr . '$}', $commands)) < 1) {
+<a name="line444"></a>            if (false !== $pos = strrpos($name, ':')) {
+<a name="line445"></a>                $this->findNamespace(substr($name, 0, $pos));
+<a name="line446"></a>            }
+<a name="line447"></a>
+<a name="line448"></a>            $message = sprintf('Command "%s" is not defined.', $name);
+<a name="line449"></a>
+<a name="line450"></a>            if ($alternatives = $this->findAlternatives($name, $allCommands)) {
+<a name="line451"></a>                if (1 == count($alternatives)) {
+<a name="line452"></a>                    $message .= "\n\nDid you mean this?\n    ";
+<a name="line453"></a>                } else {
+<a name="line454"></a>                    $message .= "\n\nDid you mean one of these?\n    ";
+<a name="line455"></a>                }
+<a name="line456"></a>                $message .= implode("\n    ", $alternatives);
+<a name="line457"></a>            }
+<a name="line458"></a>
+<a name="line459"></a>            throw new \InvalidArgumentException($message);
+<a name="line460"></a>        }
+<a name="line461"></a>
+<a name="line462"></a>        if (count($commands) > 1) {
+<a name="line463"></a>            $commandList = $this->commands;
+<a name="line464"></a>            $commands    = array_filter($commands, function ($nameOrAlias) use ($commandList, $commands) {
+<a name="line465"></a>                $commandName = $commandList[$nameOrAlias]->getName();
+<a name="line466"></a>
+<a name="line467"></a>                return $commandName === $nameOrAlias || !in_array($commandName, $commands);
+<a name="line468"></a>            });
+<a name="line469"></a>        }
+<a name="line470"></a>
+<a name="line471"></a>        $exact = in_array($name, $commands, true);
+<a name="line472"></a>        if (count($commands) > 1 && !$exact) {
+<a name="line473"></a>            $suggestions = $this->getAbbreviationSuggestions(array_values($commands));
+<a name="line474"></a>
+<a name="line475"></a>            throw new \InvalidArgumentException(sprintf('Command "%s" is ambiguous (%s).', $name, $suggestions));
+<a name="line476"></a>        }
+<a name="line477"></a>
+<a name="line478"></a>        return $this->get($exact ? $name : reset($commands));
+<a name="line479"></a>    }
+<a name="line480"></a>
+<a name="line481"></a>    /**
+<a name="line482"></a>     * 获取所有的指令
+<a name="line483"></a>     * @param string $namespace 命名空间
+<a name="line484"></a>     * @return Command[]
+<a name="line485"></a>     * @api
+<a name="line486"></a>     */
+<a name="line487"></a>    public function all($namespace = null)
+<a name="line488"></a>    {
+<a name="line489"></a>        if (null === $namespace) {
+<a name="line490"></a>            return $this->commands;
+<a name="line491"></a>        }
+<a name="line492"></a>
+<a name="line493"></a>        $commands = [];
+<a name="line494"></a>        foreach ($this->commands as $name => $command) {
+<a name="line495"></a>            if ($this->extractNamespace($name, substr_count($namespace, ':') + 1) === $namespace) {
+<a name="line496"></a>                $commands[$name] = $command;
+<a name="line497"></a>            }
+<a name="line498"></a>        }
+<a name="line499"></a>
+<a name="line500"></a>        return $commands;
+<a name="line501"></a>    }
+<a name="line502"></a>
+<a name="line503"></a>    /**
+<a name="line504"></a>     * 获取可能的指令名
+<a name="line505"></a>     * @param array $names
+<a name="line506"></a>     * @return array
+<a name="line507"></a>     */
+<a name="line508"></a>    public static function getAbbreviations($names)
+<a name="line509"></a>    {
+<a name="line510"></a>        $abbrevs = [];
+<a name="line511"></a>        foreach ($names as $name) {
+<a name="line512"></a>            for ($len = strlen($name); $len > 0; --$len) {
+<a name="line513"></a>                $abbrev             = substr($name, 0, $len);
+<a name="line514"></a>                $abbrevs[$abbrev][] = $name;
+<a name="line515"></a>            }
+<a name="line516"></a>        }
+<a name="line517"></a>
+<a name="line518"></a>        return $abbrevs;
+<a name="line519"></a>    }
+<a name="line520"></a>
+<a name="line521"></a>    /**
+<a name="line522"></a>     * 配置基于用户的参数和选项的输入和输出实例。
+<a name="line523"></a>     * @param Input  $input  输入实例
+<a name="line524"></a>     * @param Output $output 输出实例
+<a name="line525"></a>     */
+<a name="line526"></a>    protected function configureIO(Input $input, Output $output)
+<a name="line527"></a>    {
+<a name="line528"></a>        if (true === $input->hasParameterOption(['--ansi'])) {
+<a name="line529"></a>            $output->setDecorated(true);
+<a name="line530"></a>        } elseif (true === $input->hasParameterOption(['--no-ansi'])) {
+<a name="line531"></a>            $output->setDecorated(false);
+<a name="line532"></a>        }
+<a name="line533"></a>
+<a name="line534"></a>        if (true === $input->hasParameterOption(['--no-interaction', '-n'])) {
+<a name="line535"></a>            $input->setInteractive(false);
+<a name="line536"></a>        }
+<a name="line537"></a>
+<a name="line538"></a>        if (true === $input->hasParameterOption(['--quiet', '-q'])) {
+<a name="line539"></a>            $output->setVerbosity(Output::VERBOSITY_QUIET);
+<a name="line540"></a>        } else {
+<a name="line541"></a>            if ($input->hasParameterOption('-vvv') || $input->hasParameterOption('--verbose=3') || $input->getParameterOption('--verbose') === 3) {
+<a name="line542"></a>                $output->setVerbosity(Output::VERBOSITY_DEBUG);
+<a name="line543"></a>            } elseif ($input->hasParameterOption('-vv') || $input->hasParameterOption('--verbose=2') || $input->getParameterOption('--verbose') === 2) {
+<a name="line544"></a>                $output->setVerbosity(Output::VERBOSITY_VERY_VERBOSE);
+<a name="line545"></a>            } elseif ($input->hasParameterOption('-v') || $input->hasParameterOption('--verbose=1') || $input->hasParameterOption('--verbose') || $input->getParameterOption('--verbose')) {
+<a name="line546"></a>                $output->setVerbosity(Output::VERBOSITY_VERBOSE);
+<a name="line547"></a>            }
+<a name="line548"></a>        }
+<a name="line549"></a>    }
+<a name="line550"></a>
+<a name="line551"></a>    /**
+<a name="line552"></a>     * 执行指令
+<a name="line553"></a>     * @param Command $command 指令实例
+<a name="line554"></a>     * @param Input   $input   输入实例
+<a name="line555"></a>     * @param Output  $output  输出实例
+<a name="line556"></a>     * @return int
+<a name="line557"></a>     * @throws \Exception
+<a name="line558"></a>     */
+<a name="line559"></a>    protected function doRunCommand(Command $command, Input $input, Output $output)
+<a name="line560"></a>    {
+<a name="line561"></a>        return $command->run($input, $output);
+<a name="line562"></a>    }
+<a name="line563"></a>
+<a name="line564"></a>    /**
+<a name="line565"></a>     * 获取指令的基础名称
+<a name="line566"></a>     * @param Input $input
+<a name="line567"></a>     * @return string
+<a name="line568"></a>     */
+<a name="line569"></a>    protected function getCommandName(Input $input)
+<a name="line570"></a>    {
+<a name="line571"></a>        return $input->getFirstArgument();
+<a name="line572"></a>    }
+<a name="line573"></a>
+<a name="line574"></a>    /**
+<a name="line575"></a>     * 获取默认输入定义
+<a name="line576"></a>     * @return InputDefinition
+<a name="line577"></a>     */
+<a name="line578"></a>    protected function getDefaultInputDefinition()
+<a name="line579"></a>    {
+<a name="line580"></a>        return new InputDefinition([
+<a name="line581"></a>            new InputArgument('command', InputArgument::REQUIRED, 'The command to execute'),
+<a name="line582"></a>            new InputOption('--help', '-h', InputOption::VALUE_NONE, 'Display this help message'),
+<a name="line583"></a>            new InputOption('--version', '-V', InputOption::VALUE_NONE, 'Display this console version'),
+<a name="line584"></a>            new InputOption('--quiet', '-q', InputOption::VALUE_NONE, 'Do not output any message'),
+<a name="line585"></a>            new InputOption('--verbose', '-v|vv|vvv', InputOption::VALUE_NONE, 'Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug'),
+<a name="line586"></a>            new InputOption('--ansi', '', InputOption::VALUE_NONE, 'Force ANSI output'),
+<a name="line587"></a>            new InputOption('--no-ansi', '', InputOption::VALUE_NONE, 'Disable ANSI output'),
+<a name="line588"></a>            new InputOption('--no-interaction', '-n', InputOption::VALUE_NONE, 'Do not ask any interactive question'),
+<a name="line589"></a>        ]);
+<a name="line590"></a>    }
+<a name="line591"></a>
+<a name="line592"></a>    /**
+<a name="line593"></a>     * 设置默认命令
+<a name="line594"></a>     * @return Command[] An array of default Command instances
+<a name="line595"></a>     */
+<a name="line596"></a>    protected function getDefaultCommands()
+<a name="line597"></a>    {
+<a name="line598"></a>        $defaultCommands = [];
+<a name="line599"></a>
+<a name="line600"></a>        foreach (self::$defaultCommands as $classname) {
+<a name="line601"></a>            if (class_exists($classname) && is_subclass_of($classname, "think\\console\\Command")) {
+<a name="line602"></a>                $defaultCommands[] = new $classname();
+<a name="line603"></a>            }
+<a name="line604"></a>        }
+<a name="line605"></a>
+<a name="line606"></a>        return $defaultCommands;
+<a name="line607"></a>    }
+<a name="line608"></a>
+<a name="line609"></a>    public static function addDefaultCommands(array $classnames)
+<a name="line610"></a>    {
+<a name="line611"></a>        self::$defaultCommands = array_merge(self::$defaultCommands, $classnames);
+<a name="line612"></a>    }
+<a name="line613"></a>
+<a name="line614"></a>    /**
+<a name="line615"></a>     * 获取可能的建议
+<a name="line616"></a>     * @param array $abbrevs
+<a name="line617"></a>     * @return string
+<a name="line618"></a>     */
+<a name="line619"></a>    private function getAbbreviationSuggestions($abbrevs)
+<a name="line620"></a>    {
+<a name="line621"></a>        return sprintf('%s, %s%s', $abbrevs[0], $abbrevs[1], count($abbrevs) > 2 ? sprintf(' and %d more', count($abbrevs) - 2) : '');
+<a name="line622"></a>    }
+<a name="line623"></a>
+<a name="line624"></a>    /**
+<a name="line625"></a>     * 返回命名空间部分
+<a name="line626"></a>     * @param string $name  指令
+<a name="line627"></a>     * @param string $limit 部分的命名空间的最大数量
+<a name="line628"></a>     * @return string
+<a name="line629"></a>     */
+<a name="line630"></a>    public function extractNamespace($name, $limit = null)
+<a name="line631"></a>    {
+<a name="line632"></a>        $parts = explode(':', $name);
+<a name="line633"></a>        array_pop($parts);
+<a name="line634"></a>
+<a name="line635"></a>        return implode(':', null === $limit ? $parts : array_slice($parts, 0, $limit));
+<a name="line636"></a>    }
+<a name="line637"></a>
+<a name="line638"></a>    /**
+<a name="line639"></a>     * 查找可替代的建议
+<a name="line640"></a>     * @param string             $name
+<a name="line641"></a>     * @param array|\Traversable $collection
+<a name="line642"></a>     * @return array
+<a name="line643"></a>     */
+<a name="line644"></a>    private function findAlternatives($name, $collection)
+<a name="line645"></a>    {
+<a name="line646"></a>        $threshold    = 1e3;
+<a name="line647"></a>        $alternatives = [];
+<a name="line648"></a>
+<a name="line649"></a>        $collectionParts = [];
+<a name="line650"></a>        foreach ($collection as $item) {
+<a name="line651"></a>            $collectionParts[$item] = explode(':', $item);
+<a name="line652"></a>        }
+<a name="line653"></a>
+<a name="line654"></a>        foreach (explode(':', $name) as $i => $subname) {
+<a name="line655"></a>            foreach ($collectionParts as $collectionName => $parts) {
+<a name="line656"></a>                $exists = isset($alternatives[$collectionName]);
+<a name="line657"></a>                if (!isset($parts[$i]) && $exists) {
+<a name="line658"></a>                    $alternatives[$collectionName] += $threshold;
+<a name="line659"></a>                    continue;
+<a name="line660"></a>                } elseif (!isset($parts[$i])) {
+<a name="line661"></a>                    continue;
+<a name="line662"></a>                }
+<a name="line663"></a>
+<a name="line664"></a>                $lev = levenshtein($subname, $parts[$i]);
+<a name="line665"></a>                if ($lev <= strlen($subname) / 3 || '' !== $subname && false !== strpos($parts[$i], $subname)) {
+<a name="line666"></a>                    $alternatives[$collectionName] = $exists ? $alternatives[$collectionName] + $lev : $lev;
+<a name="line667"></a>                } elseif ($exists) {
+<a name="line668"></a>                    $alternatives[$collectionName] += $threshold;
+<a name="line669"></a>                }
+<a name="line670"></a>            }
+<a name="line671"></a>        }
+<a name="line672"></a>
+<a name="line673"></a>        foreach ($collection as $item) {
+<a name="line674"></a>            $lev = levenshtein($name, $item);
+<a name="line675"></a>            if ($lev <= strlen($name) / 3 || false !== strpos($item, $name)) {
+<a name="line676"></a>                $alternatives[$item] = isset($alternatives[$item]) ? $alternatives[$item] - $lev : $lev;
+<a name="line677"></a>            }
+<a name="line678"></a>        }
+<a name="line679"></a>
+<a name="line680"></a>        $alternatives = array_filter($alternatives, function ($lev) use ($threshold) {
+<a name="line681"></a>            return $lev < 2 * $threshold;
+<a name="line682"></a>        });
+<a name="line683"></a>        asort($alternatives);
+<a name="line684"></a>
+<a name="line685"></a>        return array_keys($alternatives);
+<a name="line686"></a>    }
+<a name="line687"></a>
+<a name="line688"></a>    /**
+<a name="line689"></a>     * 设置默认的指令
+<a name="line690"></a>     * @param string $commandName The Command name
+<a name="line691"></a>     */
+<a name="line692"></a>    public function setDefaultCommand($commandName)
+<a name="line693"></a>    {
+<a name="line694"></a>        $this->defaultCommand = $commandName;
+<a name="line695"></a>    }
+<a name="line696"></a>
+<a name="line697"></a>    /**
+<a name="line698"></a>     * 返回所有的命名空间
+<a name="line699"></a>     * @param string $name
+<a name="line700"></a>     * @return array
+<a name="line701"></a>     */
+<a name="line702"></a>    private function extractAllNamespaces($name)
+<a name="line703"></a>    {
+<a name="line704"></a>        $parts      = explode(':', $name, -1);
+<a name="line705"></a>        $namespaces = [];
+<a name="line706"></a>
+<a name="line707"></a>        foreach ($parts as $part) {
+<a name="line708"></a>            if (count($namespaces)) {
+<a name="line709"></a>                $namespaces[] = end($namespaces) . ':' . $part;
+<a name="line710"></a>            } else {
+<a name="line711"></a>                $namespaces[] = $part;
+<a name="line712"></a>            }
+<a name="line713"></a>        }
+<a name="line714"></a>
+<a name="line715"></a>        return $namespaces;
+<a name="line716"></a>    }
+<a name="line717"></a>
+<a name="line718"></a>}
+<a name="line719"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\console.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

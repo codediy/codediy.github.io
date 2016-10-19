@@ -1,0 +1,395 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:06 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\template\TagLib.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\template\taglib.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\template\TagLib.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think\template;
+<a name="line13"></a>
+<a name="line14"></a>use think\Exception;
+<a name="line15"></a>
+<a name="line16"></a>/**
+<a name="line17"></a> * ThinkPHP标签库TagLib解析基类
+<a name="line18"></a> * @category   Think
+<a name="line19"></a> * @package  Think
+<a name="line20"></a> * @subpackage  Template
+<a name="line21"></a> * @author    liu21st <liu21st@gmail.com>
+<a name="line22"></a> */
+<a name="line23"></a>class TagLib
+<a name="line24"></a>{
+<a name="line25"></a>
+<a name="line26"></a>    /**
+<a name="line27"></a>     * 标签库定义XML文件
+<a name="line28"></a>     * @var string
+<a name="line29"></a>     * @access protected
+<a name="line30"></a>     */
+<a name="line31"></a>    protected $xml  = '';
+<a name="line32"></a>    protected $tags = []; // 标签定义
+<a name="line33"></a>    /**
+<a name="line34"></a>     * 标签库名称
+<a name="line35"></a>     * @var string
+<a name="line36"></a>     * @access protected
+<a name="line37"></a>     */
+<a name="line38"></a>    protected $tagLib = '';
+<a name="line39"></a>
+<a name="line40"></a>    /**
+<a name="line41"></a>     * 标签库标签列表
+<a name="line42"></a>     * @var array
+<a name="line43"></a>     * @access protected
+<a name="line44"></a>     */
+<a name="line45"></a>    protected $tagList = [];
+<a name="line46"></a>
+<a name="line47"></a>    /**
+<a name="line48"></a>     * 标签库分析数组
+<a name="line49"></a>     * @var array
+<a name="line50"></a>     * @access protected
+<a name="line51"></a>     */
+<a name="line52"></a>    protected $parse = [];
+<a name="line53"></a>
+<a name="line54"></a>    /**
+<a name="line55"></a>     * 标签库是否有效
+<a name="line56"></a>     * @var bool
+<a name="line57"></a>     * @access protected
+<a name="line58"></a>     */
+<a name="line59"></a>    protected $valid = false;
+<a name="line60"></a>
+<a name="line61"></a>    /**
+<a name="line62"></a>     * 当前模板对象
+<a name="line63"></a>     * @var object
+<a name="line64"></a>     * @access protected
+<a name="line65"></a>     */
+<a name="line66"></a>    protected $tpl;
+<a name="line67"></a>
+<a name="line68"></a>    protected $comparison = [' nheq ' => ' !== ', ' heq ' => ' === ', ' neq ' => ' != ', ' eq ' => ' == ', ' egt ' => ' >= ', ' gt ' => ' > ', ' elt ' => ' <= ', ' lt ' => ' < '];
+<a name="line69"></a>
+<a name="line70"></a>    /**
+<a name="line71"></a>     * 架构函数
+<a name="line72"></a>     * @access public
+<a name="line73"></a>     * @param \stdClass $template 模板引擎对象
+<a name="line74"></a>     */
+<a name="line75"></a>    public function __construct($template)
+<a name="line76"></a>    {
+<a name="line77"></a>        $this->tpl = $template;
+<a name="line78"></a>    }
+<a name="line79"></a>
+<a name="line80"></a>    /**
+<a name="line81"></a>     * 按签标库替换页面中的标签
+<a name="line82"></a>     * @access public
+<a name="line83"></a>     * @param  string $content 模板内容
+<a name="line84"></a>     * @param  string $lib 标签库名
+<a name="line85"></a>     * @return void
+<a name="line86"></a>     */
+<a name="line87"></a>    public function parseTag(&$content, $lib = '')
+<a name="line88"></a>    {
+<a name="line89"></a>        $tags = [];
+<a name="line90"></a>        $lib  = $lib ? strtolower($lib) . ':' : '';
+<a name="line91"></a>        foreach ($this->tags as $name => $val) {
+<a name="line92"></a>            $close                      = !isset($val['close']) || $val['close'] ? 1 : 0;
+<a name="line93"></a>            $tags[$close][$lib . $name] = $name;
+<a name="line94"></a>            if (isset($val['alias'])) {
+<a name="line95"></a>                // 别名设置
+<a name="line96"></a>                $array = (array) $val['alias'];
+<a name="line97"></a>                foreach (explode(',', $array[0]) as $v) {
+<a name="line98"></a>                    $tags[$close][$lib . $v] = $name;
+<a name="line99"></a>                }
+<a name="line100"></a>            }
+<a name="line101"></a>        }
+<a name="line102"></a>
+<a name="line103"></a>        // 闭合标签
+<a name="line104"></a>        if (!empty($tags[1])) {
+<a name="line105"></a>            $nodes = [];
+<a name="line106"></a>            $regex = $this->getRegex(array_keys($tags[1]), 1);
+<a name="line107"></a>            if (preg_match_all($regex, $content, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+<a name="line108"></a>                $right = [];
+<a name="line109"></a>                foreach ($matches as $match) {
+<a name="line110"></a>                    if ('' == $match[1][0]) {
+<a name="line111"></a>                        $name = strtolower($match[2][0]);
+<a name="line112"></a>                        // 如果有没闭合的标签头则取出最后一个
+<a name="line113"></a>                        if (!empty($right[$name])) {
+<a name="line114"></a>                            // $match[0][1]为标签结束符在模板中的位置
+<a name="line115"></a>                            $nodes[$match[0][1]] = [
+<a name="line116"></a>                                'name'  => $name,
+<a name="line117"></a>                                'begin' => array_pop($right[$name]), // 标签开始符
+<a name="line118"></a>                                'end'   => $match[0], // 标签结束符
+<a name="line119"></a>                            ];
+<a name="line120"></a>                        }
+<a name="line121"></a>                    } else {
+<a name="line122"></a>                        // 标签头压入栈
+<a name="line123"></a>                        $right[strtolower($match[1][0])][] = $match[0];
+<a name="line124"></a>                    }
+<a name="line125"></a>                }
+<a name="line126"></a>                unset($right, $matches);
+<a name="line127"></a>                // 按标签在模板中的位置从后向前排序
+<a name="line128"></a>                krsort($nodes);
+<a name="line129"></a>            }
+<a name="line130"></a>
+<a name="line131"></a>            $break = '<!--###break###--!>';
+<a name="line132"></a>            if ($nodes) {
+<a name="line133"></a>                $beginArray = [];
+<a name="line134"></a>                // 标签替换 从后向前
+<a name="line135"></a>                foreach ($nodes as $pos => $node) {
+<a name="line136"></a>                    // 对应的标签名
+<a name="line137"></a>                    $name  = $tags[1][$node['name']];
+<a name="line138"></a>                    $alias = $lib . $name != $node['name'] ? ($lib ? strstr($node['name'], $lib) : $node['name']) : '';
+<a name="line139"></a>                    // 解析标签属性
+<a name="line140"></a>                    $attrs  = $this->parseAttr($node['begin'][0], $name, $alias);
+<a name="line141"></a>                    $method = 'tag' . $name;
+<a name="line142"></a>                    // 读取标签库中对应的标签内容 replace[0]用来替换标签头，replace[1]用来替换标签尾
+<a name="line143"></a>                    $replace = explode($break, $this->$method($attrs, $break));
+<a name="line144"></a>                    if (count($replace) > 1) {
+<a name="line145"></a>                        while ($beginArray) {
+<a name="line146"></a>                            $begin = end($beginArray);
+<a name="line147"></a>                            // 判断当前标签尾的位置是否在栈中最后一个标签头的后面，是则为子标签
+<a name="line148"></a>                            if ($node['end'][1] > $begin['pos']) {
+<a name="line149"></a>                                break;
+<a name="line150"></a>                            } else {
+<a name="line151"></a>                                // 不为子标签时，取出栈中最后一个标签头
+<a name="line152"></a>                                $begin = array_pop($beginArray);
+<a name="line153"></a>                                // 替换标签头部
+<a name="line154"></a>                                $content = substr_replace($content, $begin['str'], $begin['pos'], $begin['len']);
+<a name="line155"></a>                            }
+<a name="line156"></a>                        }
+<a name="line157"></a>                        // 替换标签尾部
+<a name="line158"></a>                        $content = substr_replace($content, $replace[1], $node['end'][1], strlen($node['end'][0]));
+<a name="line159"></a>                        // 把标签头压入栈
+<a name="line160"></a>                        $beginArray[] = ['pos' => $node['begin'][1], 'len' => strlen($node['begin'][0]), 'str' => $replace[0]];
+<a name="line161"></a>                    }
+<a name="line162"></a>                }
+<a name="line163"></a>                while ($beginArray) {
+<a name="line164"></a>                    $begin = array_pop($beginArray);
+<a name="line165"></a>                    // 替换标签头部
+<a name="line166"></a>                    $content = substr_replace($content, $begin['str'], $begin['pos'], $begin['len']);
+<a name="line167"></a>                }
+<a name="line168"></a>            }
+<a name="line169"></a>        }
+<a name="line170"></a>        // 自闭合标签
+<a name="line171"></a>        if (!empty($tags[0])) {
+<a name="line172"></a>            $regex   = $this->getRegex(array_keys($tags[0]), 0);
+<a name="line173"></a>            $content = preg_replace_callback($regex, function ($matches) use (&$tags, &$lib) {
+<a name="line174"></a>                // 对应的标签名
+<a name="line175"></a>                $name  = $tags[0][strtolower($matches[1])];
+<a name="line176"></a>                $alias = $lib . $name != $matches[1] ? ($lib ? strstr($matches[1], $lib) : $matches[1]) : '';
+<a name="line177"></a>                // 解析标签属性
+<a name="line178"></a>                $attrs  = $this->parseAttr($matches[0], $name, $alias);
+<a name="line179"></a>                $method = 'tag' . $name;
+<a name="line180"></a>                return $this->$method($attrs, '');
+<a name="line181"></a>            }, $content);
+<a name="line182"></a>        }
+<a name="line183"></a>        return;
+<a name="line184"></a>    }
+<a name="line185"></a>
+<a name="line186"></a>    /**
+<a name="line187"></a>     * 按标签生成正则
+<a name="line188"></a>     * @access private
+<a name="line189"></a>     * @param  array|string     $tags 标签名
+<a name="line190"></a>     * @param  boolean          $close 是否为闭合标签
+<a name="line191"></a>     * @return string
+<a name="line192"></a>     */
+<a name="line193"></a>    private function getRegex($tags, $close)
+<a name="line194"></a>    {
+<a name="line195"></a>        $begin   = $this->tpl->config('taglib_begin');
+<a name="line196"></a>        $end     = $this->tpl->config('taglib_end');
+<a name="line197"></a>        $single  = strlen(ltrim($begin, '\\')) == 1 && strlen(ltrim($end, '\\')) == 1 ? true : false;
+<a name="line198"></a>        $tagName = is_array($tags) ? implode('|', $tags) : $tags;
+<a name="line199"></a>        if ($single) {
+<a name="line200"></a>            if ($close) {
+<a name="line201"></a>                // 如果是闭合标签
+<a name="line202"></a>                $regex = $begin . '(?:(' . $tagName . ')\b(?>[^' . $end . ']*)|\/(' . $tagName . '))' . $end;
+<a name="line203"></a>            } else {
+<a name="line204"></a>                $regex = $begin . '(' . $tagName . ')\b(?>[^' . $end . ']*)' . $end;
+<a name="line205"></a>            }
+<a name="line206"></a>        } else {
+<a name="line207"></a>            if ($close) {
+<a name="line208"></a>                // 如果是闭合标签
+<a name="line209"></a>                $regex = $begin . '(?:(' . $tagName . ')\b(?>(?:(?!' . $end . ').)*)|\/(' . $tagName . '))' . $end;
+<a name="line210"></a>            } else {
+<a name="line211"></a>                $regex = $begin . '(' . $tagName . ')\b(?>(?:(?!' . $end . ').)*)' . $end;
+<a name="line212"></a>            }
+<a name="line213"></a>        }
+<a name="line214"></a>        return '/' . $regex . '/is';
+<a name="line215"></a>    }
+<a name="line216"></a>
+<a name="line217"></a>    /**
+<a name="line218"></a>     * 分析标签属性 正则方式
+<a name="line219"></a>     * @access public
+<a name="line220"></a>     * @param string $str 标签属性字符串
+<a name="line221"></a>     * @param string $name 标签名
+<a name="line222"></a>     * @param string $alias 别名
+<a name="line223"></a>     * @return array
+<a name="line224"></a>     */
+<a name="line225"></a>    public function parseAttr($str, $name, $alias = '')
+<a name="line226"></a>    {
+<a name="line227"></a>        $regex  = '/\s+(?>(?P<name>[\w-]+)\s*)=(?>\s*)([\"\'])(?P<value>(?:(?!\\2).)*)\\2/is';
+<a name="line228"></a>        $result = [];
+<a name="line229"></a>        if (preg_match_all($regex, $str, $matches)) {
+<a name="line230"></a>            foreach ($matches['name'] as $key => $val) {
+<a name="line231"></a>                $result[$val] = $matches['value'][$key];
+<a name="line232"></a>            }
+<a name="line233"></a>            if (!isset($this->tags[$name])) {
+<a name="line234"></a>                // 检测是否存在别名定义
+<a name="line235"></a>                foreach ($this->tags as $key => $val) {
+<a name="line236"></a>                    if (isset($val['alias'])) {
+<a name="line237"></a>                        $array = (array) $val['alias'];
+<a name="line238"></a>                        if (in_array($name, explode(',', $array[0]))) {
+<a name="line239"></a>                            $tag           = $val;
+<a name="line240"></a>                            $type          = !empty($array[1]) ? $array[1] : 'type';
+<a name="line241"></a>                            $result[$type] = $name;
+<a name="line242"></a>                            break;
+<a name="line243"></a>                        }
+<a name="line244"></a>                    }
+<a name="line245"></a>                }
+<a name="line246"></a>            } else {
+<a name="line247"></a>                $tag = $this->tags[$name];
+<a name="line248"></a>                // 设置了标签别名
+<a name="line249"></a>                if (!empty($alias) && isset($tag['alias'])) {
+<a name="line250"></a>                    $type          = !empty($tag['alias'][1]) ? $tag['alias'][1] : 'type';
+<a name="line251"></a>                    $result[$type] = $alias;
+<a name="line252"></a>                }
+<a name="line253"></a>            }
+<a name="line254"></a>            if (!empty($tag['must'])) {
+<a name="line255"></a>                $must = explode(',', $tag['must']);
+<a name="line256"></a>                foreach ($must as $name) {
+<a name="line257"></a>                    if (!isset($result[$name])) {
+<a name="line258"></a>                        throw new Exception('tag attr must:' . $name);
+<a name="line259"></a>                    }
+<a name="line260"></a>                }
+<a name="line261"></a>            }
+<a name="line262"></a>        } else {
+<a name="line263"></a>            // 允许直接使用表达式的标签
+<a name="line264"></a>            if (!empty($this->tags[$name]['expression'])) {
+<a name="line265"></a>                static $_taglibs;
+<a name="line266"></a>                if (!isset($_taglibs[$name])) {
+<a name="line267"></a>                    $_taglibs[$name][0] = strlen(ltrim($this->tpl->config('taglib_begin'), '\\') . $name);
+<a name="line268"></a>                    $_taglibs[$name][1] = strlen(ltrim($this->tpl->config('taglib_end'), '\\'));
+<a name="line269"></a>                }
+<a name="line270"></a>                $result['expression'] = substr($str, $_taglibs[$name][0], -$_taglibs[$name][1]);
+<a name="line271"></a>                // 清除自闭合标签尾部/
+<a name="line272"></a>                $result['expression'] = rtrim($result['expression'], '/');
+<a name="line273"></a>                $result['expression'] = trim($result['expression']);
+<a name="line274"></a>            } elseif (empty($this->tags[$name]) || !empty($this->tags[$name]['attr'])) {
+<a name="line275"></a>                throw new Exception('tag error:' . $name);
+<a name="line276"></a>            }
+<a name="line277"></a>        }
+<a name="line278"></a>        return $result;
+<a name="line279"></a>    }
+<a name="line280"></a>
+<a name="line281"></a>    /**
+<a name="line282"></a>     * 解析条件表达式
+<a name="line283"></a>     * @access public
+<a name="line284"></a>     * @param  string $condition 表达式标签内容
+<a name="line285"></a>     * @return string
+<a name="line286"></a>     */
+<a name="line287"></a>    public function parseCondition($condition)
+<a name="line288"></a>    {
+<a name="line289"></a>        if (strpos($condition, ':')) {
+<a name="line290"></a>            $condition = ' ' . substr(strstr($condition, ':'), 1);
+<a name="line291"></a>        }
+<a name="line292"></a>        $condition = str_ireplace(array_keys($this->comparison), array_values($this->comparison), $condition);
+<a name="line293"></a>        $this->tpl->parseVar($condition);
+<a name="line294"></a>        // $this->tpl->parseVarFunction($condition); // XXX: 此句能解析表达式中用|分隔的函数，但表达式中如果有|、||这样的逻辑运算就产生了歧异
+<a name="line295"></a>        return $condition;
+<a name="line296"></a>    }
+<a name="line297"></a>
+<a name="line298"></a>    /**
+<a name="line299"></a>     * 自动识别构建变量
+<a name="line300"></a>     * @access public
+<a name="line301"></a>     * @param string $name 变量描述
+<a name="line302"></a>     * @return string
+<a name="line303"></a>     */
+<a name="line304"></a>    public function autoBuildVar(&$name)
+<a name="line305"></a>    {
+<a name="line306"></a>        $flag = substr($name, 0, 1);
+<a name="line307"></a>        if (':' == $flag) {
+<a name="line308"></a>            // 以:开头为函数调用，解析前去掉:
+<a name="line309"></a>            $name = substr($name, 1);
+<a name="line310"></a>        } elseif ('$' != $flag && preg_match('/[a-zA-Z_]/', $flag)) {
+<a name="line311"></a>            // XXX: 这句的写法可能还需要改进
+<a name="line312"></a>            // 常量不需要解析
+<a name="line313"></a>            if (defined($name)) {
+<a name="line314"></a>                return $name;
+<a name="line315"></a>            }
+<a name="line316"></a>            // 不以$开头并且也不是常量，自动补上$前缀
+<a name="line317"></a>            $name = '$' . $name;
+<a name="line318"></a>        }
+<a name="line319"></a>        $this->tpl->parseVar($name);
+<a name="line320"></a>        $this->tpl->parseVarFunction($name);
+<a name="line321"></a>        return $name;
+<a name="line322"></a>    }
+<a name="line323"></a>
+<a name="line324"></a>    /**
+<a name="line325"></a>     * 获取标签列表
+<a name="line326"></a>     * @access public
+<a name="line327"></a>     * @return array
+<a name="line328"></a>     */
+<a name="line329"></a>    // 获取标签定义
+<a name="line330"></a>    public function getTags()
+<a name="line331"></a>    {
+<a name="line332"></a>        return $this->tags;
+<a name="line333"></a>    }
+<a name="line334"></a>}
+<a name="line335"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\template\taglib.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

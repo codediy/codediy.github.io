@@ -1,0 +1,256 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:06 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\process\pipes\Unix.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\process\pipes\unix.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\process\pipes\Unix.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2015 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: yunwuxin <448901948@qq.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think\process\pipes;
+<a name="line13"></a>
+<a name="line14"></a>use think\Process;
+<a name="line15"></a>
+<a name="line16"></a>class Unix extends Pipes
+<a name="line17"></a>{
+<a name="line18"></a>
+<a name="line19"></a>    /** @var bool */
+<a name="line20"></a>    private $ttyMode;
+<a name="line21"></a>    /** @var bool */
+<a name="line22"></a>    private $ptyMode;
+<a name="line23"></a>    /** @var bool */
+<a name="line24"></a>    private $disableOutput;
+<a name="line25"></a>
+<a name="line26"></a>    public function __construct($ttyMode, $ptyMode, $input, $disableOutput)
+<a name="line27"></a>    {
+<a name="line28"></a>        $this->ttyMode       = (bool)$ttyMode;
+<a name="line29"></a>        $this->ptyMode       = (bool)$ptyMode;
+<a name="line30"></a>        $this->disableOutput = (bool)$disableOutput;
+<a name="line31"></a>
+<a name="line32"></a>        if (is_resource($input)) {
+<a name="line33"></a>            $this->input = $input;
+<a name="line34"></a>        } else {
+<a name="line35"></a>            $this->inputBuffer = (string)$input;
+<a name="line36"></a>        }
+<a name="line37"></a>    }
+<a name="line38"></a>
+<a name="line39"></a>    public function __destruct()
+<a name="line40"></a>    {
+<a name="line41"></a>        $this->close();
+<a name="line42"></a>    }
+<a name="line43"></a>
+<a name="line44"></a>    /**
+<a name="line45"></a>     * {@inheritdoc}
+<a name="line46"></a>     */
+<a name="line47"></a>    public function getDescriptors()
+<a name="line48"></a>    {
+<a name="line49"></a>        if ($this->disableOutput) {
+<a name="line50"></a>            $nullstream = fopen('/dev/null', 'c');
+<a name="line51"></a>
+<a name="line52"></a>            return [
+<a name="line53"></a>                ['pipe', 'r'],
+<a name="line54"></a>                $nullstream,
+<a name="line55"></a>                $nullstream,
+<a name="line56"></a>            ];
+<a name="line57"></a>        }
+<a name="line58"></a>
+<a name="line59"></a>        if ($this->ttyMode) {
+<a name="line60"></a>            return [
+<a name="line61"></a>                ['file', '/dev/tty', 'r'],
+<a name="line62"></a>                ['file', '/dev/tty', 'w'],
+<a name="line63"></a>                ['file', '/dev/tty', 'w'],
+<a name="line64"></a>            ];
+<a name="line65"></a>        }
+<a name="line66"></a>
+<a name="line67"></a>        if ($this->ptyMode && Process::isPtySupported()) {
+<a name="line68"></a>            return [
+<a name="line69"></a>                ['pty'],
+<a name="line70"></a>                ['pty'],
+<a name="line71"></a>                ['pty'],
+<a name="line72"></a>            ];
+<a name="line73"></a>        }
+<a name="line74"></a>
+<a name="line75"></a>        return [
+<a name="line76"></a>            ['pipe', 'r'],
+<a name="line77"></a>            ['pipe', 'w'], // stdout
+<a name="line78"></a>            ['pipe', 'w'], // stderr
+<a name="line79"></a>        ];
+<a name="line80"></a>    }
+<a name="line81"></a>
+<a name="line82"></a>    /**
+<a name="line83"></a>     * {@inheritdoc}
+<a name="line84"></a>     */
+<a name="line85"></a>    public function getFiles()
+<a name="line86"></a>    {
+<a name="line87"></a>        return [];
+<a name="line88"></a>    }
+<a name="line89"></a>
+<a name="line90"></a>    /**
+<a name="line91"></a>     * {@inheritdoc}
+<a name="line92"></a>     */
+<a name="line93"></a>    public function readAndWrite($blocking, $close = false)
+<a name="line94"></a>    {
+<a name="line95"></a>
+<a name="line96"></a>        if (1 === count($this->pipes) && [0] === array_keys($this->pipes)) {
+<a name="line97"></a>            fclose($this->pipes[0]);
+<a name="line98"></a>            unset($this->pipes[0]);
+<a name="line99"></a>        }
+<a name="line100"></a>
+<a name="line101"></a>        if (empty($this->pipes)) {
+<a name="line102"></a>            return [];
+<a name="line103"></a>        }
+<a name="line104"></a>
+<a name="line105"></a>        $this->unblock();
+<a name="line106"></a>
+<a name="line107"></a>        $read = [];
+<a name="line108"></a>
+<a name="line109"></a>        if (null !== $this->input) {
+<a name="line110"></a>            $r = array_merge($this->pipes, ['input' => $this->input]);
+<a name="line111"></a>        } else {
+<a name="line112"></a>            $r = $this->pipes;
+<a name="line113"></a>        }
+<a name="line114"></a>
+<a name="line115"></a>        unset($r[0]);
+<a name="line116"></a>
+<a name="line117"></a>        $w = isset($this->pipes[0]) ? [$this->pipes[0]] : null;
+<a name="line118"></a>        $e = null;
+<a name="line119"></a>
+<a name="line120"></a>        if (false === $n = @stream_select($r, $w, $e, 0, $blocking ? Process::TIMEOUT_PRECISION * 1E6 : 0)) {
+<a name="line121"></a>
+<a name="line122"></a>            if (!$this->hasSystemCallBeenInterrupted()) {
+<a name="line123"></a>                $this->pipes = [];
+<a name="line124"></a>            }
+<a name="line125"></a>
+<a name="line126"></a>            return $read;
+<a name="line127"></a>        }
+<a name="line128"></a>
+<a name="line129"></a>        if (0 === $n) {
+<a name="line130"></a>            return $read;
+<a name="line131"></a>        }
+<a name="line132"></a>
+<a name="line133"></a>        foreach ($r as $pipe) {
+<a name="line134"></a>
+<a name="line135"></a>            $type = (false !== $found = array_search($pipe, $this->pipes)) ? $found : 'input';
+<a name="line136"></a>            $data = '';
+<a name="line137"></a>            while ('' !== $dataread = (string)fread($pipe, self::CHUNK_SIZE)) {
+<a name="line138"></a>                $data .= $dataread;
+<a name="line139"></a>            }
+<a name="line140"></a>
+<a name="line141"></a>            if ('' !== $data) {
+<a name="line142"></a>                if ($type === 'input') {
+<a name="line143"></a>                    $this->inputBuffer .= $data;
+<a name="line144"></a>                } else {
+<a name="line145"></a>                    $read[$type] = $data;
+<a name="line146"></a>                }
+<a name="line147"></a>            }
+<a name="line148"></a>
+<a name="line149"></a>            if (false === $data || (true === $close && feof($pipe) && '' === $data)) {
+<a name="line150"></a>                if ($type === 'input') {
+<a name="line151"></a>                    $this->input = null;
+<a name="line152"></a>                } else {
+<a name="line153"></a>                    fclose($this->pipes[$type]);
+<a name="line154"></a>                    unset($this->pipes[$type]);
+<a name="line155"></a>                }
+<a name="line156"></a>            }
+<a name="line157"></a>        }
+<a name="line158"></a>
+<a name="line159"></a>        if (null !== $w && 0 < count($w)) {
+<a name="line160"></a>            while (strlen($this->inputBuffer)) {
+<a name="line161"></a>                $written = fwrite($w[0], $this->inputBuffer, 2 << 18); // write 512k
+<a name="line162"></a>                if ($written > 0) {
+<a name="line163"></a>                    $this->inputBuffer = (string)substr($this->inputBuffer, $written);
+<a name="line164"></a>                } else {
+<a name="line165"></a>                    break;
+<a name="line166"></a>                }
+<a name="line167"></a>            }
+<a name="line168"></a>        }
+<a name="line169"></a>
+<a name="line170"></a>        if ('' === $this->inputBuffer && null === $this->input && isset($this->pipes[0])) {
+<a name="line171"></a>            fclose($this->pipes[0]);
+<a name="line172"></a>            unset($this->pipes[0]);
+<a name="line173"></a>        }
+<a name="line174"></a>
+<a name="line175"></a>        return $read;
+<a name="line176"></a>    }
+<a name="line177"></a>
+<a name="line178"></a>    /**
+<a name="line179"></a>     * {@inheritdoc}
+<a name="line180"></a>     */
+<a name="line181"></a>    public function areOpen()
+<a name="line182"></a>    {
+<a name="line183"></a>        return (bool)$this->pipes;
+<a name="line184"></a>    }
+<a name="line185"></a>
+<a name="line186"></a>    /**
+<a name="line187"></a>     * 创建一个新的 UnixPipes 实例
+<a name="line188"></a>     * @param Process         $process
+<a name="line189"></a>     * @param string|resource $input
+<a name="line190"></a>     * @return self
+<a name="line191"></a>     */
+<a name="line192"></a>    public static function create(Process $process, $input)
+<a name="line193"></a>    {
+<a name="line194"></a>        return new static($process->isTty(), $process->isPty(), $input, $process->isOutputDisabled());
+<a name="line195"></a>    }
+<a name="line196"></a>}</pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\process\pipes\unix.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

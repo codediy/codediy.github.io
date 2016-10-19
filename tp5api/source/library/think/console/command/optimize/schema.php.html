@@ -1,0 +1,172 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\console\command\optimize\Schema.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\console\command\optimize\schema.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\console\command\optimize\Schema.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK IT ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006-2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: yunwuxin <448901948@qq.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>namespace think\console\command\optimize;
+<a name="line12"></a>
+<a name="line13"></a>use think\App;
+<a name="line14"></a>use think\console\Command;
+<a name="line15"></a>use think\console\Input;
+<a name="line16"></a>use think\console\input\Option;
+<a name="line17"></a>use think\console\Output;
+<a name="line18"></a>use think\Db;
+<a name="line19"></a>
+<a name="line20"></a>class Schema extends Command
+<a name="line21"></a>{
+<a name="line22"></a>    /** @var  Output */
+<a name="line23"></a>    protected $output;
+<a name="line24"></a>
+<a name="line25"></a>    protected function configure()
+<a name="line26"></a>    {
+<a name="line27"></a>        $this->setName('optimize:schema')
+<a name="line28"></a>            ->addOption('db', null, Option::VALUE_REQUIRED, 'db name .')
+<a name="line29"></a>            ->addOption('table', null, Option::VALUE_REQUIRED, 'table name .')
+<a name="line30"></a>            ->addOption('module', null, Option::VALUE_REQUIRED, 'module name .')
+<a name="line31"></a>            ->setDescription('Build database schema cache.');
+<a name="line32"></a>    }
+<a name="line33"></a>
+<a name="line34"></a>    protected function execute(Input $input, Output $output)
+<a name="line35"></a>    {
+<a name="line36"></a>        if (!is_dir(RUNTIME_PATH . 'schema')) {
+<a name="line37"></a>            @mkdir(RUNTIME_PATH . 'schema', 0755, true);
+<a name="line38"></a>        }
+<a name="line39"></a>        if ($input->hasOption('module')) {
+<a name="line40"></a>            $module = $input->getOption('module');
+<a name="line41"></a>            // 读取模型
+<a name="line42"></a>            $list = scandir(APP_PATH . $module . DS . 'model');
+<a name="line43"></a>            $app  = App::$namespace;
+<a name="line44"></a>            foreach ($list as $file) {
+<a name="line45"></a>                if ('.' == $file || '..' == $file) {
+<a name="line46"></a>                    continue;
+<a name="line47"></a>                }
+<a name="line48"></a>                $class = '\\' . $app . '\\' . $module . '\\model\\' . pathinfo($file, PATHINFO_FILENAME);
+<a name="line49"></a>                $this->buildModelSchema($class);
+<a name="line50"></a>            }
+<a name="line51"></a>            $output->writeln('<info>Succeed!</info>');
+<a name="line52"></a>            return;
+<a name="line53"></a>        } else if ($input->hasOption('table')) {
+<a name="line54"></a>            $table = $input->getOption('table');
+<a name="line55"></a>            if (!strpos($table, '.')) {
+<a name="line56"></a>                $dbName = Db::getConfig('database');
+<a name="line57"></a>            }
+<a name="line58"></a>            $tables[] = $table;
+<a name="line59"></a>        } elseif ($input->hasOption('db')) {
+<a name="line60"></a>            $dbName = $input->getOption('db');
+<a name="line61"></a>            $tables = Db::getTables($dbName);
+<a name="line62"></a>        } elseif (!\think\Config::get('app_multi_module')) {
+<a name="line63"></a>            $app  = App::$namespace;
+<a name="line64"></a>            $list = scandir(APP_PATH . 'model');
+<a name="line65"></a>            foreach ($list as $file) {
+<a name="line66"></a>                if ('.' == $file || '..' == $file) {
+<a name="line67"></a>                    continue;
+<a name="line68"></a>                }
+<a name="line69"></a>                $class = '\\' . $app . '\\model\\' . pathinfo($file, PATHINFO_FILENAME);
+<a name="line70"></a>                $this->buildModelSchema($class);
+<a name="line71"></a>            }
+<a name="line72"></a>            $output->writeln('<info>Succeed!</info>');
+<a name="line73"></a>            return;
+<a name="line74"></a>        } else {
+<a name="line75"></a>            $tables = Db::getTables();
+<a name="line76"></a>        }
+<a name="line77"></a>
+<a name="line78"></a>        $db = isset($dbName) ? $dbName . '.' : '';
+<a name="line79"></a>        $this->buildDataBaseSchema($tables, $db);
+<a name="line80"></a>
+<a name="line81"></a>        $output->writeln('<info>Succeed!</info>');
+<a name="line82"></a>    }
+<a name="line83"></a>
+<a name="line84"></a>    protected function buildModelSchema($class)
+<a name="line85"></a>    {
+<a name="line86"></a>        $reflect = new \ReflectionClass($class);
+<a name="line87"></a>        if (!$reflect->isAbstract() && $reflect->isSubclassOf('\think\Model')) {
+<a name="line88"></a>            $table   = $class::getTable();
+<a name="line89"></a>            $dbName  = $class::getConfig('database');
+<a name="line90"></a>            $content = '<?php ' . PHP_EOL . 'return ';
+<a name="line91"></a>            $info    = $class::getConnection()->getFields($table);
+<a name="line92"></a>            $content .= var_export($info, true) . ';';
+<a name="line93"></a>            file_put_contents(RUNTIME_PATH . 'schema' . DS . $dbName . '.' . $table . EXT, $content);
+<a name="line94"></a>        }
+<a name="line95"></a>    }
+<a name="line96"></a>
+<a name="line97"></a>    protected function buildDataBaseSchema($tables, $db)
+<a name="line98"></a>    {
+<a name="line99"></a>        if ('' == $db) {
+<a name="line100"></a>            $dbName = Db::getConfig('database') . '.';
+<a name="line101"></a>        } else {
+<a name="line102"></a>            $dbName = $db;
+<a name="line103"></a>        }
+<a name="line104"></a>        foreach ($tables as $table) {
+<a name="line105"></a>            $content = '<?php ' . PHP_EOL . 'return ';
+<a name="line106"></a>            $info    = Db::getFields($db . $table);
+<a name="line107"></a>            $content .= var_export($info, true) . ';';
+<a name="line108"></a>            file_put_contents(RUNTIME_PATH . 'schema' . DS . $dbName . $table . EXT, $content);
+<a name="line109"></a>        }
+<a name="line110"></a>    }
+<a name="line111"></a>}
+<a name="line112"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\console\command\optimize\schema.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

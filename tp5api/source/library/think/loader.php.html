@@ -1,0 +1,612 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\Loader.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\loader.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\Loader.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think;
+<a name="line13"></a>
+<a name="line14"></a>use think\exception\ClassNotFoundException;
+<a name="line15"></a>
+<a name="line16"></a>class Loader
+<a name="line17"></a>{
+<a name="line18"></a>    protected static $instance = [];
+<a name="line19"></a>    // 类名映射
+<a name="line20"></a>    protected static $map = [];
+<a name="line21"></a>
+<a name="line22"></a>    // 命名空间别名
+<a name="line23"></a>    protected static $namespaceAlias = [];
+<a name="line24"></a>
+<a name="line25"></a>    // PSR-4
+<a name="line26"></a>    private static $prefixLengthsPsr4 = [];
+<a name="line27"></a>    private static $prefixDirsPsr4    = [];
+<a name="line28"></a>    private static $fallbackDirsPsr4  = [];
+<a name="line29"></a>
+<a name="line30"></a>    // PSR-0
+<a name="line31"></a>    private static $prefixesPsr0     = [];
+<a name="line32"></a>    private static $fallbackDirsPsr0 = [];
+<a name="line33"></a>
+<a name="line34"></a>    // 自动加载的文件
+<a name="line35"></a>    private static $autoloadFiles = [];
+<a name="line36"></a>
+<a name="line37"></a>    // 自动加载
+<a name="line38"></a>    public static function autoload($class)
+<a name="line39"></a>    {
+<a name="line40"></a>        // 检测命名空间别名
+<a name="line41"></a>        if (!empty(self::$namespaceAlias)) {
+<a name="line42"></a>            $namespace = dirname($class);
+<a name="line43"></a>            if (isset(self::$namespaceAlias[$namespace])) {
+<a name="line44"></a>                $original = self::$namespaceAlias[$namespace] . '\\' . basename($class);
+<a name="line45"></a>                if (class_exists($original)) {
+<a name="line46"></a>                    return class_alias($original, $class, false);
+<a name="line47"></a>                }
+<a name="line48"></a>            }
+<a name="line49"></a>        }
+<a name="line50"></a>
+<a name="line51"></a>        if ($file = self::findFile($class)) {
+<a name="line52"></a>
+<a name="line53"></a>            // Win环境严格区分大小写
+<a name="line54"></a>            if (IS_WIN && pathinfo($file, PATHINFO_FILENAME) != pathinfo(realpath($file), PATHINFO_FILENAME)) {
+<a name="line55"></a>                return false;
+<a name="line56"></a>            }
+<a name="line57"></a>
+<a name="line58"></a>            __include_file($file);
+<a name="line59"></a>            return true;
+<a name="line60"></a>        }
+<a name="line61"></a>    }
+<a name="line62"></a>
+<a name="line63"></a>    /**
+<a name="line64"></a>     * 查找文件
+<a name="line65"></a>     * @param $class
+<a name="line66"></a>     * @return bool
+<a name="line67"></a>     */
+<a name="line68"></a>    private static function findFile($class)
+<a name="line69"></a>    {
+<a name="line70"></a>        if (!empty(self::$map[$class])) {
+<a name="line71"></a>            // 类库映射
+<a name="line72"></a>            return self::$map[$class];
+<a name="line73"></a>        }
+<a name="line74"></a>
+<a name="line75"></a>        // 查找 PSR-4
+<a name="line76"></a>        $logicalPathPsr4 = strtr($class, '\\', DS) . EXT;
+<a name="line77"></a>
+<a name="line78"></a>        $first = $class[0];
+<a name="line79"></a>        if (isset(self::$prefixLengthsPsr4[$first])) {
+<a name="line80"></a>            foreach (self::$prefixLengthsPsr4[$first] as $prefix => $length) {
+<a name="line81"></a>                if (0 === strpos($class, $prefix)) {
+<a name="line82"></a>                    foreach (self::$prefixDirsPsr4[$prefix] as $dir) {
+<a name="line83"></a>                        if (is_file($file = $dir . DS . substr($logicalPathPsr4, $length))) {
+<a name="line84"></a>                            return $file;
+<a name="line85"></a>                        }
+<a name="line86"></a>                    }
+<a name="line87"></a>                }
+<a name="line88"></a>            }
+<a name="line89"></a>        }
+<a name="line90"></a>
+<a name="line91"></a>        // 查找 PSR-4 fallback dirs
+<a name="line92"></a>        foreach (self::$fallbackDirsPsr4 as $dir) {
+<a name="line93"></a>            if (is_file($file = $dir . DS . $logicalPathPsr4)) {
+<a name="line94"></a>                return $file;
+<a name="line95"></a>            }
+<a name="line96"></a>        }
+<a name="line97"></a>
+<a name="line98"></a>        // 查找 PSR-0
+<a name="line99"></a>        if (false !== $pos = strrpos($class, '\\')) {
+<a name="line100"></a>            // namespaced class name
+<a name="line101"></a>            $logicalPathPsr0 = substr($logicalPathPsr4, 0, $pos + 1)
+<a name="line102"></a>            . strtr(substr($logicalPathPsr4, $pos + 1), '_', DS);
+<a name="line103"></a>        } else {
+<a name="line104"></a>            // PEAR-like class name
+<a name="line105"></a>            $logicalPathPsr0 = strtr($class, '_', DS) . EXT;
+<a name="line106"></a>        }
+<a name="line107"></a>
+<a name="line108"></a>        if (isset(self::$prefixesPsr0[$first])) {
+<a name="line109"></a>            foreach (self::$prefixesPsr0[$first] as $prefix => $dirs) {
+<a name="line110"></a>                if (0 === strpos($class, $prefix)) {
+<a name="line111"></a>                    foreach ($dirs as $dir) {
+<a name="line112"></a>                        if (is_file($file = $dir . DS . $logicalPathPsr0)) {
+<a name="line113"></a>                            return $file;
+<a name="line114"></a>                        }
+<a name="line115"></a>                    }
+<a name="line116"></a>                }
+<a name="line117"></a>            }
+<a name="line118"></a>        }
+<a name="line119"></a>
+<a name="line120"></a>        // 查找 PSR-0 fallback dirs
+<a name="line121"></a>        foreach (self::$fallbackDirsPsr0 as $dir) {
+<a name="line122"></a>            if (is_file($file = $dir . DS . $logicalPathPsr0)) {
+<a name="line123"></a>                return $file;
+<a name="line124"></a>            }
+<a name="line125"></a>        }
+<a name="line126"></a>
+<a name="line127"></a>        return self::$map[$class] = false;
+<a name="line128"></a>    }
+<a name="line129"></a>
+<a name="line130"></a>    // 注册classmap
+<a name="line131"></a>    public static function addClassMap($class, $map = '')
+<a name="line132"></a>    {
+<a name="line133"></a>        if (is_array($class)) {
+<a name="line134"></a>            self::$map = array_merge(self::$map, $class);
+<a name="line135"></a>        } else {
+<a name="line136"></a>            self::$map[$class] = $map;
+<a name="line137"></a>        }
+<a name="line138"></a>    }
+<a name="line139"></a>
+<a name="line140"></a>    // 注册命名空间
+<a name="line141"></a>    public static function addNamespace($namespace, $path = '')
+<a name="line142"></a>    {
+<a name="line143"></a>        if (is_array($namespace)) {
+<a name="line144"></a>            foreach ($namespace as $prefix => $paths) {
+<a name="line145"></a>                self::addPsr4($prefix . '\\', rtrim($paths, DS), true);
+<a name="line146"></a>            }
+<a name="line147"></a>        } else {
+<a name="line148"></a>            self::addPsr4($namespace . '\\', rtrim($path, DS), true);
+<a name="line149"></a>        }
+<a name="line150"></a>    }
+<a name="line151"></a>
+<a name="line152"></a>    // 添加Ps0空间
+<a name="line153"></a>    private static function addPsr0($prefix, $paths, $prepend = false)
+<a name="line154"></a>    {
+<a name="line155"></a>        if (!$prefix) {
+<a name="line156"></a>            if ($prepend) {
+<a name="line157"></a>                self::$fallbackDirsPsr0 = array_merge(
+<a name="line158"></a>                    (array) $paths,
+<a name="line159"></a>                    self::$fallbackDirsPsr0
+<a name="line160"></a>                );
+<a name="line161"></a>            } else {
+<a name="line162"></a>                self::$fallbackDirsPsr0 = array_merge(
+<a name="line163"></a>                    self::$fallbackDirsPsr0,
+<a name="line164"></a>                    (array) $paths
+<a name="line165"></a>                );
+<a name="line166"></a>            }
+<a name="line167"></a>
+<a name="line168"></a>            return;
+<a name="line169"></a>        }
+<a name="line170"></a>
+<a name="line171"></a>        $first = $prefix[0];
+<a name="line172"></a>        if (!isset(self::$prefixesPsr0[$first][$prefix])) {
+<a name="line173"></a>            self::$prefixesPsr0[$first][$prefix] = (array) $paths;
+<a name="line174"></a>
+<a name="line175"></a>            return;
+<a name="line176"></a>        }
+<a name="line177"></a>        if ($prepend) {
+<a name="line178"></a>            self::$prefixesPsr0[$first][$prefix] = array_merge(
+<a name="line179"></a>                (array) $paths,
+<a name="line180"></a>                self::$prefixesPsr0[$first][$prefix]
+<a name="line181"></a>            );
+<a name="line182"></a>        } else {
+<a name="line183"></a>            self::$prefixesPsr0[$first][$prefix] = array_merge(
+<a name="line184"></a>                self::$prefixesPsr0[$first][$prefix],
+<a name="line185"></a>                (array) $paths
+<a name="line186"></a>            );
+<a name="line187"></a>        }
+<a name="line188"></a>    }
+<a name="line189"></a>
+<a name="line190"></a>    // 添加Psr4空间
+<a name="line191"></a>    private static function addPsr4($prefix, $paths, $prepend = false)
+<a name="line192"></a>    {
+<a name="line193"></a>        if (!$prefix) {
+<a name="line194"></a>            // Register directories for the root namespace.
+<a name="line195"></a>            if ($prepend) {
+<a name="line196"></a>                self::$fallbackDirsPsr4 = array_merge(
+<a name="line197"></a>                    (array) $paths,
+<a name="line198"></a>                    self::$fallbackDirsPsr4
+<a name="line199"></a>                );
+<a name="line200"></a>            } else {
+<a name="line201"></a>                self::$fallbackDirsPsr4 = array_merge(
+<a name="line202"></a>                    self::$fallbackDirsPsr4,
+<a name="line203"></a>                    (array) $paths
+<a name="line204"></a>                );
+<a name="line205"></a>            }
+<a name="line206"></a>        } elseif (!isset(self::$prefixDirsPsr4[$prefix])) {
+<a name="line207"></a>            // Register directories for a new namespace.
+<a name="line208"></a>            $length = strlen($prefix);
+<a name="line209"></a>            if ('\\' !== $prefix[$length - 1]) {
+<a name="line210"></a>                throw new \InvalidArgumentException("A non-empty PSR-4 prefix must end with a namespace separator.");
+<a name="line211"></a>            }
+<a name="line212"></a>            self::$prefixLengthsPsr4[$prefix[0]][$prefix] = $length;
+<a name="line213"></a>            self::$prefixDirsPsr4[$prefix]                = (array) $paths;
+<a name="line214"></a>        } elseif ($prepend) {
+<a name="line215"></a>            // Prepend directories for an already registered namespace.
+<a name="line216"></a>            self::$prefixDirsPsr4[$prefix] = array_merge(
+<a name="line217"></a>                (array) $paths,
+<a name="line218"></a>                self::$prefixDirsPsr4[$prefix]
+<a name="line219"></a>            );
+<a name="line220"></a>        } else {
+<a name="line221"></a>            // Append directories for an already registered namespace.
+<a name="line222"></a>            self::$prefixDirsPsr4[$prefix] = array_merge(
+<a name="line223"></a>                self::$prefixDirsPsr4[$prefix],
+<a name="line224"></a>                (array) $paths
+<a name="line225"></a>            );
+<a name="line226"></a>        }
+<a name="line227"></a>    }
+<a name="line228"></a>
+<a name="line229"></a>    // 注册命名空间别名
+<a name="line230"></a>    public static function addNamespaceAlias($namespace, $original = '')
+<a name="line231"></a>    {
+<a name="line232"></a>        if (is_array($namespace)) {
+<a name="line233"></a>            self::$namespaceAlias = array_merge(self::$namespaceAlias, $namespace);
+<a name="line234"></a>        } else {
+<a name="line235"></a>            self::$namespaceAlias[$namespace] = $original;
+<a name="line236"></a>        }
+<a name="line237"></a>    }
+<a name="line238"></a>
+<a name="line239"></a>    // 注册自动加载机制
+<a name="line240"></a>    public static function register($autoload = '')
+<a name="line241"></a>    {
+<a name="line242"></a>        // 注册系统自动加载
+<a name="line243"></a>        spl_autoload_register($autoload ?: 'think\\Loader::autoload', true, true);
+<a name="line244"></a>        // 注册命名空间定义
+<a name="line245"></a>        self::addNamespace([
+<a name="line246"></a>            'think'    => LIB_PATH . 'think' . DS,
+<a name="line247"></a>            'behavior' => LIB_PATH . 'behavior' . DS,
+<a name="line248"></a>            'traits'   => LIB_PATH . 'traits' . DS,
+<a name="line249"></a>        ]);
+<a name="line250"></a>        // 加载类库映射文件
+<a name="line251"></a>        if (is_file(RUNTIME_PATH . 'classmap' . EXT)) {
+<a name="line252"></a>            self::addClassMap(__include_file(RUNTIME_PATH . 'classmap' . EXT));
+<a name="line253"></a>        }
+<a name="line254"></a>
+<a name="line255"></a>        // Composer自动加载支持
+<a name="line256"></a>        if (is_dir(VENDOR_PATH . 'composer')) {
+<a name="line257"></a>            self::registerComposerLoader();
+<a name="line258"></a>        }
+<a name="line259"></a>
+<a name="line260"></a>        // 自动加载extend目录
+<a name="line261"></a>        self::$fallbackDirsPsr4[] = rtrim(EXTEND_PATH, DS);
+<a name="line262"></a>    }
+<a name="line263"></a>
+<a name="line264"></a>    // 注册composer自动加载
+<a name="line265"></a>    private static function registerComposerLoader()
+<a name="line266"></a>    {
+<a name="line267"></a>        if (is_file(VENDOR_PATH . 'composer/autoload_namespaces.php')) {
+<a name="line268"></a>            $map = require VENDOR_PATH . 'composer/autoload_namespaces.php';
+<a name="line269"></a>            foreach ($map as $namespace => $path) {
+<a name="line270"></a>                self::addPsr0($namespace, $path);
+<a name="line271"></a>            }
+<a name="line272"></a>        }
+<a name="line273"></a>
+<a name="line274"></a>        if (is_file(VENDOR_PATH . 'composer/autoload_psr4.php')) {
+<a name="line275"></a>            $map = require VENDOR_PATH . 'composer/autoload_psr4.php';
+<a name="line276"></a>            foreach ($map as $namespace => $path) {
+<a name="line277"></a>                self::addPsr4($namespace, $path);
+<a name="line278"></a>            }
+<a name="line279"></a>        }
+<a name="line280"></a>
+<a name="line281"></a>        if (is_file(VENDOR_PATH . 'composer/autoload_classmap.php')) {
+<a name="line282"></a>            $classMap = require VENDOR_PATH . 'composer/autoload_classmap.php';
+<a name="line283"></a>            if ($classMap) {
+<a name="line284"></a>                self::addClassMap($classMap);
+<a name="line285"></a>            }
+<a name="line286"></a>        }
+<a name="line287"></a>
+<a name="line288"></a>        if (is_file(VENDOR_PATH . 'composer/autoload_files.php')) {
+<a name="line289"></a>            $includeFiles = require VENDOR_PATH . 'composer/autoload_files.php';
+<a name="line290"></a>            foreach ($includeFiles as $fileIdentifier => $file) {
+<a name="line291"></a>                if (empty(self::$autoloadFiles[$fileIdentifier])) {
+<a name="line292"></a>                    __require_file($file);
+<a name="line293"></a>                    self::$autoloadFiles[$fileIdentifier] = true;
+<a name="line294"></a>                }
+<a name="line295"></a>            }
+<a name="line296"></a>        }
+<a name="line297"></a>    }
+<a name="line298"></a>
+<a name="line299"></a>    /**
+<a name="line300"></a>     * 导入所需的类库 同java的Import 本函数有缓存功能
+<a name="line301"></a>     * @param string $class   类库命名空间字符串
+<a name="line302"></a>     * @param string $baseUrl 起始路径
+<a name="line303"></a>     * @param string $ext     导入的文件扩展名
+<a name="line304"></a>     * @return boolean
+<a name="line305"></a>     */
+<a name="line306"></a>    public static function import($class, $baseUrl = '', $ext = EXT)
+<a name="line307"></a>    {
+<a name="line308"></a>        static $_file = [];
+<a name="line309"></a>        $key          = $class . $baseUrl;
+<a name="line310"></a>        $class        = str_replace(['.', '#'], [DS, '.'], $class);
+<a name="line311"></a>        if (isset($_file[$key])) {
+<a name="line312"></a>            return true;
+<a name="line313"></a>        }
+<a name="line314"></a>
+<a name="line315"></a>        if (empty($baseUrl)) {
+<a name="line316"></a>            list($name, $class) = explode(DS, $class, 2);
+<a name="line317"></a>
+<a name="line318"></a>            if (isset(self::$prefixDirsPsr4[$name . '\\'])) {
+<a name="line319"></a>                // 注册的命名空间
+<a name="line320"></a>                $baseUrl = self::$prefixDirsPsr4[$name . '\\'];
+<a name="line321"></a>            } elseif ('@' == $name) {
+<a name="line322"></a>                //加载当前模块应用类库
+<a name="line323"></a>                $baseUrl = App::$modulePath;
+<a name="line324"></a>            } elseif (is_dir(EXTEND_PATH . $name)) {
+<a name="line325"></a>                $baseUrl = EXTEND_PATH . $name . DS;
+<a name="line326"></a>            } else {
+<a name="line327"></a>                // 加载其它模块的类库
+<a name="line328"></a>                $baseUrl = APP_PATH . $name . DS;
+<a name="line329"></a>            }
+<a name="line330"></a>        } elseif (substr($baseUrl, -1) != DS) {
+<a name="line331"></a>            $baseUrl .= DS;
+<a name="line332"></a>        }
+<a name="line333"></a>        // 如果类存在 则导入类库文件
+<a name="line334"></a>        if (is_array($baseUrl)) {
+<a name="line335"></a>            foreach ($baseUrl as $path) {
+<a name="line336"></a>                $filename = $path . DS . $class . $ext;
+<a name="line337"></a>                if (is_file($filename)) {
+<a name="line338"></a>                    break;
+<a name="line339"></a>                }
+<a name="line340"></a>            }
+<a name="line341"></a>        } else {
+<a name="line342"></a>            $filename = $baseUrl . $class . $ext;
+<a name="line343"></a>        }
+<a name="line344"></a>
+<a name="line345"></a>        if (!empty($filename) && is_file($filename)) {
+<a name="line346"></a>            // 开启调试模式Win环境严格区分大小写
+<a name="line347"></a>            if (IS_WIN && pathinfo($filename, PATHINFO_FILENAME) != pathinfo(realpath($filename), PATHINFO_FILENAME)) {
+<a name="line348"></a>                return false;
+<a name="line349"></a>            }
+<a name="line350"></a>            __include_file($filename);
+<a name="line351"></a>            $_file[$key] = true;
+<a name="line352"></a>            return true;
+<a name="line353"></a>        }
+<a name="line354"></a>        return false;
+<a name="line355"></a>    }
+<a name="line356"></a>
+<a name="line357"></a>    /**
+<a name="line358"></a>     * 实例化（分层）模型
+<a name="line359"></a>     * @param string $name         Model名称
+<a name="line360"></a>     * @param string $layer        业务层名称
+<a name="line361"></a>     * @param bool   $appendSuffix 是否添加类名后缀
+<a name="line362"></a>     * @param string $common       公共模块名
+<a name="line363"></a>     * @return Object
+<a name="line364"></a>     * @throws ClassNotFoundException
+<a name="line365"></a>     */
+<a name="line366"></a>    public static function model($name = '', $layer = 'model', $appendSuffix = false, $common = 'common')
+<a name="line367"></a>    {
+<a name="line368"></a>        $guid = $name . $layer;
+<a name="line369"></a>        if (isset(self::$instance[$guid])) {
+<a name="line370"></a>            return self::$instance[$guid];
+<a name="line371"></a>        }
+<a name="line372"></a>        if (strpos($name, '/')) {
+<a name="line373"></a>            list($module, $name) = explode('/', $name, 2);
+<a name="line374"></a>        } else {
+<a name="line375"></a>            $module = Request::instance()->module();
+<a name="line376"></a>        }
+<a name="line377"></a>        $class = self::parseClass($module, $layer, $name, $appendSuffix);
+<a name="line378"></a>        if (class_exists($class)) {
+<a name="line379"></a>            $model = new $class();
+<a name="line380"></a>        } else {
+<a name="line381"></a>            $class = str_replace('\\' . $module . '\\', '\\' . $common . '\\', $class);
+<a name="line382"></a>            if (class_exists($class)) {
+<a name="line383"></a>                $model = new $class();
+<a name="line384"></a>            } else {
+<a name="line385"></a>                throw new ClassNotFoundException('class not exists:' . $class, $class);
+<a name="line386"></a>            }
+<a name="line387"></a>        }
+<a name="line388"></a>        self::$instance[$guid] = $model;
+<a name="line389"></a>        return $model;
+<a name="line390"></a>    }
+<a name="line391"></a>
+<a name="line392"></a>    /**
+<a name="line393"></a>     * 实例化（分层）控制器 格式：[模块名/]控制器名
+<a name="line394"></a>     * @param string $name         资源地址
+<a name="line395"></a>     * @param string $layer        控制层名称
+<a name="line396"></a>     * @param bool   $appendSuffix 是否添加类名后缀
+<a name="line397"></a>     * @param string $empty        空控制器名称
+<a name="line398"></a>     * @return Object|false
+<a name="line399"></a>     * @throws ClassNotFoundException
+<a name="line400"></a>     */
+<a name="line401"></a>    public static function controller($name, $layer = 'controller', $appendSuffix = false, $empty = '')
+<a name="line402"></a>    {
+<a name="line403"></a>        if (strpos($name, '/')) {
+<a name="line404"></a>            list($module, $name) = explode('/', $name);
+<a name="line405"></a>        } else {
+<a name="line406"></a>            $module = Request::instance()->module();
+<a name="line407"></a>        }
+<a name="line408"></a>        $class = self::parseClass($module, $layer, $name, $appendSuffix);
+<a name="line409"></a>        if (class_exists($class)) {
+<a name="line410"></a>            return App::invokeClass($class);
+<a name="line411"></a>        } elseif ($empty && class_exists($emptyClass = self::parseClass($module, $layer, $empty, $appendSuffix))) {
+<a name="line412"></a>            return new $emptyClass(Request::instance());
+<a name="line413"></a>        }
+<a name="line414"></a>    }
+<a name="line415"></a>
+<a name="line416"></a>    /**
+<a name="line417"></a>     * 实例化验证类 格式：[模块名/]验证器名
+<a name="line418"></a>     * @param string $name         资源地址
+<a name="line419"></a>     * @param string $layer        验证层名称
+<a name="line420"></a>     * @param bool   $appendSuffix 是否添加类名后缀
+<a name="line421"></a>     * @param string $common       公共模块名
+<a name="line422"></a>     * @return Object|false
+<a name="line423"></a>     * @throws ClassNotFoundException
+<a name="line424"></a>     */
+<a name="line425"></a>    public static function validate($name = '', $layer = 'validate', $appendSuffix = false, $common = 'common')
+<a name="line426"></a>    {
+<a name="line427"></a>        $name = $name ?: Config::get('default_validate');
+<a name="line428"></a>        if (empty($name)) {
+<a name="line429"></a>            return new Validate;
+<a name="line430"></a>        }
+<a name="line431"></a>        $guid = $name . $layer;
+<a name="line432"></a>        if (isset(self::$instance[$guid])) {
+<a name="line433"></a>            return self::$instance[$guid];
+<a name="line434"></a>        }
+<a name="line435"></a>        if (strpos($name, '/')) {
+<a name="line436"></a>            list($module, $name) = explode('/', $name);
+<a name="line437"></a>        } else {
+<a name="line438"></a>            $module = Request::instance()->module();
+<a name="line439"></a>        }
+<a name="line440"></a>        $class = self::parseClass($module, $layer, $name, $appendSuffix);
+<a name="line441"></a>        if (class_exists($class)) {
+<a name="line442"></a>            $validate = new $class;
+<a name="line443"></a>        } else {
+<a name="line444"></a>            $class = str_replace('\\' . $module . '\\', '\\' . $common . '\\', $class);
+<a name="line445"></a>            if (class_exists($class)) {
+<a name="line446"></a>                $validate = new $class;
+<a name="line447"></a>            } else {
+<a name="line448"></a>                throw new ClassNotFoundException('class not exists:' . $class, $class);
+<a name="line449"></a>            }
+<a name="line450"></a>        }
+<a name="line451"></a>        self::$instance[$guid] = $validate;
+<a name="line452"></a>        return $validate;
+<a name="line453"></a>    }
+<a name="line454"></a>
+<a name="line455"></a>    /**
+<a name="line456"></a>     * 数据库初始化 并取得数据库类实例
+<a name="line457"></a>     * @param mixed         $config 数据库配置
+<a name="line458"></a>     * @param bool|string   $name 连接标识 true 强制重新连接
+<a name="line459"></a>     * @return \think\db\Connection
+<a name="line460"></a>     */
+<a name="line461"></a>    public static function db($config = [], $name = false)
+<a name="line462"></a>    {
+<a name="line463"></a>        return Db::connect($config, $name);
+<a name="line464"></a>    }
+<a name="line465"></a>
+<a name="line466"></a>    /**
+<a name="line467"></a>     * 远程调用模块的操作方法 参数格式 [模块/控制器/]操作
+<a name="line468"></a>     * @param string       $url          调用地址
+<a name="line469"></a>     * @param string|array $vars         调用参数 支持字符串和数组
+<a name="line470"></a>     * @param string       $layer        要调用的控制层名称
+<a name="line471"></a>     * @param bool         $appendSuffix 是否添加类名后缀
+<a name="line472"></a>     * @return mixed
+<a name="line473"></a>     */
+<a name="line474"></a>    public static function action($url, $vars = [], $layer = 'controller', $appendSuffix = false)
+<a name="line475"></a>    {
+<a name="line476"></a>        $info   = pathinfo($url);
+<a name="line477"></a>        $action = $info['basename'];
+<a name="line478"></a>        $module = '.' != $info['dirname'] ? $info['dirname'] : Request::instance()->controller();
+<a name="line479"></a>        $class  = self::controller($module, $layer, $appendSuffix);
+<a name="line480"></a>        if ($class) {
+<a name="line481"></a>            if (is_scalar($vars)) {
+<a name="line482"></a>                if (strpos($vars, '=')) {
+<a name="line483"></a>                    parse_str($vars, $vars);
+<a name="line484"></a>                } else {
+<a name="line485"></a>                    $vars = [$vars];
+<a name="line486"></a>                }
+<a name="line487"></a>            }
+<a name="line488"></a>            return App::invokeMethod([$class, $action . Config::get('action_suffix')], $vars);
+<a name="line489"></a>        }
+<a name="line490"></a>    }
+<a name="line491"></a>
+<a name="line492"></a>    /**
+<a name="line493"></a>     * 字符串命名风格转换
+<a name="line494"></a>     * type 0 将Java风格转换为C的风格 1 将C风格转换为Java的风格
+<a name="line495"></a>     * @param string  $name 字符串
+<a name="line496"></a>     * @param integer $type 转换类型
+<a name="line497"></a>     * @return string
+<a name="line498"></a>     */
+<a name="line499"></a>    public static function parseName($name, $type = 0)
+<a name="line500"></a>    {
+<a name="line501"></a>        if ($type) {
+<a name="line502"></a>            return ucfirst(preg_replace_callback('/_([a-zA-Z])/', function ($match) {
+<a name="line503"></a>                return strtoupper($match[1]);
+<a name="line504"></a>            }, $name));
+<a name="line505"></a>        } else {
+<a name="line506"></a>            return strtolower(trim(preg_replace("/[A-Z]/", "_\\0", $name), "_"));
+<a name="line507"></a>        }
+<a name="line508"></a>    }
+<a name="line509"></a>
+<a name="line510"></a>    /**
+<a name="line511"></a>     * 解析应用类的类名
+<a name="line512"></a>     * @param string $module 模块名
+<a name="line513"></a>     * @param string $layer  层名 controller model ...
+<a name="line514"></a>     * @param string $name   类名
+<a name="line515"></a>     * @param bool   $appendSuffix
+<a name="line516"></a>     * @return string
+<a name="line517"></a>     */
+<a name="line518"></a>    public static function parseClass($module, $layer, $name, $appendSuffix = false)
+<a name="line519"></a>    {
+<a name="line520"></a>        $name  = str_replace(['/', '.'], '\\', $name);
+<a name="line521"></a>        $array = explode('\\', $name);
+<a name="line522"></a>        $class = self::parseName(array_pop($array), 1) . (App::$suffix || $appendSuffix ? ucfirst($layer) : '');
+<a name="line523"></a>        $path  = $array ? implode('\\', $array) . '\\' : '';
+<a name="line524"></a>        return App::$namespace . '\\' . ($module ? $module . '\\' : '') . $layer . '\\' . $path . $class;
+<a name="line525"></a>    }
+<a name="line526"></a>
+<a name="line527"></a>    /**
+<a name="line528"></a>     * 初始化类的实例
+<a name="line529"></a>     * @return void
+<a name="line530"></a>     */
+<a name="line531"></a>    public static function clearInstance()
+<a name="line532"></a>    {
+<a name="line533"></a>        self::$instance = [];
+<a name="line534"></a>    }
+<a name="line535"></a>}
+<a name="line536"></a>
+<a name="line537"></a>/**
+<a name="line538"></a> * 作用范围隔离
+<a name="line539"></a> *
+<a name="line540"></a> * @param $file
+<a name="line541"></a> * @return mixed
+<a name="line542"></a> */
+<a name="line543"></a>function __include_file($file)
+<a name="line544"></a>{
+<a name="line545"></a>    return include $file;
+<a name="line546"></a>}
+<a name="line547"></a>
+<a name="line548"></a>function __require_file($file)
+<a name="line549"></a>{
+<a name="line550"></a>    return require $file;
+<a name="line551"></a>}
+<a name="line552"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\loader.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

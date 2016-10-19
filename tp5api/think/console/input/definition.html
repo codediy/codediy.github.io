@@ -1,0 +1,449 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../../../stylesheet.css">
+<link rel="start" href="../../../overview-summary.html">
+
+<title>Definition (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../../../overview-summary.html">Overview</a></li>
+<li><a href="../../../think/console/input/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../../../think/console/input/package-tree.html">Tree</a></li>
+<li><a href="../../../overview-files.html">Files</a></li>
+<li><a href="../../../deprecated-list.html">Deprecated</a></li>
+<li><a href="../../../todo-list.html">Todo</a></li>
+<li><a href="../../../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../../../index.html" target="_top">Frames</a>
+<a href="../../../think\console\input\definition.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\console\input\Definition</div>
+<a href="../../../source/library/think/console/input/definition.php.html#line14" class="location">library\think\console\input\Definition.php at line 14</a>
+
+<h1>Class Definition</h1>
+
+<pre class="tree"><strong>Definition</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>Definition</strong></p>
+
+<hr>
+
+<table id="summary_constructor">
+<tr><th colspan="2">Constructor Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#__construct()">__construct</a>(array definition)</p><p class="description">构造方法</p></td>
+</tr>
+</table>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#setDefinition()">setDefinition</a>(array definition)</p><p class="description">设置指令的定义</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#setArguments()">setArguments</a>(<a href="../../../think/console/input/argument.html">Argument</a> arguments)</p><p class="description">设置参数</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#addArguments()">addArguments</a>(<a href="../../../think/console/input/argument.html">Argument</a> arguments)</p><p class="description">添加参数</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#addArgument()">addArgument</a>(<a href="../../../think/console/input/argument.html">Argument</a> argument)</p><p class="description">添加一个参数</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../../../think/console/input/argument.html">Argument</a></td>
+<td class="description"><p class="name"><a href="#getArgument()">getArgument</a>(string|int name)</p><p class="description">根据名称或者位置获取参数</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#hasArgument()">hasArgument</a>(string|int name)</p><p class="description">根据名称或位置检查是否具有某个参数</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../../../think/console/input/argument.html">Argument[]</a></td>
+<td class="description"><p class="name"><a href="#getArguments()">getArguments</a>()</p><p class="description">获取所有的参数</p></td>
+</tr>
+<tr>
+<td class="type"> int</td>
+<td class="description"><p class="name"><a href="#getArgumentCount()">getArgumentCount</a>()</p><p class="description">获取参数数量</p></td>
+</tr>
+<tr>
+<td class="type"> int</td>
+<td class="description"><p class="name"><a href="#getArgumentRequiredCount()">getArgumentRequiredCount</a>()</p><p class="description">获取必填的参数的数量</p></td>
+</tr>
+<tr>
+<td class="type"> array</td>
+<td class="description"><p class="name"><a href="#getArgumentDefaults()">getArgumentDefaults</a>()</p><p class="description">获取参数默认值</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#setOptions()">setOptions</a>(<a href="../../../think/console/input/option.html">Option</a> options)</p><p class="description">设置选项</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#addOptions()">addOptions</a>(<a href="../../../think/console/input/option.html">Option</a> options)</p><p class="description">添加选项</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#addOption()">addOption</a>(<a href="../../../think/console/input/option.html">Option</a> option)</p><p class="description">添加一个选项</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../../../think/console/input/option.html">Option</a></td>
+<td class="description"><p class="name"><a href="#getOption()">getOption</a>(string name)</p><p class="description">根据名称获取选项</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#hasOption()">hasOption</a>(string name)</p><p class="description">根据名称检查是否有这个选项</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../../../think/console/input/option.html">Option[]</a></td>
+<td class="description"><p class="name"><a href="#getOptions()">getOptions</a>()</p><p class="description">获取所有选项</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#hasShortcut()">hasShortcut</a>(string name)</p><p class="description">根据名称检查某个选项是否有短名称</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../../../think/console/input/option.html">Option</a></td>
+<td class="description"><p class="name"><a href="#getOptionForShortcut()">getOptionForShortcut</a>(string shortcut)</p><p class="description">根据短名称获取选项</p></td>
+</tr>
+<tr>
+<td class="type"> array</td>
+<td class="description"><p class="name"><a href="#getOptionDefaults()">getOptionDefaults</a>()</p><p class="description">获取所有选项的默认值</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getSynopsis()">getSynopsis</a>(bool short)</p><p class="description">获取该指令的介绍</p></td>
+</tr>
+</table>
+
+<h2 id="detail_method">Constructor Detail</h2>
+<a href="../../../source/library/think/console/input/definition.php.html#line37" class="location">library\think\console\input\Definition.php at line 37</a>
+
+<h3 id="__construct()">__construct</h3>
+<code class="signature">public  void <strong>__construct</strong>(array definition)</code>
+<div class="details">
+<p>构造方法</p><dl>
+<dt>Api.</dt>
+</dl>
+</div>
+
+<hr>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../../../source/library/think/console/input/definition.php.html#line46" class="location">library\think\console\input\Definition.php at line 46</a>
+
+<h3 id="setDefinition()">setDefinition</h3>
+<code class="signature">public  void <strong>setDefinition</strong>(array definition)</code>
+<div class="details">
+<p>设置指令的定义</p><dl>
+<dt>Parameters:</dt>
+<dd>definition - 定义的数组</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line66" class="location">library\think\console\input\Definition.php at line 66</a>
+
+<h3 id="setArguments()">setArguments</h3>
+<code class="signature">public  void <strong>setArguments</strong>(<a href="../../../think/console/input/argument.html">Argument</a> arguments)</code>
+<div class="details">
+<p>设置参数</p><dl>
+<dt>Parameters:</dt>
+<dd>arguments - 参数数组</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line80" class="location">library\think\console\input\Definition.php at line 80</a>
+
+<h3 id="addArguments()">addArguments</h3>
+<code class="signature">public  void <strong>addArguments</strong>(<a href="../../../think/console/input/argument.html">Argument</a> arguments)</code>
+<div class="details">
+<p>添加参数</p><dl>
+<dt>Parameters:</dt>
+<dd>arguments - 参数数组</dd>
+<dt>Api.</dt>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line94" class="location">library\think\console\input\Definition.php at line 94</a>
+
+<h3 id="addArgument()">addArgument</h3>
+<code class="signature">public  void <strong>addArgument</strong>(<a href="../../../think/console/input/argument.html">Argument</a> argument)</code>
+<div class="details">
+<p>添加一个参数</p><dl>
+<dt>Parameters:</dt>
+<dd>argument - 参数</dd>
+<dt>Throws:</dt>
+<dd>\LogicException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line127" class="location">library\think\console\input\Definition.php at line 127</a>
+
+<h3 id="getArgument()">getArgument</h3>
+<code class="signature">public  <a href="../../../think/console/input/argument.html">Argument</a> <strong>getArgument</strong>(string|int name)</code>
+<div class="details">
+<p>根据名称或者位置获取参数</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 参数名或者位置</dd>
+<dt>Returns:</dt>
+<dd>参数</dd>
+<dt>Throws:</dt>
+<dd>\InvalidArgumentException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line144" class="location">library\think\console\input\Definition.php at line 144</a>
+
+<h3 id="hasArgument()">hasArgument</h3>
+<code class="signature">public  bool <strong>hasArgument</strong>(string|int name)</code>
+<div class="details">
+<p>根据名称或位置检查是否具有某个参数</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 参数名或者位置</dd>
+<dt>Api.</dt>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line155" class="location">library\think\console\input\Definition.php at line 155</a>
+
+<h3 id="getArguments()">getArguments</h3>
+<code class="signature">public  <a href="../../../think/console/input/argument.html">Argument[]</a> <strong>getArguments</strong>()</code>
+<div class="details">
+<p>获取所有的参数</p><dl>
+<dt>Returns:</dt>
+<dd>参数数组</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line164" class="location">library\think\console\input\Definition.php at line 164</a>
+
+<h3 id="getArgumentCount()">getArgumentCount</h3>
+<code class="signature">public  int <strong>getArgumentCount</strong>()</code>
+<div class="details">
+<p>获取参数数量</p></div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line173" class="location">library\think\console\input\Definition.php at line 173</a>
+
+<h3 id="getArgumentRequiredCount()">getArgumentRequiredCount</h3>
+<code class="signature">public  int <strong>getArgumentRequiredCount</strong>()</code>
+<div class="details">
+<p>获取必填的参数的数量</p></div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line182" class="location">library\think\console\input\Definition.php at line 182</a>
+
+<h3 id="getArgumentDefaults()">getArgumentDefaults</h3>
+<code class="signature">public  array <strong>getArgumentDefaults</strong>()</code>
+<div class="details">
+<p>获取参数默认值</p></div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line196" class="location">library\think\console\input\Definition.php at line 196</a>
+
+<h3 id="setOptions()">setOptions</h3>
+<code class="signature">public  void <strong>setOptions</strong>(<a href="../../../think/console/input/option.html">Option</a> options)</code>
+<div class="details">
+<p>设置选项</p><dl>
+<dt>Parameters:</dt>
+<dd>options - 选项数组</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line208" class="location">library\think\console\input\Definition.php at line 208</a>
+
+<h3 id="addOptions()">addOptions</h3>
+<code class="signature">public  void <strong>addOptions</strong>(<a href="../../../think/console/input/option.html">Option</a> options)</code>
+<div class="details">
+<p>添加选项</p><dl>
+<dt>Parameters:</dt>
+<dd>options - 选项数组</dd>
+<dt>Api.</dt>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line221" class="location">library\think\console\input\Definition.php at line 221</a>
+
+<h3 id="addOption()">addOption</h3>
+<code class="signature">public  void <strong>addOption</strong>(<a href="../../../think/console/input/option.html">Option</a> option)</code>
+<div class="details">
+<p>添加一个选项</p><dl>
+<dt>Parameters:</dt>
+<dd>option - 选项</dd>
+<dt>Throws:</dt>
+<dd>\LogicException</dd>
+<dt>Api.</dt>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line252" class="location">library\think\console\input\Definition.php at line 252</a>
+
+<h3 id="getOption()">getOption</h3>
+<code class="signature">public  <a href="../../../think/console/input/option.html">Option</a> <strong>getOption</strong>(string name)</code>
+<div class="details">
+<p>根据名称获取选项</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 选项名</dd>
+<dt>Throws:</dt>
+<dd>\InvalidArgumentException</dd>
+<dt>Api.</dt>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line267" class="location">library\think\console\input\Definition.php at line 267</a>
+
+<h3 id="hasOption()">hasOption</h3>
+<code class="signature">public  bool <strong>hasOption</strong>(string name)</code>
+<div class="details">
+<p>根据名称检查是否有这个选项</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 选项名</dd>
+<dt>Api.</dt>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line277" class="location">library\think\console\input\Definition.php at line 277</a>
+
+<h3 id="getOptions()">getOptions</h3>
+<code class="signature">public  <a href="../../../think/console/input/option.html">Option[]</a> <strong>getOptions</strong>()</code>
+<div class="details">
+<p>获取所有选项</p><dl>
+<dt>Api.</dt>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line287" class="location">library\think\console\input\Definition.php at line 287</a>
+
+<h3 id="hasShortcut()">hasShortcut</h3>
+<code class="signature">public  bool <strong>hasShortcut</strong>(string name)</code>
+<div class="details">
+<p>根据名称检查某个选项是否有短名称</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 短名称</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line297" class="location">library\think\console\input\Definition.php at line 297</a>
+
+<h3 id="getOptionForShortcut()">getOptionForShortcut</h3>
+<code class="signature">public  <a href="../../../think/console/input/option.html">Option</a> <strong>getOptionForShortcut</strong>(string shortcut)</code>
+<div class="details">
+<p>根据短名称获取选项</p><dl>
+<dt>Parameters:</dt>
+<dd>shortcut - 短名称</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line306" class="location">library\think\console\input\Definition.php at line 306</a>
+
+<h3 id="getOptionDefaults()">getOptionDefaults</h3>
+<code class="signature">public  array <strong>getOptionDefaults</strong>()</code>
+<div class="details">
+<p>获取所有选项的默认值</p></div>
+
+<hr>
+
+<a href="../../../source/library/think/console/input/definition.php.html#line336" class="location">library\think\console\input\Definition.php at line 336</a>
+
+<h3 id="getSynopsis()">getSynopsis</h3>
+<code class="signature">public  string <strong>getSynopsis</strong>(bool short)</code>
+<div class="details">
+<p>获取该指令的介绍</p><dl>
+<dt>Parameters:</dt>
+<dd>short - 是否简洁介绍</dd>
+</dl>
+</div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../../../overview-summary.html">Overview</a></li>
+<li><a href="../../../think/console/input/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../../../think/console/input/package-tree.html">Tree</a></li>
+<li><a href="../../../overview-files.html">Files</a></li>
+<li><a href="../../../deprecated-list.html">Deprecated</a></li>
+<li><a href="../../../todo-list.html">Todo</a></li>
+<li><a href="../../../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../../../index.html" target="_top">Frames</a>
+<a href="../../../think\console\input\definition.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

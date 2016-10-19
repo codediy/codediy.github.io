@@ -1,0 +1,429 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\console\output\driver\Console.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\console\output\driver\console.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\console\output\driver\Console.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK IT ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006-2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: yunwuxin <448901948@qq.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think\console\output\driver;
+<a name="line13"></a>
+<a name="line14"></a>use think\console\Output;
+<a name="line15"></a>use think\console\output\Formatter;
+<a name="line16"></a>
+<a name="line17"></a>class Console
+<a name="line18"></a>{
+<a name="line19"></a>
+<a name="line20"></a>    /** @var  Resource */
+<a name="line21"></a>    private $stdout;
+<a name="line22"></a>
+<a name="line23"></a>    /** @var  Formatter */
+<a name="line24"></a>    private $formatter;
+<a name="line25"></a>
+<a name="line26"></a>    private $terminalDimensions;
+<a name="line27"></a>
+<a name="line28"></a>    /** @var  Output */
+<a name="line29"></a>    private $output;
+<a name="line30"></a>
+<a name="line31"></a>    public function __construct(Output $output)
+<a name="line32"></a>    {
+<a name="line33"></a>        $this->output    = $output;
+<a name="line34"></a>        $this->formatter = new Formatter();
+<a name="line35"></a>        $this->stdout    = $this->openOutputStream();
+<a name="line36"></a>        $decorated       = $this->hasColorSupport($this->stdout);
+<a name="line37"></a>        $this->formatter->setDecorated($decorated);
+<a name="line38"></a>    }
+<a name="line39"></a>
+<a name="line40"></a>    public function setDecorated($decorated)
+<a name="line41"></a>    {
+<a name="line42"></a>        $this->formatter->setDecorated($decorated);
+<a name="line43"></a>    }
+<a name="line44"></a>
+<a name="line45"></a>    public function write($messages, $newline = false, $type = Output::OUTPUT_NORMAL, $stream = null)
+<a name="line46"></a>    {
+<a name="line47"></a>        if (Output::VERBOSITY_QUIET === $this->output->getVerbosity()) {
+<a name="line48"></a>            return;
+<a name="line49"></a>        }
+<a name="line50"></a>
+<a name="line51"></a>        $messages = (array) $messages;
+<a name="line52"></a>
+<a name="line53"></a>        foreach ($messages as $message) {
+<a name="line54"></a>            switch ($type) {
+<a name="line55"></a>                case Output::OUTPUT_NORMAL:
+<a name="line56"></a>                    $message = $this->formatter->format($message);
+<a name="line57"></a>                    break;
+<a name="line58"></a>                case Output::OUTPUT_RAW:
+<a name="line59"></a>                    break;
+<a name="line60"></a>                case Output::OUTPUT_PLAIN:
+<a name="line61"></a>                    $message = strip_tags($this->formatter->format($message));
+<a name="line62"></a>                    break;
+<a name="line63"></a>                default:
+<a name="line64"></a>                    throw new \InvalidArgumentException(sprintf('Unknown output type given (%s)', $type));
+<a name="line65"></a>            }
+<a name="line66"></a>
+<a name="line67"></a>            $this->doWrite($message, $newline, $stream);
+<a name="line68"></a>        }
+<a name="line69"></a>    }
+<a name="line70"></a>
+<a name="line71"></a>    public function renderException(\Exception $e)
+<a name="line72"></a>    {
+<a name="line73"></a>        $stderr    = $this->openErrorStream();
+<a name="line74"></a>        $decorated = $this->hasColorSupport($stderr);
+<a name="line75"></a>        $this->formatter->setDecorated($decorated);
+<a name="line76"></a>
+<a name="line77"></a>        do {
+<a name="line78"></a>            $title = sprintf('  [%s]  ', get_class($e));
+<a name="line79"></a>
+<a name="line80"></a>            $len = $this->stringWidth($title);
+<a name="line81"></a>
+<a name="line82"></a>            $width = $this->getTerminalWidth() ? $this->getTerminalWidth() - 1 : PHP_INT_MAX;
+<a name="line83"></a>
+<a name="line84"></a>            if (defined('HHVM_VERSION') && $width > 1 << 31) {
+<a name="line85"></a>                $width = 1 << 31;
+<a name="line86"></a>            }
+<a name="line87"></a>            $lines = [];
+<a name="line88"></a>            foreach (preg_split('/\r?\n/', $e->getMessage()) as $line) {
+<a name="line89"></a>                foreach ($this->splitStringByWidth($line, $width - 4) as $line) {
+<a name="line90"></a>
+<a name="line91"></a>                    $lineLength = $this->stringWidth(preg_replace('/\[[^m]*m/', '', $line)) + 4;
+<a name="line92"></a>                    $lines[]    = [$line, $lineLength];
+<a name="line93"></a>
+<a name="line94"></a>                    $len = max($lineLength, $len);
+<a name="line95"></a>                }
+<a name="line96"></a>            }
+<a name="line97"></a>
+<a name="line98"></a>            $messages   = ['', ''];
+<a name="line99"></a>            $messages[] = $emptyLine = sprintf('<error>%s</error>', str_repeat(' ', $len));
+<a name="line100"></a>            $messages[] = sprintf('<error>%s%s</error>', $title, str_repeat(' ', max(0, $len - $this->stringWidth($title))));
+<a name="line101"></a>            foreach ($lines as $line) {
+<a name="line102"></a>                $messages[] = sprintf('<error>  %s  %s</error>', $line[0], str_repeat(' ', $len - $line[1]));
+<a name="line103"></a>            }
+<a name="line104"></a>            $messages[] = $emptyLine;
+<a name="line105"></a>            $messages[] = '';
+<a name="line106"></a>            $messages[] = '';
+<a name="line107"></a>
+<a name="line108"></a>            $this->write($messages, true, Output::OUTPUT_NORMAL, $stderr);
+<a name="line109"></a>
+<a name="line110"></a>            if (Output::VERBOSITY_VERBOSE <= $this->output->getVerbosity()) {
+<a name="line111"></a>                $this->write('<comment>Exception trace:</comment>', true, Output::OUTPUT_NORMAL, $stderr);
+<a name="line112"></a>
+<a name="line113"></a>                // exception related properties
+<a name="line114"></a>                $trace = $e->getTrace();
+<a name="line115"></a>                array_unshift($trace, [
+<a name="line116"></a>                    'function' => '',
+<a name="line117"></a>                    'file'     => $e->getFile() !== null ? $e->getFile() : 'n/a',
+<a name="line118"></a>                    'line'     => $e->getLine() !== null ? $e->getLine() : 'n/a',
+<a name="line119"></a>                    'args'     => [],
+<a name="line120"></a>                ]);
+<a name="line121"></a>
+<a name="line122"></a>                for ($i = 0, $count = count($trace); $i < $count; ++$i) {
+<a name="line123"></a>                    $class    = isset($trace[$i]['class']) ? $trace[$i]['class'] : '';
+<a name="line124"></a>                    $type     = isset($trace[$i]['type']) ? $trace[$i]['type'] : '';
+<a name="line125"></a>                    $function = $trace[$i]['function'];
+<a name="line126"></a>                    $file     = isset($trace[$i]['file']) ? $trace[$i]['file'] : 'n/a';
+<a name="line127"></a>                    $line     = isset($trace[$i]['line']) ? $trace[$i]['line'] : 'n/a';
+<a name="line128"></a>
+<a name="line129"></a>                    $this->write(sprintf(' %s%s%s() at <info>%s:%s</info>', $class, $type, $function, $file, $line), true, Output::OUTPUT_NORMAL, $stderr);
+<a name="line130"></a>                }
+<a name="line131"></a>
+<a name="line132"></a>                $this->write('', true, Output::OUTPUT_NORMAL, $stderr);
+<a name="line133"></a>                $this->write('', true, Output::OUTPUT_NORMAL, $stderr);
+<a name="line134"></a>            }
+<a name="line135"></a>        } while ($e = $e->getPrevious());
+<a name="line136"></a>
+<a name="line137"></a>    }
+<a name="line138"></a>
+<a name="line139"></a>    /**
+<a name="line140"></a>     * 获取终端宽度
+<a name="line141"></a>     * @return int|null
+<a name="line142"></a>     */
+<a name="line143"></a>    protected function getTerminalWidth()
+<a name="line144"></a>    {
+<a name="line145"></a>        $dimensions = $this->getTerminalDimensions();
+<a name="line146"></a>
+<a name="line147"></a>        return $dimensions[0];
+<a name="line148"></a>    }
+<a name="line149"></a>
+<a name="line150"></a>    /**
+<a name="line151"></a>     * 获取终端高度
+<a name="line152"></a>     * @return int|null
+<a name="line153"></a>     */
+<a name="line154"></a>    protected function getTerminalHeight()
+<a name="line155"></a>    {
+<a name="line156"></a>        $dimensions = $this->getTerminalDimensions();
+<a name="line157"></a>
+<a name="line158"></a>        return $dimensions[1];
+<a name="line159"></a>    }
+<a name="line160"></a>
+<a name="line161"></a>    /**
+<a name="line162"></a>     * 获取当前终端的尺寸
+<a name="line163"></a>     * @return array
+<a name="line164"></a>     */
+<a name="line165"></a>    public function getTerminalDimensions()
+<a name="line166"></a>    {
+<a name="line167"></a>        if ($this->terminalDimensions) {
+<a name="line168"></a>            return $this->terminalDimensions;
+<a name="line169"></a>        }
+<a name="line170"></a>
+<a name="line171"></a>        if ('\\' === DS) {
+<a name="line172"></a>            if (preg_match('/^(\d+)x\d+ \(\d+x(\d+)\)$/', trim(getenv('ANSICON')), $matches)) {
+<a name="line173"></a>                return [(int) $matches[1], (int) $matches[2]];
+<a name="line174"></a>            }
+<a name="line175"></a>            if (preg_match('/^(\d+)x(\d+)$/', $this->getMode(), $matches)) {
+<a name="line176"></a>                return [(int) $matches[1], (int) $matches[2]];
+<a name="line177"></a>            }
+<a name="line178"></a>        }
+<a name="line179"></a>
+<a name="line180"></a>        if ($sttyString = $this->getSttyColumns()) {
+<a name="line181"></a>            if (preg_match('/rows.(\d+);.columns.(\d+);/i', $sttyString, $matches)) {
+<a name="line182"></a>                return [(int) $matches[2], (int) $matches[1]];
+<a name="line183"></a>            }
+<a name="line184"></a>            if (preg_match('/;.(\d+).rows;.(\d+).columns/i', $sttyString, $matches)) {
+<a name="line185"></a>                return [(int) $matches[2], (int) $matches[1]];
+<a name="line186"></a>            }
+<a name="line187"></a>        }
+<a name="line188"></a>
+<a name="line189"></a>        return [null, null];
+<a name="line190"></a>    }
+<a name="line191"></a>
+<a name="line192"></a>    /**
+<a name="line193"></a>     * 获取stty列数
+<a name="line194"></a>     * @return string
+<a name="line195"></a>     */
+<a name="line196"></a>    private function getSttyColumns()
+<a name="line197"></a>    {
+<a name="line198"></a>        if (!function_exists('proc_open')) {
+<a name="line199"></a>            return null;
+<a name="line200"></a>        }
+<a name="line201"></a>
+<a name="line202"></a>        $descriptorspec = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
+<a name="line203"></a>        $process        = proc_open('stty -a | grep columns', $descriptorspec, $pipes, null, null, ['suppress_errors' => true]);
+<a name="line204"></a>        if (is_resource($process)) {
+<a name="line205"></a>            $info = stream_get_contents($pipes[1]);
+<a name="line206"></a>            fclose($pipes[1]);
+<a name="line207"></a>            fclose($pipes[2]);
+<a name="line208"></a>            proc_close($process);
+<a name="line209"></a>
+<a name="line210"></a>            return $info;
+<a name="line211"></a>        }
+<a name="line212"></a>        return null;
+<a name="line213"></a>    }
+<a name="line214"></a>
+<a name="line215"></a>    /**
+<a name="line216"></a>     * 获取终端模式
+<a name="line217"></a>     * @return string <width>x<height> 或 null
+<a name="line218"></a>     */
+<a name="line219"></a>    private function getMode()
+<a name="line220"></a>    {
+<a name="line221"></a>        if (!function_exists('proc_open')) {
+<a name="line222"></a>            return null;
+<a name="line223"></a>        }
+<a name="line224"></a>
+<a name="line225"></a>        $descriptorspec = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
+<a name="line226"></a>        $process        = proc_open('mode CON', $descriptorspec, $pipes, null, null, ['suppress_errors' => true]);
+<a name="line227"></a>        if (is_resource($process)) {
+<a name="line228"></a>            $info = stream_get_contents($pipes[1]);
+<a name="line229"></a>            fclose($pipes[1]);
+<a name="line230"></a>            fclose($pipes[2]);
+<a name="line231"></a>            proc_close($process);
+<a name="line232"></a>
+<a name="line233"></a>            if (preg_match('/--------+\r?\n.+?(\d+)\r?\n.+?(\d+)\r?\n/', $info, $matches)) {
+<a name="line234"></a>                return $matches[2] . 'x' . $matches[1];
+<a name="line235"></a>            }
+<a name="line236"></a>        }
+<a name="line237"></a>        return null;
+<a name="line238"></a>    }
+<a name="line239"></a>
+<a name="line240"></a>    private function stringWidth($string)
+<a name="line241"></a>    {
+<a name="line242"></a>        if (!function_exists('mb_strwidth')) {
+<a name="line243"></a>            return strlen($string);
+<a name="line244"></a>        }
+<a name="line245"></a>
+<a name="line246"></a>        if (false === $encoding = mb_detect_encoding($string)) {
+<a name="line247"></a>            return strlen($string);
+<a name="line248"></a>        }
+<a name="line249"></a>
+<a name="line250"></a>        return mb_strwidth($string, $encoding);
+<a name="line251"></a>    }
+<a name="line252"></a>
+<a name="line253"></a>    private function splitStringByWidth($string, $width)
+<a name="line254"></a>    {
+<a name="line255"></a>        if (!function_exists('mb_strwidth')) {
+<a name="line256"></a>            return str_split($string, $width);
+<a name="line257"></a>        }
+<a name="line258"></a>
+<a name="line259"></a>        if (false === $encoding = mb_detect_encoding($string)) {
+<a name="line260"></a>            return str_split($string, $width);
+<a name="line261"></a>        }
+<a name="line262"></a>
+<a name="line263"></a>        $utf8String = mb_convert_encoding($string, 'utf8', $encoding);
+<a name="line264"></a>        $lines      = [];
+<a name="line265"></a>        $line       = '';
+<a name="line266"></a>        foreach (preg_split('//u', $utf8String) as $char) {
+<a name="line267"></a>            if (mb_strwidth($line . $char, 'utf8') <= $width) {
+<a name="line268"></a>                $line .= $char;
+<a name="line269"></a>                continue;
+<a name="line270"></a>            }
+<a name="line271"></a>            $lines[] = str_pad($line, $width);
+<a name="line272"></a>            $line    = $char;
+<a name="line273"></a>        }
+<a name="line274"></a>        if (strlen($line)) {
+<a name="line275"></a>            $lines[] = count($lines) ? str_pad($line, $width) : $line;
+<a name="line276"></a>        }
+<a name="line277"></a>
+<a name="line278"></a>        mb_convert_variables($encoding, 'utf8', $lines);
+<a name="line279"></a>
+<a name="line280"></a>        return $lines;
+<a name="line281"></a>    }
+<a name="line282"></a>
+<a name="line283"></a>    private function isRunningOS400()
+<a name="line284"></a>    {
+<a name="line285"></a>        $checks = [
+<a name="line286"></a>            function_exists('php_uname') ? php_uname('s') : '',
+<a name="line287"></a>            getenv('OSTYPE'),
+<a name="line288"></a>            PHP_OS,
+<a name="line289"></a>        ];
+<a name="line290"></a>        return false !== stripos(implode(';', $checks), 'OS400');
+<a name="line291"></a>    }
+<a name="line292"></a>
+<a name="line293"></a>    /**
+<a name="line294"></a>     * 当前环境是否支持写入控制台输出到stdout.
+<a name="line295"></a>     *
+<a name="line296"></a>     * @return bool
+<a name="line297"></a>     */
+<a name="line298"></a>    protected function hasStdoutSupport()
+<a name="line299"></a>    {
+<a name="line300"></a>        return false === $this->isRunningOS400();
+<a name="line301"></a>    }
+<a name="line302"></a>
+<a name="line303"></a>    /**
+<a name="line304"></a>     * 当前环境是否支持写入控制台输出到stderr.
+<a name="line305"></a>     *
+<a name="line306"></a>     * @return bool
+<a name="line307"></a>     */
+<a name="line308"></a>    protected function hasStderrSupport()
+<a name="line309"></a>    {
+<a name="line310"></a>        return false === $this->isRunningOS400();
+<a name="line311"></a>    }
+<a name="line312"></a>
+<a name="line313"></a>    /**
+<a name="line314"></a>     * @return resource
+<a name="line315"></a>     */
+<a name="line316"></a>    private function openOutputStream()
+<a name="line317"></a>    {
+<a name="line318"></a>        if (!$this->hasStdoutSupport()) {
+<a name="line319"></a>            return fopen('php://output', 'w');
+<a name="line320"></a>        }
+<a name="line321"></a>        return @fopen('php://stdout', 'w') ?: fopen('php://output', 'w');
+<a name="line322"></a>    }
+<a name="line323"></a>
+<a name="line324"></a>    /**
+<a name="line325"></a>     * @return resource
+<a name="line326"></a>     */
+<a name="line327"></a>    private function openErrorStream()
+<a name="line328"></a>    {
+<a name="line329"></a>        return fopen($this->hasStderrSupport() ? 'php://stderr' : 'php://output', 'w');
+<a name="line330"></a>    }
+<a name="line331"></a>
+<a name="line332"></a>    /**
+<a name="line333"></a>     * 将消息写入到输出。
+<a name="line334"></a>     * @param string $message 消息
+<a name="line335"></a>     * @param bool   $newline 是否另起一行
+<a name="line336"></a>     * @param null   $stream
+<a name="line337"></a>     */
+<a name="line338"></a>    protected function doWrite($message, $newline, $stream = null)
+<a name="line339"></a>    {
+<a name="line340"></a>        if (null === $stream) {
+<a name="line341"></a>            $stream = $this->stdout;
+<a name="line342"></a>        }
+<a name="line343"></a>        if (false === @fwrite($stream, $message . ($newline ? PHP_EOL : ''))) {
+<a name="line344"></a>            throw new \RuntimeException('Unable to write output.');
+<a name="line345"></a>        }
+<a name="line346"></a>
+<a name="line347"></a>        fflush($stream);
+<a name="line348"></a>    }
+<a name="line349"></a>
+<a name="line350"></a>    /**
+<a name="line351"></a>     * 是否支持着色
+<a name="line352"></a>     * @param $stream
+<a name="line353"></a>     * @return bool
+<a name="line354"></a>     */
+<a name="line355"></a>    protected function hasColorSupport($stream)
+<a name="line356"></a>    {
+<a name="line357"></a>        if (DIRECTORY_SEPARATOR === '\\') {
+<a name="line358"></a>            return
+<a name="line359"></a>                '10.0.10586' === PHP_WINDOWS_VERSION_MAJOR . '.' . PHP_WINDOWS_VERSION_MINOR . '.' . PHP_WINDOWS_VERSION_BUILD
+<a name="line360"></a>                || false !== getenv('ANSICON')
+<a name="line361"></a>                || 'ON' === getenv('ConEmuANSI')
+<a name="line362"></a>                || 'xterm' === getenv('TERM');
+<a name="line363"></a>        }
+<a name="line364"></a>
+<a name="line365"></a>        return function_exists('posix_isatty') && @posix_isatty($stream);
+<a name="line366"></a>    }
+<a name="line367"></a>
+<a name="line368"></a>}
+<a name="line369"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\console\output\driver\console.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

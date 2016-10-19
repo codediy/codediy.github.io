@@ -1,0 +1,1088 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:04 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>Model (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\model.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\Model</div>
+<a href="../source/library/think/model.php.html#line41" class="location">library\think\Model.php at line 41</a>
+
+<h1>Class Model</h1>
+
+<pre class="tree"><strong>Model</strong><br /></pre>
+
+<dl>
+<dt>All Known Subclasses:</dt>
+<dd><a href="../think/model/merge.html">think\model\Merge</a> <a href="../think/model/pivot.html">think\model\Pivot</a> </dd>
+</dl>
+
+<hr>
+
+<p class="signature">public abstract  class <strong>Model</strong></p>
+
+<div class="comment" id="overview_description"><p>Class Model</p></div>
+
+<dl>
+<dt>Method:</dt>
+<dd>static PaginatorCollection paginate(integer $listRows = 15, boolean $simple = false, array $config = []) 分页查询</dd>
+<dd>static mixed value($field, $default = null) 得到某个字段的值</dd>
+<dd>static array column($field, $key = '') 得到某个列的数组</dd>
+<dd>static integer count($field = '*') COUNT查询</dd>
+<dd>static integer sum($field = '*') SUM查询</dd>
+<dd>static integer min($field = '*') MIN查询</dd>
+<dd>static integer max($field = '*') MAX查询</dd>
+<dd>static integer avg($field = '*') AVG查询</dd>
+<dd>static setField($field, $value = '')</dd>
+<dd>static Query where($field, $op = null, $condition = null) 指定AND查询条件</dd>
+<dd>static static findOrFail($data = null) 查找单条记录 如果不存在则抛出异常</dd>
+</dl>
+<hr>
+
+<table id="summary_constructor">
+<tr><th colspan="2">Constructor Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#__construct()">__construct</a>(array|object data)</p><p class="description">架构函数</p></td>
+</tr>
+</table>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type"> <a href="../think/db/query.html">Query</a></td>
+<td class="description"><p class="name"><a href="#db()">db</a>(bool baseQuery)</p><p class="description">获取当前模型的数据库查询对象</p></td>
+</tr>
+<tr>
+<td class="type">protected  Relation|Query</td>
+<td class="description"><p class="name"><a href="#relation()">relation</a>(string|array relation)</p><p class="description">获取关联模型实例</p></td>
+</tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#initialize()">initialize</a>()</p><p class="description">初始化模型</p></td>
+</tr>
+<tr>
+<td class="type">protected static  void</td>
+<td class="description"><p class="name"><a href="#init()">init</a>()</p><p class="description">初始化处理</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#data()">data</a>(mixed data, mixed value)</p><p class="description">设置数据对象值</p></td>
+</tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#getData()">getData</a>(string name)</p><p class="description">获取对象原始数据 如果不存在指定字段返回false</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#setAttr()">setAttr</a>(string name, mixed value, array data)</p><p class="description">修改器 设置数据对象值</p></td>
+</tr>
+<tr>
+<td class="type">protected  mixed</td>
+<td class="description"><p class="name"><a href="#autoWriteTimestamp()">autoWriteTimestamp</a>(string name)</p><p class="description">自动写入时间戳</p></td>
+</tr>
+<tr>
+<td class="type">protected  mixed</td>
+<td class="description"><p class="name"><a href="#writeTransform()">writeTransform</a>(mixed value, string|array type)</p><p class="description">数据写入 类型转换</p></td>
+</tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#getAttr()">getAttr</a>(string name)</p><p class="description">获取器 获取数据对象的值</p></td>
+</tr>
+<tr>
+<td class="type">protected  mixed</td>
+<td class="description"><p class="name"><a href="#readTransform()">readTransform</a>(mixed value, string|array type)</p><p class="description">数据读取 类型转换</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#append()">append</a>(array append)</p><p class="description">设置需要追加的输出属性</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#hidden()">hidden</a>(array hidden)</p><p class="description">设置需要隐藏的输出属性</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#visible()">visible</a>(array visible)</p><p class="description">设置需要输出的属性</p></td>
+</tr>
+<tr>
+<td class="type"> array</td>
+<td class="description"><p class="name"><a href="#toArray()">toArray</a>()</p><p class="description">转换当前模型对象为数组</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#toJson()">toJson</a>(integer options)</p><p class="description">转换当前模型对象为JSON字符串</p></td>
+</tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#getPk()">getPk</a>(string name)</p><p class="description">获取模型对象的主键</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#isPk()">isPk</a>(string key)</p><p class="description">判断一个字段名是否为主键字段</p></td>
+</tr>
+<tr>
+<td class="type"> integer|false</td>
+<td class="description"><p class="name"><a href="#save()">save</a>(array data, array where, string sequence)</p><p class="description">保存当前数据对象</p></td>
+</tr>
+<tr>
+<td class="type"> array|false</td>
+<td class="description"><p class="name"><a href="#saveAll()">saveAll</a>(array dataSet, boolean replace)</p><p class="description">保存多个数据到当前数据对象</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#allowField()">allowField</a>(bool|array field)</p><p class="description">设置允许写入的字段</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#isUpdate()">isUpdate</a>(bool update, mixed where)</p><p class="description">是否为更新数据</p></td>
+</tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#autoCompleteData()">autoCompleteData</a>(array auto)</p><p class="description">数据自动完成</p></td>
+</tr>
+<tr>
+<td class="type"> integer</td>
+<td class="description"><p class="name"><a href="#delete()">delete</a>()</p><p class="description">删除当前的记录</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#auto()">auto</a>(array fields)</p><p class="description">设置自动完成的字段（ 规则通过修改器定义）</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#validate()">validate</a>(array|string|bool rule, array msg)</p><p class="description">设置字段验证</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#validateFailException()">validateFailException</a>(bool fail)</p><p class="description">设置验证失败后是否抛出异常</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#validateData()">validateData</a>(array data)</p><p class="description">自动验证数据</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getError()">getError</a>()</p><p class="description">返回模型的错误信息</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#event()">event</a>(string event, callable callback, bool override)</p><p class="description">注册回调方法</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#trigger()">trigger</a>(string event, mixed params)</p><p class="description">触发事件</p></td>
+</tr>
+<tr>
+<td class="type">static  $this</td>
+<td class="description"><p class="name"><a href="#create()">create</a>(array data)</p><p class="description">写入数据</p></td>
+</tr>
+<tr>
+<td class="type">static  $this</td>
+<td class="description"><p class="name"><a href="#update()">update</a>(array data, array where)</p><p class="description">更新数据</p></td>
+</tr>
+<tr>
+<td class="type">static  static</td>
+<td class="description"><p class="name"><a href="#get()">get</a>(mixed data, array|string with, bool cache)</p><p class="description">查找单条记录</p></td>
+</tr>
+<tr>
+<td class="type">static  static[]|false</td>
+<td class="description"><p class="name"><a href="#all()">all</a>(mixed data, array|string with, bool cache)</p><p class="description">查找所有记录</p></td>
+</tr>
+<tr>
+<td class="type">protected static  <a href="../think/db/query.html">Query</a></td>
+<td class="description"><p class="name"><a href="#parseQuery()">parseQuery</a>(mixed data, string with, bool cache)</p><p class="description">分析查询表达式</p></td>
+</tr>
+<tr>
+<td class="type">static  integer</td>
+<td class="description"><p class="name"><a href="#destroy()">destroy</a>(mixed data)</p><p class="description">删除记录</p></td>
+</tr>
+<tr>
+<td class="type">static  <a href="../think/model.html">Model</a></td>
+<td class="description"><p class="name"><a href="#scope()">scope</a>(string|array|Closure name, mixed ...$params)</p><p class="description">命名范围</p></td>
+</tr>
+<tr>
+<td class="type">static  <a href="../think/model.html">Model</a></td>
+<td class="description"><p class="name"><a href="#useGlobalScope()">useGlobalScope</a>(bool use)</p><p class="description">设置是否使用全局查询范围</p></td>
+</tr>
+<tr>
+<td class="type">static  <a href="../think/model.html">Model</a></td>
+<td class="description"><p class="name"><a href="#has()">has</a>(string relation, string operator, integer count, string id)</p><p class="description">根据关联条件查询当前模型</p></td>
+</tr>
+<tr>
+<td class="type">static  <a href="../think/model.html">Model</a></td>
+<td class="description"><p class="name"><a href="#hasWhere()">hasWhere</a>(string relation, mixed where)</p><p class="description">根据关联条件查询当前模型</p></td>
+</tr>
+<tr>
+<td class="type">protected static  string</td>
+<td class="description"><p class="name"><a href="#parseModel()">parseModel</a>(string model)</p><p class="description">解析模型的完整命名空间</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#relationQuery()">relationQuery</a>(string|array relations)</p><p class="description">查询当前模型的关联数据</p></td>
+</tr>
+<tr>
+<td class="type"> array</td>
+<td class="description"><p class="name"><a href="#eagerlyResultSet()">eagerlyResultSet</a>(array resultSet, string relation)</p><p class="description">预载入关联查询 返回数据集</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/model.html">Model</a></td>
+<td class="description"><p class="name"><a href="#eagerlyResult()">eagerlyResult</a>(<a href="../think/model.html">Model</a> result, string relation)</p><p class="description">预载入关联查询 返回模型对象</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/model/relation.html">Relation</a></td>
+<td class="description"><p class="name"><a href="#hasOne()">hasOne</a>(string model, string foreignKey, string localKey, array alias, string joinType)</p><p class="description">HAS ONE 关联定义</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/model/relation.html">Relation</a></td>
+<td class="description"><p class="name"><a href="#belongsTo()">belongsTo</a>(string model, string foreignKey, string otherKey, array alias, string joinType)</p><p class="description">BELONGS TO 关联定义</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/model/relation.html">Relation</a></td>
+<td class="description"><p class="name"><a href="#hasMany()">hasMany</a>(string model, string foreignKey, string localKey, array alias)</p><p class="description">HAS MANY 关联定义</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/model/relation.html">Relation</a></td>
+<td class="description"><p class="name"><a href="#hasManyThrough()">hasManyThrough</a>(string model, string through, string foreignKey, string throughKey, string localKey, array alias)</p><p class="description">HAS MANY 远程关联定义</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/model/relation.html">Relation</a></td>
+<td class="description"><p class="name"><a href="#belongsToMany()">belongsToMany</a>(string model, string table, string foreignKey, string localKey, array alias)</p><p class="description">BELONGS TO MANY 关联定义</p></td>
+</tr>
+<tr>
+<td class="type">protected static  void</td>
+<td class="description"><p class="name"><a href="#getDb()">getDb</a>()</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#jsonSerialize()">jsonSerialize</a>()</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#offsetSet()">offsetSet</a>(mixed name, mixed value)</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#offsetExists()">offsetExists</a>(mixed name)</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#offsetUnset()">offsetUnset</a>(mixed name)</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#offsetGet()">offsetGet</a>(mixed name)</p></td>
+</tr>
+</table>
+
+<h2 id="detail_method">Constructor Detail</h2>
+<a href="../source/library/think/model.php.html#line117" class="location">library\think\Model.php at line 117</a>
+
+<h3 id="__construct()">__construct</h3>
+<code class="signature">public  void <strong>__construct</strong>(array|object data)</code>
+<div class="details">
+<p>架构函数</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../source/library/think/model.php.html#line153" class="location">library\think\Model.php at line 153</a>
+
+<h3 id="db()">db</h3>
+<code class="signature">public  <a href="../think/db/query.html">Query</a> <strong>db</strong>(bool baseQuery)</code>
+<div class="details">
+<p>获取当前模型的数据库查询对象</p><dl>
+<dt>Parameters:</dt>
+<dd>baseQuery - 是否调用全局查询范围</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line187" class="location">library\think\Model.php at line 187</a>
+
+<h3 id="relation()">relation</h3>
+<code class="signature">protected  Relation|Query <strong>relation</strong>(string|array relation)</code>
+<div class="details">
+<p>获取关联模型实例</p><dl>
+<dt>Parameters:</dt>
+<dd>relation - 关联查询</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line206" class="location">library\think\Model.php at line 206</a>
+
+<h3 id="initialize()">initialize</h3>
+<code class="signature">protected  void <strong>initialize</strong>()</code>
+<div class="details">
+<p>初始化模型</p></div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line220" class="location">library\think\Model.php at line 220</a>
+
+<h3 id="init()">init</h3>
+<code class="signature">protected static  void <strong>init</strong>()</code>
+<div class="details">
+<p>初始化处理</p></div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line230" class="location">library\think\Model.php at line 230</a>
+
+<h3 id="data()">data</h3>
+<code class="signature">public  $this <strong>data</strong>(mixed data, mixed value)</code>
+<div class="details">
+<p>设置数据对象值</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 数据或者属性名</dd>
+<dd>value - 值</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line259" class="location">library\think\Model.php at line 259</a>
+
+<h3 id="getData()">getData</h3>
+<code class="signature">public  mixed <strong>getData</strong>(string name)</code>
+<div class="details">
+<p>获取对象原始数据 如果不存在指定字段返回false</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 字段名 留空获取全部</dd>
+<dt>Throws:</dt>
+<dd>InvalidArgumentException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line278" class="location">library\think\Model.php at line 278</a>
+
+<h3 id="setAttr()">setAttr</h3>
+<code class="signature">public  $this <strong>setAttr</strong>(string name, mixed value, array data)</code>
+<div class="details">
+<p>修改器 设置数据对象值</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 属性名</dd>
+<dd>value - 属性值</dd>
+<dd>data - 数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line309" class="location">library\think\Model.php at line 309</a>
+
+<h3 id="autoWriteTimestamp()">autoWriteTimestamp</h3>
+<code class="signature">protected  mixed <strong>autoWriteTimestamp</strong>(string name)</code>
+<div class="details">
+<p>自动写入时间戳</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 时间戳字段</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line342" class="location">library\think\Model.php at line 342</a>
+
+<h3 id="writeTransform()">writeTransform</h3>
+<code class="signature">protected  mixed <strong>writeTransform</strong>(mixed value, string|array type)</code>
+<div class="details">
+<p>数据写入 类型转换</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 值</dd>
+<dd>type - 要转换的类型</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line397" class="location">library\think\Model.php at line 397</a>
+
+<h3 id="getAttr()">getAttr</h3>
+<code class="signature">public  mixed <strong>getAttr</strong>(string name)</code>
+<div class="details">
+<p>获取器 获取数据对象的值</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 名称</dd>
+<dt>Throws:</dt>
+<dd>InvalidArgumentException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line435" class="location">library\think\Model.php at line 435</a>
+
+<h3 id="readTransform()">readTransform</h3>
+<code class="signature">protected  mixed <strong>readTransform</strong>(mixed value, string|array type)</code>
+<div class="details">
+<p>数据读取 类型转换</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 值</dd>
+<dd>type - 要转换的类型</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line490" class="location">library\think\Model.php at line 490</a>
+
+<h3 id="append()">append</h3>
+<code class="signature">public  $this <strong>append</strong>(array append)</code>
+<div class="details">
+<p>设置需要追加的输出属性</p><dl>
+<dt>Parameters:</dt>
+<dd>append - 属性列表</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line502" class="location">library\think\Model.php at line 502</a>
+
+<h3 id="hidden()">hidden</h3>
+<code class="signature">public  $this <strong>hidden</strong>(array hidden)</code>
+<div class="details">
+<p>设置需要隐藏的输出属性</p><dl>
+<dt>Parameters:</dt>
+<dd>hidden - 属性列表</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line513" class="location">library\think\Model.php at line 513</a>
+
+<h3 id="visible()">visible</h3>
+<code class="signature">public  $this <strong>visible</strong>(array visible)</code>
+<div class="details">
+<p>设置需要输出的属性</p></div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line524" class="location">library\think\Model.php at line 524</a>
+
+<h3 id="toArray()">toArray</h3>
+<code class="signature">public  array <strong>toArray</strong>()</code>
+<div class="details">
+<p>转换当前模型对象为数组</p></div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line568" class="location">library\think\Model.php at line 568</a>
+
+<h3 id="toJson()">toJson</h3>
+<code class="signature">public  string <strong>toJson</strong>(integer options)</code>
+<div class="details">
+<p>转换当前模型对象为JSON字符串</p><dl>
+<dt>Parameters:</dt>
+<dd>options - json参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line579" class="location">library\think\Model.php at line 579</a>
+
+<h3 id="getPk()">getPk</h3>
+<code class="signature">public  mixed <strong>getPk</strong>(string name)</code>
+<div class="details">
+<p>获取模型对象的主键</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 模型名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line596" class="location">library\think\Model.php at line 596</a>
+
+<h3 id="isPk()">isPk</h3>
+<code class="signature">protected  bool <strong>isPk</strong>(string key)</code>
+<div class="details">
+<p>判断一个字段名是否为主键字段</p><dl>
+<dt>Parameters:</dt>
+<dd>key - 名称</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line615" class="location">library\think\Model.php at line 615</a>
+
+<h3 id="save()">save</h3>
+<code class="signature">public  integer|false <strong>save</strong>(array data, array where, string sequence)</code>
+<div class="details">
+<p>保存当前数据对象</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 数据</dd>
+<dd>where - 更新条件</dd>
+<dd>sequence - 自增序列名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line740" class="location">library\think\Model.php at line 740</a>
+
+<h3 id="saveAll()">saveAll</h3>
+<code class="signature">public  array|false <strong>saveAll</strong>(array dataSet, boolean replace)</code>
+<div class="details">
+<p>保存多个数据到当前数据对象</p><dl>
+<dt>Parameters:</dt>
+<dd>dataSet - 数据</dd>
+<dd>replace - 是否自动识别更新和写入</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line781" class="location">library\think\Model.php at line 781</a>
+
+<h3 id="allowField()">allowField</h3>
+<code class="signature">public  $this <strong>allowField</strong>(bool|array field)</code>
+<div class="details">
+<p>设置允许写入的字段</p><dl>
+<dt>Parameters:</dt>
+<dd>field - 允许写入的字段 如果为true只允许写入数据表字段</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line797" class="location">library\think\Model.php at line 797</a>
+
+<h3 id="isUpdate()">isUpdate</h3>
+<code class="signature">public  $this <strong>isUpdate</strong>(bool update, mixed where)</code>
+<div class="details">
+<p>是否为更新数据</p></div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line812" class="location">library\think\Model.php at line 812</a>
+
+<h3 id="autoCompleteData()">autoCompleteData</h3>
+<code class="signature">protected  void <strong>autoCompleteData</strong>(array auto)</code>
+<div class="details">
+<p>数据自动完成</p><dl>
+<dt>Parameters:</dt>
+<dd>auto - 要自动更新的字段列表</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line830" class="location">library\think\Model.php at line 830</a>
+
+<h3 id="delete()">delete</h3>
+<code class="signature">public  integer <strong>delete</strong>()</code>
+<div class="details">
+<p>删除当前的记录</p></div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line848" class="location">library\think\Model.php at line 848</a>
+
+<h3 id="auto()">auto</h3>
+<code class="signature">public  $this <strong>auto</strong>(array fields)</code>
+<div class="details">
+<p>设置自动完成的字段（ 规则通过修改器定义）</p><dl>
+<dt>Parameters:</dt>
+<dd>fields - 需要自动完成的字段</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line861" class="location">library\think\Model.php at line 861</a>
+
+<h3 id="validate()">validate</h3>
+<code class="signature">public  $this <strong>validate</strong>(array|string|bool rule, array msg)</code>
+<div class="details">
+<p>设置字段验证</p><dl>
+<dt>Parameters:</dt>
+<dd>rule - 验证规则 true表示自动读取验证器类</dd>
+<dd>msg - 提示信息</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line880" class="location">library\think\Model.php at line 880</a>
+
+<h3 id="validateFailException()">validateFailException</h3>
+<code class="signature">public  $this <strong>validateFailException</strong>(bool fail)</code>
+<div class="details">
+<p>设置验证失败后是否抛出异常</p><dl>
+<dt>Parameters:</dt>
+<dd>fail - 是否抛出异常</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line892" class="location">library\think\Model.php at line 892</a>
+
+<h3 id="validateData()">validateData</h3>
+<code class="signature">protected  bool <strong>validateData</strong>(array data)</code>
+<div class="details">
+<p>自动验证数据</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 验证数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line928" class="location">library\think\Model.php at line 928</a>
+
+<h3 id="getError()">getError</h3>
+<code class="signature">public  string <strong>getError</strong>()</code>
+<div class="details">
+<p>返回模型的错误信息</p></div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line941" class="location">library\think\Model.php at line 941</a>
+
+<h3 id="event()">event</h3>
+<code class="signature">public static  void <strong>event</strong>(string event, callable callback, bool override)</code>
+<div class="details">
+<p>注册回调方法</p><dl>
+<dt>Parameters:</dt>
+<dd>event - 事件名</dd>
+<dd>callback - 回调方法</dd>
+<dd>override - 是否覆盖</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line957" class="location">library\think\Model.php at line 957</a>
+
+<h3 id="trigger()">trigger</h3>
+<code class="signature">protected  bool <strong>trigger</strong>(string event, mixed params)</code>
+<div class="details">
+<p>触发事件</p><dl>
+<dt>Parameters:</dt>
+<dd>event - 事件名</dd>
+<dd>params - 传入参数（引用）</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line978" class="location">library\think\Model.php at line 978</a>
+
+<h3 id="create()">create</h3>
+<code class="signature">public static  $this <strong>create</strong>(array data)</code>
+<div class="details">
+<p>写入数据</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 数据数组</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line992" class="location">library\think\Model.php at line 992</a>
+
+<h3 id="update()">update</h3>
+<code class="signature">public static  $this <strong>update</strong>(array data, array where)</code>
+<div class="details">
+<p>更新数据</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 数据数组</dd>
+<dd>where - 更新条件</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1008" class="location">library\think\Model.php at line 1008</a>
+
+<h3 id="get()">get</h3>
+<code class="signature">public static  static <strong>get</strong>(mixed data, array|string with, bool cache)</code>
+<div class="details">
+<p>查找单条记录</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 主键值或者查询条件（闭包）</dd>
+<dd>with - 关联预查询</dd>
+<dd>cache - 是否缓存</dd>
+<dt>Throws:</dt>
+<dd>exception\DbException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1023" class="location">library\think\Model.php at line 1023</a>
+
+<h3 id="all()">all</h3>
+<code class="signature">public static  static[]|false <strong>all</strong>(mixed data, array|string with, bool cache)</code>
+<div class="details">
+<p>查找所有记录</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 主键列表或者查询条件（闭包）</dd>
+<dd>with - 关联预查询</dd>
+<dd>cache - 是否缓存</dd>
+<dt>Throws:</dt>
+<dd>exception\DbException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1037" class="location">library\think\Model.php at line 1037</a>
+
+<h3 id="parseQuery()">parseQuery</h3>
+<code class="signature">protected static  <a href="../think/db/query.html">Query</a> <strong>parseQuery</strong>(mixed data, string with, bool cache)</code>
+<div class="details">
+<p>分析查询表达式</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 主键列表或者查询条件（闭包）</dd>
+<dd>with - 关联预查询</dd>
+<dd>cache - 是否缓存</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1059" class="location">library\think\Model.php at line 1059</a>
+
+<h3 id="destroy()">destroy</h3>
+<code class="signature">public static  integer <strong>destroy</strong>(mixed data)</code>
+<div class="details">
+<p>删除记录</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 主键列表 支持闭包查询条件</dd>
+<dt>Returns:</dt>
+<dd>成功删除的记录数</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1090" class="location">library\think\Model.php at line 1090</a>
+
+<h3 id="scope()">scope</h3>
+<code class="signature">public static  <a href="../think/model.html">Model</a> <strong>scope</strong>(string|array|Closure name, mixed ...$params)</code>
+<div class="details">
+<p>命名范围</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 命名范围名称 逗号分隔</dd>
+<dd>...$params - 参数调用</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1120" class="location">library\think\Model.php at line 1120</a>
+
+<h3 id="useGlobalScope()">useGlobalScope</h3>
+<code class="signature">public static  <a href="../think/model.html">Model</a> <strong>useGlobalScope</strong>(bool use)</code>
+<div class="details">
+<p>设置是否使用全局查询范围</p><dl>
+<dt>Parameters:</dt>
+<dd>use - 是否启用全局查询范围</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1136" class="location">library\think\Model.php at line 1136</a>
+
+<h3 id="has()">has</h3>
+<code class="signature">public static  <a href="../think/model.html">Model</a> <strong>has</strong>(string relation, string operator, integer count, string id)</code>
+<div class="details">
+<p>根据关联条件查询当前模型</p><dl>
+<dt>Parameters:</dt>
+<dd>relation - 关联方法名</dd>
+<dd>operator - 比较操作符</dd>
+<dd>count - 个数</dd>
+<dd>id - 关联表的统计字段</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1160" class="location">library\think\Model.php at line 1160</a>
+
+<h3 id="hasWhere()">hasWhere</h3>
+<code class="signature">public static  <a href="../think/model.html">Model</a> <strong>hasWhere</strong>(string relation, mixed where)</code>
+<div class="details">
+<p>根据关联条件查询当前模型</p><dl>
+<dt>Parameters:</dt>
+<dd>relation - 关联方法名</dd>
+<dd>where - 查询条件（数组或者闭包）</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1192" class="location">library\think\Model.php at line 1192</a>
+
+<h3 id="parseModel()">parseModel</h3>
+<code class="signature">protected static  string <strong>parseModel</strong>(string model)</code>
+<div class="details">
+<p>解析模型的完整命名空间</p><dl>
+<dt>Parameters:</dt>
+<dd>model - 模型名（或者完整类名）</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1209" class="location">library\think\Model.php at line 1209</a>
+
+<h3 id="relationQuery()">relationQuery</h3>
+<code class="signature">public  $this <strong>relationQuery</strong>(string|array relations)</code>
+<div class="details">
+<p>查询当前模型的关联数据</p><dl>
+<dt>Parameters:</dt>
+<dd>relations - 关联名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1228" class="location">library\think\Model.php at line 1228</a>
+
+<h3 id="eagerlyResultSet()">eagerlyResultSet</h3>
+<code class="signature">public  array <strong>eagerlyResultSet</strong>(array resultSet, string relation)</code>
+<div class="details">
+<p>预载入关联查询 返回数据集</p><dl>
+<dt>Parameters:</dt>
+<dd>resultSet - 数据集</dd>
+<dd>relation - 关联名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1240" class="location">library\think\Model.php at line 1240</a>
+
+<h3 id="eagerlyResult()">eagerlyResult</h3>
+<code class="signature">public  <a href="../think/model.html">Model</a> <strong>eagerlyResult</strong>(<a href="../think/model.html">Model</a> result, string relation)</code>
+<div class="details">
+<p>预载入关联查询 返回模型对象</p><dl>
+<dt>Parameters:</dt>
+<dd>result - 数据对象</dd>
+<dd>relation - 关联名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1255" class="location">library\think\Model.php at line 1255</a>
+
+<h3 id="hasOne()">hasOne</h3>
+<code class="signature">public  <a href="../think/model/relation.html">Relation</a> <strong>hasOne</strong>(string model, string foreignKey, string localKey, array alias, string joinType)</code>
+<div class="details">
+<p>HAS ONE 关联定义</p><dl>
+<dt>Parameters:</dt>
+<dd>model - 模型名</dd>
+<dd>foreignKey - 关联外键</dd>
+<dd>localKey - 关联主键</dd>
+<dd>alias - 别名定义</dd>
+<dd>joinType - JOIN类型</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1274" class="location">library\think\Model.php at line 1274</a>
+
+<h3 id="belongsTo()">belongsTo</h3>
+<code class="signature">public  <a href="../think/model/relation.html">Relation</a> <strong>belongsTo</strong>(string model, string foreignKey, string otherKey, array alias, string joinType)</code>
+<div class="details">
+<p>BELONGS TO 关联定义</p><dl>
+<dt>Parameters:</dt>
+<dd>model - 模型名</dd>
+<dd>foreignKey - 关联外键</dd>
+<dd>otherKey - 关联主键</dd>
+<dd>alias - 别名定义</dd>
+<dd>joinType - JOIN类型</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1292" class="location">library\think\Model.php at line 1292</a>
+
+<h3 id="hasMany()">hasMany</h3>
+<code class="signature">public  <a href="../think/model/relation.html">Relation</a> <strong>hasMany</strong>(string model, string foreignKey, string localKey, array alias)</code>
+<div class="details">
+<p>HAS MANY 关联定义</p><dl>
+<dt>Parameters:</dt>
+<dd>model - 模型名</dd>
+<dd>foreignKey - 关联外键</dd>
+<dd>localKey - 关联主键</dd>
+<dd>alias - 别名定义</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1312" class="location">library\think\Model.php at line 1312</a>
+
+<h3 id="hasManyThrough()">hasManyThrough</h3>
+<code class="signature">public  <a href="../think/model/relation.html">Relation</a> <strong>hasManyThrough</strong>(string model, string through, string foreignKey, string throughKey, string localKey, array alias)</code>
+<div class="details">
+<p>HAS MANY 远程关联定义</p><dl>
+<dt>Parameters:</dt>
+<dd>model - 模型名</dd>
+<dd>through - 中间模型名</dd>
+<dd>foreignKey - 关联外键</dd>
+<dd>throughKey - 关联外键</dd>
+<dd>localKey - 关联主键</dd>
+<dd>alias - 别名定义</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1334" class="location">library\think\Model.php at line 1334</a>
+
+<h3 id="belongsToMany()">belongsToMany</h3>
+<code class="signature">public  <a href="../think/model/relation.html">Relation</a> <strong>belongsToMany</strong>(string model, string table, string foreignKey, string localKey, array alias)</code>
+<div class="details">
+<p>BELONGS TO MANY 关联定义</p><dl>
+<dt>Parameters:</dt>
+<dd>model - 模型名</dd>
+<dd>table - 中间表名</dd>
+<dd>foreignKey - 关联外键</dd>
+<dd>localKey - 当前模型关联键</dd>
+<dd>alias - 别名定义</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1365" class="location">library\think\Model.php at line 1365</a>
+
+<h3 id="getDb()">getDb</h3>
+<code class="signature">protected static  void <strong>getDb</strong>()</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1435" class="location">library\think\Model.php at line 1435</a>
+
+<h3 id="jsonSerialize()">jsonSerialize</h3>
+<code class="signature">public  void <strong>jsonSerialize</strong>()</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1441" class="location">library\think\Model.php at line 1441</a>
+
+<h3 id="offsetSet()">offsetSet</h3>
+<code class="signature">public  void <strong>offsetSet</strong>(mixed name, mixed value)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1446" class="location">library\think\Model.php at line 1446</a>
+
+<h3 id="offsetExists()">offsetExists</h3>
+<code class="signature">public  void <strong>offsetExists</strong>(mixed name)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1451" class="location">library\think\Model.php at line 1451</a>
+
+<h3 id="offsetUnset()">offsetUnset</h3>
+<code class="signature">public  void <strong>offsetUnset</strong>(mixed name)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/model.php.html#line1456" class="location">library\think\Model.php at line 1456</a>
+
+<h3 id="offsetGet()">offsetGet</h3>
+<code class="signature">public  void <strong>offsetGet</strong>(mixed name)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\model.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

@@ -1,0 +1,747 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:04 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>Connection (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\connection.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\Connection</div>
+<a href="../source/library/think/db/connection.php.html#line32" class="location">library\think\db\Connection.php at line 32</a>
+
+<h1>Class Connection</h1>
+
+<pre class="tree"><strong>Connection</strong><br /></pre>
+
+<dl>
+<dt>All Known Subclasses:</dt>
+<dd><a href="../think/db/connector/mysql.html">think\db\connector\Mysql</a> <a href="../think/db/connector/pgsql.html">think\db\connector\Pgsql</a> <a href="../think/db/connector/sqlite.html">think\db\connector\Sqlite</a> <a href="../think/db/connector/sqlsrv.html">think\db\connector\Sqlsrv</a> </dd>
+</dl>
+
+<hr>
+
+<p class="signature">public abstract  class <strong>Connection</strong></p>
+
+<div class="comment" id="overview_description"><p>Class Connection</p></div>
+
+<dl>
+<dt>Method:</dt>
+<dd>Query table(string $table) 指定数据表（含前缀）</dd>
+<dd>Query name(string $name) 指定数据表（不含前缀）</dd>
+</dl>
+<hr>
+
+<table id="summary_constructor">
+<tr><th colspan="2">Constructor Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#__construct()">__construct</a>(array config)</p><p class="description">架构函数 读取数据库配置信息</p></td>
+</tr>
+</table>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type"> <a href="../think/db/query.html">Query</a></td>
+<td class="description"><p class="name"><a href="#model()">model</a>(string model, string queryClass)</p><p class="description">创建指定模型的查询对象</p></td>
+</tr>
+<tr>
+<td class="type">protected abstract  string</td>
+<td class="description"><p class="name"><a href="#parseDsn()">parseDsn</a>(array config)</p><p class="description">解析pdo连接的dsn信息</p></td>
+</tr>
+<tr>
+<td class="type">abstract  array</td>
+<td class="description"><p class="name"><a href="#getFields()">getFields</a>(string tableName)</p><p class="description">取得数据表的字段信息</p></td>
+</tr>
+<tr>
+<td class="type">abstract  array</td>
+<td class="description"><p class="name"><a href="#getTables()">getTables</a>(string dbName)</p><p class="description">取得数据库的表信息</p></td>
+</tr>
+<tr>
+<td class="type">protected abstract  array</td>
+<td class="description"><p class="name"><a href="#getExplain()">getExplain</a>(string sql)</p><p class="description">SQL性能分析</p></td>
+</tr>
+<tr>
+<td class="type"> array</td>
+<td class="description"><p class="name"><a href="#fieldCase()">fieldCase</a>(array info)</p><p class="description">对返数据表字段信息进行大小写转换出来</p></td>
+</tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#getConfig()">getConfig</a>(string config)</p><p class="description">获取数据库的配置参数</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#setConfig()">setConfig</a>(string|array config, mixed value)</p><p class="description">设置数据库的配置参数</p></td>
+</tr>
+<tr>
+<td class="type"> PDO</td>
+<td class="description"><p class="name"><a href="#connect()">connect</a>(array config, integer linkNum, array|bool autoConnection)</p><p class="description">连接数据库方法</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#free()">free</a>()</p><p class="description">释放查询结果</p></td>
+</tr>
+<tr>
+<td class="type"> \PDO|false</td>
+<td class="description"><p class="name"><a href="#getPdo()">getPdo</a>()</p><p class="description">获取PDO对象</p></td>
+</tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#query()">query</a>(string sql, array bind, boolean master, bool|string class)</p><p class="description">执行查询 返回数据集</p></td>
+</tr>
+<tr>
+<td class="type"> int</td>
+<td class="description"><p class="name"><a href="#execute()">execute</a>(string sql, array bind)</p><p class="description">执行语句</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getRealSql()">getRealSql</a>(string sql, array bind)</p><p class="description">根据参数绑定组装最终的SQL语句 便于调试</p></td>
+</tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#bindValue()">bindValue</a>(array bind)</p><p class="description">参数绑定
+支持 ['name'=>'value','id'=>123] 对应命名占位符
+或者 ['value',123] 对应问号占位符</p></td>
+</tr>
+<tr>
+<td class="type">protected  mixed</td>
+<td class="description"><p class="name"><a href="#getResult()">getResult</a>(bool|string class, bool procedure)</p><p class="description">获得数据集</p></td>
+</tr>
+<tr>
+<td class="type">protected  array</td>
+<td class="description"><p class="name"><a href="#procedure()">procedure</a>(bool|string class)</p><p class="description">获得存储过程数据集</p></td>
+</tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#transaction()">transaction</a>(callable callback)</p><p class="description">执行数据库事务</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#startTrans()">startTrans</a>()</p><p class="description">启动事务</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#commit()">commit</a>()</p><p class="description">用于非自动提交状态下面的查询提交</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#rollback()">rollback</a>()</p><p class="description">事务回滚</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#supportSavepoint()">supportSavepoint</a>()</p><p class="description">是否支持事务嵌套</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#parseSavepoint()">parseSavepoint</a>($name name)</p><p class="description">生成定义保存点的SQL</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#parseSavepointRollBack()">parseSavepointRollBack</a>($name name)</p><p class="description">生成回滚到保存点的SQL</p></td>
+</tr>
+<tr>
+<td class="type"> boolean</td>
+<td class="description"><p class="name"><a href="#batchQuery()">batchQuery</a>(array sqlArray)</p><p class="description">批处理执行SQL语句
+批处理的指令都认为是execute操作</p></td>
+</tr>
+<tr>
+<td class="type"> integer</td>
+<td class="description"><p class="name"><a href="#getQueryTimes()">getQueryTimes</a>(boolean execute)</p><p class="description">获得查询次数</p></td>
+</tr>
+<tr>
+<td class="type"> integer</td>
+<td class="description"><p class="name"><a href="#getExecuteTimes()">getExecuteTimes</a>()</p><p class="description">获得执行次数</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#close()">close</a>()</p><p class="description">关闭数据库</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getLastSql()">getLastSql</a>()</p><p class="description">获取最近一次查询的sql语句</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getLastInsID()">getLastInsID</a>(string sequence)</p><p class="description">获取最近插入的ID</p></td>
+</tr>
+<tr>
+<td class="type"> integer</td>
+<td class="description"><p class="name"><a href="#getNumRows()">getNumRows</a>()</p><p class="description">获取返回或者影响的记录数</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getError()">getError</a>()</p><p class="description">获取最近的错误信息</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#quote()">quote</a>(string str, bool master)</p><p class="description">SQL指令安全过滤</p></td>
+</tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#debug()">debug</a>(boolean start, string sql)</p><p class="description">数据库调试 记录当前SQL及分析性能</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#listen()">listen</a>(callable callback)</p><p class="description">监听SQL执行</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#trigger()">trigger</a>(string sql, float runtime, mixed explain)</p><p class="description">触发SQL事件</p></td>
+</tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#initConnect()">initConnect</a>(boolean master)</p><p class="description">初始化数据库连接</p></td>
+</tr>
+<tr>
+<td class="type">protected  PDO</td>
+<td class="description"><p class="name"><a href="#multiConnect()">multiConnect</a>(boolean master)</p><p class="description">连接分布式服务器</p></td>
+</tr>
+</table>
+
+<h2 id="detail_method">Constructor Detail</h2>
+<a href="../source/library/think/db/connection.php.html#line76" class="location">library\think\db\Connection.php at line 76</a>
+
+<h3 id="__construct()">__construct</h3>
+<code class="signature">public  void <strong>__construct</strong>(array config)</code>
+<div class="details">
+<p>架构函数 读取数据库配置信息</p><dl>
+<dt>Parameters:</dt>
+<dd>config - 数据库配置数组</dd>
+</dl>
+</div>
+
+<hr>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../source/library/think/db/connection.php.html#line90" class="location">library\think\db\Connection.php at line 90</a>
+
+<h3 id="model()">model</h3>
+<code class="signature">public  <a href="../think/db/query.html">Query</a> <strong>model</strong>(string model, string queryClass)</code>
+<div class="details">
+<p>创建指定模型的查询对象</p><dl>
+<dt>Parameters:</dt>
+<dd>model - 模型类名称</dd>
+<dd>queryClass - 查询对象类名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line121" class="location">library\think\db\Connection.php at line 121</a>
+
+<h3 id="parseDsn()">parseDsn</h3>
+<code class="signature">protected abstract  string <strong>parseDsn</strong>(array config)</code>
+<div class="details">
+<p>解析pdo连接的dsn信息</p><dl>
+<dt>Parameters:</dt>
+<dd>config - 连接信息</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line129" class="location">library\think\db\Connection.php at line 129</a>
+
+<h3 id="getFields()">getFields</h3>
+<code class="signature">public abstract  array <strong>getFields</strong>(string tableName)</code>
+<div class="details">
+<p>取得数据表的字段信息</p></div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line137" class="location">library\think\db\Connection.php at line 137</a>
+
+<h3 id="getTables()">getTables</h3>
+<code class="signature">public abstract  array <strong>getTables</strong>(string dbName)</code>
+<div class="details">
+<p>取得数据库的表信息</p></div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line145" class="location">library\think\db\Connection.php at line 145</a>
+
+<h3 id="getExplain()">getExplain</h3>
+<code class="signature">protected abstract  array <strong>getExplain</strong>(string sql)</code>
+<div class="details">
+<p>SQL性能分析</p></div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line153" class="location">library\think\db\Connection.php at line 153</a>
+
+<h3 id="fieldCase()">fieldCase</h3>
+<code class="signature">public  array <strong>fieldCase</strong>(array info)</code>
+<div class="details">
+<p>对返数据表字段信息进行大小写转换出来</p><dl>
+<dt>Parameters:</dt>
+<dd>info - 字段信息</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line176" class="location">library\think\db\Connection.php at line 176</a>
+
+<h3 id="getConfig()">getConfig</h3>
+<code class="signature">public  mixed <strong>getConfig</strong>(string config)</code>
+<div class="details">
+<p>获取数据库的配置参数</p><dl>
+<dt>Parameters:</dt>
+<dd>config - 配置名称</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line188" class="location">library\think\db\Connection.php at line 188</a>
+
+<h3 id="setConfig()">setConfig</h3>
+<code class="signature">public  void <strong>setConfig</strong>(string|array config, mixed value)</code>
+<div class="details">
+<p>设置数据库的配置参数</p><dl>
+<dt>Parameters:</dt>
+<dd>config - 配置名称</dd>
+<dd>value - 配置值</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line206" class="location">library\think\db\Connection.php at line 206</a>
+
+<h3 id="connect()">connect</h3>
+<code class="signature">public  PDO <strong>connect</strong>(array config, integer linkNum, array|bool autoConnection)</code>
+<div class="details">
+<p>连接数据库方法</p><dl>
+<dt>Parameters:</dt>
+<dd>config - 连接参数</dd>
+<dd>linkNum - 连接序号</dd>
+<dd>autoConnection - 是否自动连接主数据库（用于分布式）</dd>
+<dt>Throws:</dt>
+<dd><a href="../think/exception.html">Exception</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line254" class="location">library\think\db\Connection.php at line 254</a>
+
+<h3 id="free()">free</h3>
+<code class="signature">public  void <strong>free</strong>()</code>
+<div class="details">
+<p>释放查询结果</p></div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line264" class="location">library\think\db\Connection.php at line 264</a>
+
+<h3 id="getPdo()">getPdo</h3>
+<code class="signature">public  \PDO|false <strong>getPdo</strong>()</code>
+<div class="details">
+<p>获取PDO对象</p></div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line284" class="location">library\think\db\Connection.php at line 284</a>
+
+<h3 id="query()">query</h3>
+<code class="signature">public  mixed <strong>query</strong>(string sql, array bind, boolean master, bool|string class)</code>
+<div class="details">
+<p>执行查询 返回数据集</p><dl>
+<dt>Parameters:</dt>
+<dd>sql - sql指令</dd>
+<dd>bind - 参数绑定</dd>
+<dd>master - 是否在主服务器读操作</dd>
+<dd>class - 指定返回的数据集对象</dd>
+<dt>Throws:</dt>
+<dd><a href="../think/db/exception/bindparamexception.html">BindParamException</a></dd>
+<dd><a href="../think/exception/pdoexception.html">PDOException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line326" class="location">library\think\db\Connection.php at line 326</a>
+
+<h3 id="execute()">execute</h3>
+<code class="signature">public  int <strong>execute</strong>(string sql, array bind)</code>
+<div class="details">
+<p>执行语句</p><dl>
+<dt>Parameters:</dt>
+<dd>sql - sql指令</dd>
+<dd>bind - 参数绑定</dd>
+<dt>Throws:</dt>
+<dd><a href="../think/db/exception/bindparamexception.html">BindParamException</a></dd>
+<dd><a href="../think/exception/pdoexception.html">PDOException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line367" class="location">library\think\db\Connection.php at line 367</a>
+
+<h3 id="getRealSql()">getRealSql</h3>
+<code class="signature">public  string <strong>getRealSql</strong>(string sql, array bind)</code>
+<div class="details">
+<p>根据参数绑定组装最终的SQL语句 便于调试</p><dl>
+<dt>Parameters:</dt>
+<dd>sql - 带参数绑定的sql语句</dd>
+<dd>bind - 参数绑定列表</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line399" class="location">library\think\db\Connection.php at line 399</a>
+
+<h3 id="bindValue()">bindValue</h3>
+<code class="signature">protected  void <strong>bindValue</strong>(array bind)</code>
+<div class="details">
+<p>参数绑定
+支持 ['name'=>'value','id'=>123] 对应命名占位符
+或者 ['value',123] 对应问号占位符</p><dl>
+<dt>Parameters:</dt>
+<dd>bind - 要绑定的参数列表</dd>
+<dt>Throws:</dt>
+<dd><a href="../think/exception.html">\think\Exception</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line430" class="location">library\think\db\Connection.php at line 430</a>
+
+<h3 id="getResult()">getResult</h3>
+<code class="signature">protected  mixed <strong>getResult</strong>(bool|string class, bool procedure)</code>
+<div class="details">
+<p>获得数据集</p><dl>
+<dt>Parameters:</dt>
+<dd>class - true 返回PDOStatement 字符串用于指定返回的类名</dd>
+<dd>procedure - 是否存储过程</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line459" class="location">library\think\db\Connection.php at line 459</a>
+
+<h3 id="procedure()">procedure</h3>
+<code class="signature">protected  array <strong>procedure</strong>(bool|string class)</code>
+<div class="details">
+<p>获得存储过程数据集</p><dl>
+<dt>Parameters:</dt>
+<dd>class - true 返回PDOStatement 字符串用于指定返回的类名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line481" class="location">library\think\db\Connection.php at line 481</a>
+
+<h3 id="transaction()">transaction</h3>
+<code class="signature">public  mixed <strong>transaction</strong>(callable callback)</code>
+<div class="details">
+<p>执行数据库事务</p><dl>
+<dt>Parameters:</dt>
+<dd>callback - 数据操作方法回调</dd>
+<dt>Throws:</dt>
+<dd><a href="../think/exception/pdoexception.html">PDOException</a></dd>
+<dd><a href="../think/exception.html">\Exception</a></dd>
+<dd>\Throwable</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line505" class="location">library\think\db\Connection.php at line 505</a>
+
+<h3 id="startTrans()">startTrans</h3>
+<code class="signature">public  void <strong>startTrans</strong>()</code>
+<div class="details">
+<p>启动事务</p></div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line529" class="location">library\think\db\Connection.php at line 529</a>
+
+<h3 id="commit()">commit</h3>
+<code class="signature">public  void <strong>commit</strong>()</code>
+<div class="details">
+<p>用于非自动提交状态下面的查询提交</p><dl>
+<dt>Throws:</dt>
+<dd><a href="../think/exception/pdoexception.html">PDOException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line546" class="location">library\think\db\Connection.php at line 546</a>
+
+<h3 id="rollback()">rollback</h3>
+<code class="signature">public  void <strong>rollback</strong>()</code>
+<div class="details">
+<p>事务回滚</p><dl>
+<dt>Throws:</dt>
+<dd><a href="../think/exception/pdoexception.html">PDOException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line565" class="location">library\think\db\Connection.php at line 565</a>
+
+<h3 id="supportSavepoint()">supportSavepoint</h3>
+<code class="signature">protected  bool <strong>supportSavepoint</strong>()</code>
+<div class="details">
+<p>是否支持事务嵌套</p></div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line575" class="location">library\think\db\Connection.php at line 575</a>
+
+<h3 id="parseSavepoint()">parseSavepoint</h3>
+<code class="signature">protected  string <strong>parseSavepoint</strong>($name name)</code>
+<div class="details">
+<p>生成定义保存点的SQL</p></div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line585" class="location">library\think\db\Connection.php at line 585</a>
+
+<h3 id="parseSavepointRollBack()">parseSavepointRollBack</h3>
+<code class="signature">protected  string <strong>parseSavepointRollBack</strong>($name name)</code>
+<div class="details">
+<p>生成回滚到保存点的SQL</p></div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line597" class="location">library\think\db\Connection.php at line 597</a>
+
+<h3 id="batchQuery()">batchQuery</h3>
+<code class="signature">public  boolean <strong>batchQuery</strong>(array sqlArray)</code>
+<div class="details">
+<p>批处理执行SQL语句
+批处理的指令都认为是execute操作</p><dl>
+<dt>Parameters:</dt>
+<dd>sqlArray - SQL批处理指令</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line623" class="location">library\think\db\Connection.php at line 623</a>
+
+<h3 id="getQueryTimes()">getQueryTimes</h3>
+<code class="signature">public  integer <strong>getQueryTimes</strong>(boolean execute)</code>
+<div class="details">
+<p>获得查询次数</p><dl>
+<dt>Parameters:</dt>
+<dd>execute - 是否包含所有查询</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line633" class="location">library\think\db\Connection.php at line 633</a>
+
+<h3 id="getExecuteTimes()">getExecuteTimes</h3>
+<code class="signature">public  integer <strong>getExecuteTimes</strong>()</code>
+<div class="details">
+<p>获得执行次数</p></div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line642" class="location">library\think\db\Connection.php at line 642</a>
+
+<h3 id="close()">close</h3>
+<code class="signature">public  void <strong>close</strong>()</code>
+<div class="details">
+<p>关闭数据库</p></div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line652" class="location">library\think\db\Connection.php at line 652</a>
+
+<h3 id="getLastSql()">getLastSql</h3>
+<code class="signature">public  string <strong>getLastSql</strong>()</code>
+<div class="details">
+<p>获取最近一次查询的sql语句</p></div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line663" class="location">library\think\db\Connection.php at line 663</a>
+
+<h3 id="getLastInsID()">getLastInsID</h3>
+<code class="signature">public  string <strong>getLastInsID</strong>(string sequence)</code>
+<div class="details">
+<p>获取最近插入的ID</p><dl>
+<dt>Parameters:</dt>
+<dd>sequence - 自增序列名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line673" class="location">library\think\db\Connection.php at line 673</a>
+
+<h3 id="getNumRows()">getNumRows</h3>
+<code class="signature">public  integer <strong>getNumRows</strong>()</code>
+<div class="details">
+<p>获取返回或者影响的记录数</p></div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line683" class="location">library\think\db\Connection.php at line 683</a>
+
+<h3 id="getError()">getError</h3>
+<code class="signature">public  string <strong>getError</strong>()</code>
+<div class="details">
+<p>获取最近的错误信息</p></div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line704" class="location">library\think\db\Connection.php at line 704</a>
+
+<h3 id="quote()">quote</h3>
+<code class="signature">public  string <strong>quote</strong>(string str, bool master)</code>
+<div class="details">
+<p>SQL指令安全过滤</p><dl>
+<dt>Parameters:</dt>
+<dd>str - SQL字符串</dd>
+<dd>master - 是否主库查询</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line717" class="location">library\think\db\Connection.php at line 717</a>
+
+<h3 id="debug()">debug</h3>
+<code class="signature">protected  void <strong>debug</strong>(boolean start, string sql)</code>
+<div class="details">
+<p>数据库调试 记录当前SQL及分析性能</p><dl>
+<dt>Parameters:</dt>
+<dd>start - 调试开始标记 true 开始 false 结束</dd>
+<dd>sql - 执行的SQL语句 留空自动获取</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line746" class="location">library\think\db\Connection.php at line 746</a>
+
+<h3 id="listen()">listen</h3>
+<code class="signature">public  void <strong>listen</strong>(callable callback)</code>
+<div class="details">
+<p>监听SQL执行</p><dl>
+<dt>Parameters:</dt>
+<dd>callback - 回调方法</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line759" class="location">library\think\db\Connection.php at line 759</a>
+
+<h3 id="trigger()">trigger</h3>
+<code class="signature">protected  bool <strong>trigger</strong>(string sql, float runtime, mixed explain)</code>
+<div class="details">
+<p>触发SQL事件</p><dl>
+<dt>Parameters:</dt>
+<dd>sql - SQL语句</dd>
+<dd>runtime - SQL运行时间</dd>
+<dd>explain - SQL分析</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line782" class="location">library\think\db\Connection.php at line 782</a>
+
+<h3 id="initConnect()">initConnect</h3>
+<code class="signature">protected  void <strong>initConnect</strong>(boolean master)</code>
+<div class="details">
+<p>初始化数据库连接</p><dl>
+<dt>Parameters:</dt>
+<dd>master - 是否主服务器</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/db/connection.php.html#line809" class="location">library\think\db\Connection.php at line 809</a>
+
+<h3 id="multiConnect()">multiConnect</h3>
+<code class="signature">protected  PDO <strong>multiConnect</strong>(boolean master)</code>
+<div class="details">
+<p>连接分布式服务器</p><dl>
+<dt>Parameters:</dt>
+<dd>master - 主服务器</dd>
+</dl>
+</div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\connection.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

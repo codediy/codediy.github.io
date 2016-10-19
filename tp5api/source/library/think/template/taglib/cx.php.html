@@ -1,0 +1,734 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:06 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\template\taglib\Cx.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\template\taglib\cx.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\template\taglib\Cx.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK IT ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006-2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think\template\taglib;
+<a name="line13"></a>
+<a name="line14"></a>use think\template\TagLib;
+<a name="line15"></a>
+<a name="line16"></a>/**
+<a name="line17"></a> * CX标签库解析类
+<a name="line18"></a> * @category   Think
+<a name="line19"></a> * @package  Think
+<a name="line20"></a> * @subpackage  Driver.Taglib
+<a name="line21"></a> * @author    liu21st <liu21st@gmail.com>
+<a name="line22"></a> */
+<a name="line23"></a>class Cx extends Taglib
+<a name="line24"></a>{
+<a name="line25"></a>
+<a name="line26"></a>    // 标签定义
+<a name="line27"></a>    protected $tags = [
+<a name="line28"></a>        // 标签定义： attr 属性列表 close 是否闭合（0 或者1 默认1） alias 标签别名 level 嵌套层次
+<a name="line29"></a>        'php'        => ['attr' => ''],
+<a name="line30"></a>        'volist'     => ['attr' => 'name,id,offset,length,key,mod', 'alias' => 'iterate'],
+<a name="line31"></a>        'foreach'    => ['attr' => 'name,id,item,key,offset,length,mod', 'expression' => true],
+<a name="line32"></a>        'if'         => ['attr' => 'condition', 'expression' => true],
+<a name="line33"></a>        'elseif'     => ['attr' => 'condition', 'close' => 0, 'expression' => true],
+<a name="line34"></a>        'else'       => ['attr' => '', 'close' => 0],
+<a name="line35"></a>        'switch'     => ['attr' => 'name', 'expression' => true],
+<a name="line36"></a>        'case'       => ['attr' => 'value,break', 'expression' => true],
+<a name="line37"></a>        'default'    => ['attr' => '', 'close' => 0],
+<a name="line38"></a>        'compare'    => ['attr' => 'name,value,type', 'alias' => ['eq,equal,notequal,neq,gt,lt,egt,elt,heq,nheq', 'type']],
+<a name="line39"></a>        'range'      => ['attr' => 'name,value,type', 'alias' => ['in,notin,between,notbetween', 'type']],
+<a name="line40"></a>        'empty'      => ['attr' => 'name'],
+<a name="line41"></a>        'notempty'   => ['attr' => 'name'],
+<a name="line42"></a>        'present'    => ['attr' => 'name'],
+<a name="line43"></a>        'notpresent' => ['attr' => 'name'],
+<a name="line44"></a>        'defined'    => ['attr' => 'name'],
+<a name="line45"></a>        'notdefined' => ['attr' => 'name'],
+<a name="line46"></a>        'load'       => ['attr' => 'file,href,type,value,basepath', 'close' => 0, 'alias' => ['import,css,js', 'type']],
+<a name="line47"></a>        'assign'     => ['attr' => 'name,value', 'close' => 0],
+<a name="line48"></a>        'define'     => ['attr' => 'name,value', 'close' => 0],
+<a name="line49"></a>        'for'        => ['attr' => 'start,end,name,comparison,step'],
+<a name="line50"></a>        'url'        => ['attr' => 'link,vars,suffix,domain', 'close' => 0, 'expression' => true],
+<a name="line51"></a>        'function'   => ['attr' => 'name,vars,use,call'],
+<a name="line52"></a>    ];
+<a name="line53"></a>
+<a name="line54"></a>    /**
+<a name="line55"></a>     * php标签解析
+<a name="line56"></a>     * 格式：
+<a name="line57"></a>     * {php}echo $name{/php}
+<a name="line58"></a>     * @access public
+<a name="line59"></a>     * @param array $tag 标签属性
+<a name="line60"></a>     * @param string $content 标签内容
+<a name="line61"></a>     * @return string
+<a name="line62"></a>     */
+<a name="line63"></a>    public function tagPhp($tag, $content)
+<a name="line64"></a>    {
+<a name="line65"></a>        $parseStr = '<?php ' . $content . ' ?>';
+<a name="line66"></a>        return $parseStr;
+<a name="line67"></a>    }
+<a name="line68"></a>
+<a name="line69"></a>    /**
+<a name="line70"></a>     * volist标签解析 循环输出数据集
+<a name="line71"></a>     * 格式：
+<a name="line72"></a>     * {volist name="userList" id="user" empty=""}
+<a name="line73"></a>     * {user.username}
+<a name="line74"></a>     * {user.email}
+<a name="line75"></a>     * {/volist}
+<a name="line76"></a>     * @access public
+<a name="line77"></a>     * @param array $tag 标签属性
+<a name="line78"></a>     * @param string $content 标签内容
+<a name="line79"></a>     * @return string|void
+<a name="line80"></a>     */
+<a name="line81"></a>    public function tagVolist($tag, $content)
+<a name="line82"></a>    {
+<a name="line83"></a>        $name   = $tag['name'];
+<a name="line84"></a>        $id     = $tag['id'];
+<a name="line85"></a>        $empty  = isset($tag['empty']) ? $tag['empty'] : '';
+<a name="line86"></a>        $key    = !empty($tag['key']) ? $tag['key'] : 'i';
+<a name="line87"></a>        $mod    = isset($tag['mod']) ? $tag['mod'] : '2';
+<a name="line88"></a>        $offset = !empty($tag['offset']) && is_numeric($tag['offset']) ? intval($tag['offset']) : 0;
+<a name="line89"></a>        $length = !empty($tag['length']) && is_numeric($tag['length']) ? intval($tag['length']) : 'null';
+<a name="line90"></a>        // 允许使用函数设定数据集 <volist name=":fun('arg')" id="vo">{$vo.name}</volist>
+<a name="line91"></a>        $parseStr = '<?php ';
+<a name="line92"></a>        $flag     = substr($name, 0, 1);
+<a name="line93"></a>        if (':' == $flag) {
+<a name="line94"></a>            $name = $this->autoBuildVar($name);
+<a name="line95"></a>            $parseStr .= '$_result=' . $name . ';';
+<a name="line96"></a>            $name = '$_result';
+<a name="line97"></a>        } else {
+<a name="line98"></a>            $name = $this->autoBuildVar($name);
+<a name="line99"></a>        }
+<a name="line100"></a>
+<a name="line101"></a>        $parseStr .= 'if(is_array(' . $name . ') || ' . $name . ' instanceof \think\Collection): $' . $key . ' = 0;';
+<a name="line102"></a>        // 设置了输出数组长度
+<a name="line103"></a>        if (0 != $offset || 'null' != $length) {
+<a name="line104"></a>            $parseStr .= '$__LIST__ = is_array(' . $name . ') ? array_slice(' . $name . ',' . $offset . ',' . $length . ', true) : ' . $name . '->slice(' . $offset . ',' . $length . ', true); ';
+<a name="line105"></a>        } else {
+<a name="line106"></a>            $parseStr .= ' $__LIST__ = ' . $name . ';';
+<a name="line107"></a>        }
+<a name="line108"></a>        $parseStr .= 'if( count($__LIST__)==0 ) : echo "' . $empty . '" ;';
+<a name="line109"></a>        $parseStr .= 'else: ';
+<a name="line110"></a>        $parseStr .= 'foreach($__LIST__ as $key=>$' . $id . '): ';
+<a name="line111"></a>        $parseStr .= '$mod = ($' . $key . ' % ' . $mod . ' );';
+<a name="line112"></a>        $parseStr .= '++$' . $key . ';?>';
+<a name="line113"></a>        $parseStr .= $content;
+<a name="line114"></a>        $parseStr .= '<?php endforeach; endif; else: echo "' . $empty . '" ;endif; ?>';
+<a name="line115"></a>
+<a name="line116"></a>        if (!empty($parseStr)) {
+<a name="line117"></a>            return $parseStr;
+<a name="line118"></a>        }
+<a name="line119"></a>        return;
+<a name="line120"></a>    }
+<a name="line121"></a>
+<a name="line122"></a>    /**
+<a name="line123"></a>     * foreach标签解析 循环输出数据集
+<a name="line124"></a>     * 格式：
+<a name="line125"></a>     * {foreach name="userList" id="user" key="key" index="i" mod="2" offset="3" length="5" empty=""}
+<a name="line126"></a>     * {user.username}
+<a name="line127"></a>     * {/foreach}
+<a name="line128"></a>     * @access public
+<a name="line129"></a>     * @param array $tag 标签属性
+<a name="line130"></a>     * @param string $content 标签内容
+<a name="line131"></a>     * @return string|void
+<a name="line132"></a>     */
+<a name="line133"></a>    public function tagForeach($tag, $content)
+<a name="line134"></a>    {
+<a name="line135"></a>        // 直接使用表达式
+<a name="line136"></a>        if (!empty($tag['expression'])) {
+<a name="line137"></a>            $expression = ltrim(rtrim($tag['expression'], ')'), '(');
+<a name="line138"></a>            $expression = $this->autoBuildVar($expression);
+<a name="line139"></a>            $parseStr   = '<?php foreach(' . $expression . '): ?>';
+<a name="line140"></a>            $parseStr .= $content;
+<a name="line141"></a>            $parseStr .= '<?php endforeach; ?>';
+<a name="line142"></a>            return $parseStr;
+<a name="line143"></a>        }
+<a name="line144"></a>        $name   = $tag['name'];
+<a name="line145"></a>        $key    = !empty($tag['key']) ? $tag['key'] : 'key';
+<a name="line146"></a>        $item   = !empty($tag['id']) ? $tag['id'] : $tag['item'];
+<a name="line147"></a>        $empty  = isset($tag['empty']) ? $tag['empty'] : '';
+<a name="line148"></a>        $offset = !empty($tag['offset']) && is_numeric($tag['offset']) ? intval($tag['offset']) : 0;
+<a name="line149"></a>        $length = !empty($tag['length']) && is_numeric($tag['length']) ? intval($tag['length']) : 'null';
+<a name="line150"></a>
+<a name="line151"></a>        $parseStr = '<?php ';
+<a name="line152"></a>        // 支持用函数传数组
+<a name="line153"></a>        if (':' == substr($name, 0, 1)) {
+<a name="line154"></a>            $var  = '$_' . uniqid();
+<a name="line155"></a>            $name = $this->autoBuildVar($name);
+<a name="line156"></a>            $parseStr .= $var . '=' . $name . '; ';
+<a name="line157"></a>            $name = $var;
+<a name="line158"></a>        } else {
+<a name="line159"></a>            $name = $this->autoBuildVar($name);
+<a name="line160"></a>        }
+<a name="line161"></a>        $parseStr .= 'if(is_array(' . $name . ') || ' . $name . ' instanceof \think\Collection): ';
+<a name="line162"></a>        // 设置了输出数组长度
+<a name="line163"></a>        if (0 != $offset || 'null' != $length) {
+<a name="line164"></a>            if (!isset($var)) {
+<a name="line165"></a>                $var = '$_' . uniqid();
+<a name="line166"></a>            }
+<a name="line167"></a>            $parseStr .= $var . ' = is_array(' . $name . ') ? array_slice(' . $name . ',' . $offset . ',' . $length . ', true) : ' . $name . '->slice(' . $offset . ',' . $length . ', true); ';
+<a name="line168"></a>        } else {
+<a name="line169"></a>            $var = &$name;
+<a name="line170"></a>        }
+<a name="line171"></a>
+<a name="line172"></a>        $parseStr .= 'if( count(' . $var . ')==0 ) : echo "' . $empty . '" ;';
+<a name="line173"></a>        $parseStr .= 'else: ';
+<a name="line174"></a>
+<a name="line175"></a>        // 设置了索引项
+<a name="line176"></a>        if (isset($tag['index'])) {
+<a name="line177"></a>            $index = $tag['index'];
+<a name="line178"></a>            $parseStr .= '$' . $index . '=0; ';
+<a name="line179"></a>        }
+<a name="line180"></a>        $parseStr .= 'foreach(' . $var . ' as $' . $key . '=>$' . $item . '): ';
+<a name="line181"></a>        // 设置了索引项
+<a name="line182"></a>        if (isset($tag['index'])) {
+<a name="line183"></a>            $index = $tag['index'];
+<a name="line184"></a>            if (isset($tag['mod'])) {
+<a name="line185"></a>                $mod = (int) $tag['mod'];
+<a name="line186"></a>                $parseStr .= '$mod = ($' . $index . ' % ' . $mod . '); ';
+<a name="line187"></a>            }
+<a name="line188"></a>            $parseStr .= '++$' . $index . '; ';
+<a name="line189"></a>        }
+<a name="line190"></a>        $parseStr .= '?>';
+<a name="line191"></a>        // 循环体中的内容
+<a name="line192"></a>        $parseStr .= $content;
+<a name="line193"></a>        $parseStr .= '<?php endforeach; endif; else: echo "' . $empty . '" ;endif; ?>';
+<a name="line194"></a>
+<a name="line195"></a>        if (!empty($parseStr)) {
+<a name="line196"></a>            return $parseStr;
+<a name="line197"></a>        }
+<a name="line198"></a>        return;
+<a name="line199"></a>    }
+<a name="line200"></a>
+<a name="line201"></a>    /**
+<a name="line202"></a>     * if标签解析
+<a name="line203"></a>     * 格式：
+<a name="line204"></a>     * {if condition=" $a eq 1"}
+<a name="line205"></a>     * {elseif condition="$a eq 2" /}
+<a name="line206"></a>     * {else /}
+<a name="line207"></a>     * {/if}
+<a name="line208"></a>     * 表达式支持 eq neq gt egt lt elt == > >= < <= or and || &&
+<a name="line209"></a>     * @access public
+<a name="line210"></a>     * @param array $tag 标签属性
+<a name="line211"></a>     * @param string $content 标签内容
+<a name="line212"></a>     * @return string
+<a name="line213"></a>     */
+<a name="line214"></a>    public function tagIf($tag, $content)
+<a name="line215"></a>    {
+<a name="line216"></a>        $condition = !empty($tag['expression']) ? $tag['expression'] : $tag['condition'];
+<a name="line217"></a>        $condition = $this->parseCondition($condition);
+<a name="line218"></a>        $parseStr  = '<?php if(' . $condition . '): ?>' . $content . '<?php endif; ?>';
+<a name="line219"></a>        return $parseStr;
+<a name="line220"></a>    }
+<a name="line221"></a>
+<a name="line222"></a>    /**
+<a name="line223"></a>     * elseif标签解析
+<a name="line224"></a>     * 格式：见if标签
+<a name="line225"></a>     * @access public
+<a name="line226"></a>     * @param array $tag 标签属性
+<a name="line227"></a>     * @param string $content 标签内容
+<a name="line228"></a>     * @return string
+<a name="line229"></a>     */
+<a name="line230"></a>    public function tagElseif($tag, $content)
+<a name="line231"></a>    {
+<a name="line232"></a>        $condition = !empty($tag['expression']) ? $tag['expression'] : $tag['condition'];
+<a name="line233"></a>        $condition = $this->parseCondition($condition);
+<a name="line234"></a>        $parseStr  = '<?php elseif(' . $condition . '): ?>';
+<a name="line235"></a>        return $parseStr;
+<a name="line236"></a>    }
+<a name="line237"></a>
+<a name="line238"></a>    /**
+<a name="line239"></a>     * else标签解析
+<a name="line240"></a>     * 格式：见if标签
+<a name="line241"></a>     * @access public
+<a name="line242"></a>     * @param array $tag 标签属性
+<a name="line243"></a>     * @return string
+<a name="line244"></a>     */
+<a name="line245"></a>    public function tagElse($tag)
+<a name="line246"></a>    {
+<a name="line247"></a>        $parseStr = '<?php else: ?>';
+<a name="line248"></a>        return $parseStr;
+<a name="line249"></a>    }
+<a name="line250"></a>
+<a name="line251"></a>    /**
+<a name="line252"></a>     * switch标签解析
+<a name="line253"></a>     * 格式：
+<a name="line254"></a>     * {switch name="a.name"}
+<a name="line255"></a>     * {case value="1" break="false"}1{/case}
+<a name="line256"></a>     * {case value="2" }2{/case}
+<a name="line257"></a>     * {default /}other
+<a name="line258"></a>     * {/switch}
+<a name="line259"></a>     * @access public
+<a name="line260"></a>     * @param array $tag 标签属性
+<a name="line261"></a>     * @param string $content 标签内容
+<a name="line262"></a>     * @return string
+<a name="line263"></a>     */
+<a name="line264"></a>    public function tagSwitch($tag, $content)
+<a name="line265"></a>    {
+<a name="line266"></a>        $name     = !empty($tag['expression']) ? $tag['expression'] : $tag['name'];
+<a name="line267"></a>        $name     = $this->autoBuildVar($name);
+<a name="line268"></a>        $parseStr = '<?php switch(' . $name . '): ?>' . $content . '<?php endswitch; ?>';
+<a name="line269"></a>        return $parseStr;
+<a name="line270"></a>    }
+<a name="line271"></a>
+<a name="line272"></a>    /**
+<a name="line273"></a>     * case标签解析 需要配合switch才有效
+<a name="line274"></a>     * @access public
+<a name="line275"></a>     * @param array $tag 标签属性
+<a name="line276"></a>     * @param string $content 标签内容
+<a name="line277"></a>     * @return string
+<a name="line278"></a>     */
+<a name="line279"></a>    public function tagCase($tag, $content)
+<a name="line280"></a>    {
+<a name="line281"></a>        $value = !empty($tag['expression']) ? $tag['expression'] : $tag['value'];
+<a name="line282"></a>        $flag  = substr($value, 0, 1);
+<a name="line283"></a>        if ('$' == $flag || ':' == $flag) {
+<a name="line284"></a>            $value = $this->autoBuildVar($value);
+<a name="line285"></a>            $value = 'case ' . $value . ':';
+<a name="line286"></a>        } elseif (strpos($value, '|')) {
+<a name="line287"></a>            $values = explode('|', $value);
+<a name="line288"></a>            $value  = '';
+<a name="line289"></a>            foreach ($values as $val) {
+<a name="line290"></a>                $value .= 'case "' . addslashes($val) . '":';
+<a name="line291"></a>            }
+<a name="line292"></a>        } else {
+<a name="line293"></a>            $value = 'case "' . $value . '":';
+<a name="line294"></a>        }
+<a name="line295"></a>        $parseStr = '<?php ' . $value . ' ?>' . $content;
+<a name="line296"></a>        $isBreak  = isset($tag['break']) ? $tag['break'] : '';
+<a name="line297"></a>        if ('' == $isBreak || $isBreak) {
+<a name="line298"></a>            $parseStr .= '<?php break; ?>';
+<a name="line299"></a>        }
+<a name="line300"></a>        return $parseStr;
+<a name="line301"></a>    }
+<a name="line302"></a>
+<a name="line303"></a>    /**
+<a name="line304"></a>     * default标签解析 需要配合switch才有效
+<a name="line305"></a>     * 使用： {default /}ddfdf
+<a name="line306"></a>     * @access public
+<a name="line307"></a>     * @param array $tag 标签属性
+<a name="line308"></a>     * @param string $content 标签内容
+<a name="line309"></a>     * @return string
+<a name="line310"></a>     */
+<a name="line311"></a>    public function tagDefault($tag)
+<a name="line312"></a>    {
+<a name="line313"></a>        $parseStr = '<?php default: ?>';
+<a name="line314"></a>        return $parseStr;
+<a name="line315"></a>    }
+<a name="line316"></a>
+<a name="line317"></a>    /**
+<a name="line318"></a>     * compare标签解析
+<a name="line319"></a>     * 用于值的比较 支持 eq neq gt lt egt elt heq nheq 默认是eq
+<a name="line320"></a>     * 格式： {compare name="" type="eq" value="" }content{/compare}
+<a name="line321"></a>     * @access public
+<a name="line322"></a>     * @param array $tag 标签属性
+<a name="line323"></a>     * @param string $content 标签内容
+<a name="line324"></a>     * @return string
+<a name="line325"></a>     */
+<a name="line326"></a>    public function tagCompare($tag, $content)
+<a name="line327"></a>    {
+<a name="line328"></a>        $name  = $tag['name'];
+<a name="line329"></a>        $value = $tag['value'];
+<a name="line330"></a>        $type  = isset($tag['type']) ? $tag['type'] : 'eq'; // 比较类型
+<a name="line331"></a>        $name  = $this->autoBuildVar($name);
+<a name="line332"></a>        $flag  = substr($value, 0, 1);
+<a name="line333"></a>        if ('$' == $flag || ':' == $flag) {
+<a name="line334"></a>            $value = $this->autoBuildVar($value);
+<a name="line335"></a>        } else {
+<a name="line336"></a>            $value = '\'' . $value . '\'';
+<a name="line337"></a>        }
+<a name="line338"></a>        switch ($type) {
+<a name="line339"></a>            case 'equal':
+<a name="line340"></a>                $type = 'eq';
+<a name="line341"></a>                break;
+<a name="line342"></a>            case 'notequal':
+<a name="line343"></a>                $type = 'neq';
+<a name="line344"></a>                break;
+<a name="line345"></a>        }
+<a name="line346"></a>        $type     = $this->parseCondition(' ' . $type . ' ');
+<a name="line347"></a>        $parseStr = '<?php if(' . $name . ' ' . $type . ' ' . $value . '): ?>' . $content . '<?php endif; ?>';
+<a name="line348"></a>        return $parseStr;
+<a name="line349"></a>    }
+<a name="line350"></a>
+<a name="line351"></a>    /**
+<a name="line352"></a>     * range标签解析
+<a name="line353"></a>     * 如果某个变量存在于某个范围 则输出内容 type= in 表示在范围内 否则表示在范围外
+<a name="line354"></a>     * 格式： {range name="var|function"  value="val" type='in|notin' }content{/range}
+<a name="line355"></a>     * example: {range name="a"  value="1,2,3" type='in' }content{/range}
+<a name="line356"></a>     * @access public
+<a name="line357"></a>     * @param array $tag 标签属性
+<a name="line358"></a>     * @param string $content 标签内容
+<a name="line359"></a>     * @return string
+<a name="line360"></a>     */
+<a name="line361"></a>    public function tagRange($tag, $content)
+<a name="line362"></a>    {
+<a name="line363"></a>        $name  = $tag['name'];
+<a name="line364"></a>        $value = $tag['value'];
+<a name="line365"></a>        $type  = isset($tag['type']) ? $tag['type'] : 'in'; // 比较类型
+<a name="line366"></a>
+<a name="line367"></a>        $name = $this->autoBuildVar($name);
+<a name="line368"></a>        $flag = substr($value, 0, 1);
+<a name="line369"></a>        if ('$' == $flag || ':' == $flag) {
+<a name="line370"></a>            $value = $this->autoBuildVar($value);
+<a name="line371"></a>            $str   = 'is_array(' . $value . ')?' . $value . ':explode(\',\',' . $value . ')';
+<a name="line372"></a>        } else {
+<a name="line373"></a>            $value = '"' . $value . '"';
+<a name="line374"></a>            $str   = 'explode(\',\',' . $value . ')';
+<a name="line375"></a>        }
+<a name="line376"></a>        if ('between' == $type) {
+<a name="line377"></a>            $parseStr = '<?php $_RANGE_VAR_=' . $str . ';if(' . $name . '>= $_RANGE_VAR_[0] && ' . $name . '<= $_RANGE_VAR_[1]):?>' . $content . '<?php endif; ?>';
+<a name="line378"></a>        } elseif ('notbetween' == $type) {
+<a name="line379"></a>            $parseStr = '<?php $_RANGE_VAR_=' . $str . ';if(' . $name . '<$_RANGE_VAR_[0] || ' . $name . '>$_RANGE_VAR_[1]):?>' . $content . '<?php endif; ?>';
+<a name="line380"></a>        } else {
+<a name="line381"></a>            $fun      = ('in' == $type) ? 'in_array' : '!in_array';
+<a name="line382"></a>            $parseStr = '<?php if(' . $fun . '((' . $name . '), ' . $str . ')): ?>' . $content . '<?php endif; ?>';
+<a name="line383"></a>        }
+<a name="line384"></a>        return $parseStr;
+<a name="line385"></a>    }
+<a name="line386"></a>
+<a name="line387"></a>    /**
+<a name="line388"></a>     * present标签解析
+<a name="line389"></a>     * 如果某个变量已经设置 则输出内容
+<a name="line390"></a>     * 格式： {present name="" }content{/present}
+<a name="line391"></a>     * @access public
+<a name="line392"></a>     * @param array $tag 标签属性
+<a name="line393"></a>     * @param string $content 标签内容
+<a name="line394"></a>     * @return string
+<a name="line395"></a>     */
+<a name="line396"></a>    public function tagPresent($tag, $content)
+<a name="line397"></a>    {
+<a name="line398"></a>        $name     = $tag['name'];
+<a name="line399"></a>        $name     = $this->autoBuildVar($name);
+<a name="line400"></a>        $parseStr = '<?php if(isset(' . $name . ')): ?>' . $content . '<?php endif; ?>';
+<a name="line401"></a>        return $parseStr;
+<a name="line402"></a>    }
+<a name="line403"></a>
+<a name="line404"></a>    /**
+<a name="line405"></a>     * notpresent标签解析
+<a name="line406"></a>     * 如果某个变量没有设置，则输出内容
+<a name="line407"></a>     * 格式： {notpresent name="" }content{/notpresent}
+<a name="line408"></a>     * @access public
+<a name="line409"></a>     * @param array $tag 标签属性
+<a name="line410"></a>     * @param string $content 标签内容
+<a name="line411"></a>     * @return string
+<a name="line412"></a>     */
+<a name="line413"></a>    public function tagNotpresent($tag, $content)
+<a name="line414"></a>    {
+<a name="line415"></a>        $name     = $tag['name'];
+<a name="line416"></a>        $name     = $this->autoBuildVar($name);
+<a name="line417"></a>        $parseStr = '<?php if(!isset(' . $name . ')): ?>' . $content . '<?php endif; ?>';
+<a name="line418"></a>        return $parseStr;
+<a name="line419"></a>    }
+<a name="line420"></a>
+<a name="line421"></a>    /**
+<a name="line422"></a>     * empty标签解析
+<a name="line423"></a>     * 如果某个变量为empty 则输出内容
+<a name="line424"></a>     * 格式： {empty name="" }content{/empty}
+<a name="line425"></a>     * @access public
+<a name="line426"></a>     * @param array $tag 标签属性
+<a name="line427"></a>     * @param string $content 标签内容
+<a name="line428"></a>     * @return string
+<a name="line429"></a>     */
+<a name="line430"></a>    public function tagEmpty($tag, $content)
+<a name="line431"></a>    {
+<a name="line432"></a>        $name     = $tag['name'];
+<a name="line433"></a>        $name     = $this->autoBuildVar($name);
+<a name="line434"></a>        $parseStr = '<?php if(empty(' . $name . ') || (' . $name . ' instanceof \think\Collection && ' . $name . '->isEmpty())): ?>' . $content . '<?php endif; ?>';
+<a name="line435"></a>        return $parseStr;
+<a name="line436"></a>    }
+<a name="line437"></a>
+<a name="line438"></a>    /**
+<a name="line439"></a>     * notempty标签解析
+<a name="line440"></a>     * 如果某个变量不为empty 则输出内容
+<a name="line441"></a>     * 格式： {notempty name="" }content{/notempty}
+<a name="line442"></a>     * @access public
+<a name="line443"></a>     * @param array $tag 标签属性
+<a name="line444"></a>     * @param string $content 标签内容
+<a name="line445"></a>     * @return string
+<a name="line446"></a>     */
+<a name="line447"></a>    public function tagNotempty($tag, $content)
+<a name="line448"></a>    {
+<a name="line449"></a>        $name     = $tag['name'];
+<a name="line450"></a>        $name     = $this->autoBuildVar($name);
+<a name="line451"></a>        $parseStr = '<?php if(!(empty(' . $name . ') || (' . $name . ' instanceof \think\Collection && ' . $name . '->isEmpty()))): ?>' . $content . '<?php endif; ?>';
+<a name="line452"></a>        return $parseStr;
+<a name="line453"></a>    }
+<a name="line454"></a>
+<a name="line455"></a>    /**
+<a name="line456"></a>     * 判断是否已经定义了该常量
+<a name="line457"></a>     * {defined name='TXT'}已定义{/defined}
+<a name="line458"></a>     * @param array $tag
+<a name="line459"></a>     * @param string $content
+<a name="line460"></a>     * @return string
+<a name="line461"></a>     */
+<a name="line462"></a>    public function tagDefined($tag, $content)
+<a name="line463"></a>    {
+<a name="line464"></a>        $name     = $tag['name'];
+<a name="line465"></a>        $parseStr = '<?php if(defined("' . $name . '")): ?>' . $content . '<?php endif; ?>';
+<a name="line466"></a>        return $parseStr;
+<a name="line467"></a>    }
+<a name="line468"></a>
+<a name="line469"></a>    /**
+<a name="line470"></a>     * 判断是否没有定义了该常量
+<a name="line471"></a>     * {notdefined name='TXT'}已定义{/notdefined}
+<a name="line472"></a>     * @param array $tag
+<a name="line473"></a>     * @param string $content
+<a name="line474"></a>     * @return string
+<a name="line475"></a>     */
+<a name="line476"></a>    public function tagNotdefined($tag, $content)
+<a name="line477"></a>    {
+<a name="line478"></a>        $name     = $tag['name'];
+<a name="line479"></a>        $parseStr = '<?php if(!defined("' . $name . '")): ?>' . $content . '<?php endif; ?>';
+<a name="line480"></a>        return $parseStr;
+<a name="line481"></a>    }
+<a name="line482"></a>
+<a name="line483"></a>    /**
+<a name="line484"></a>     * load 标签解析 {load file="/static/js/base.js" /}
+<a name="line485"></a>     * 格式：{load file="/static/css/base.css" /}
+<a name="line486"></a>     * @access public
+<a name="line487"></a>     * @param array $tag 标签属性
+<a name="line488"></a>     * @param string $content 标签内容
+<a name="line489"></a>     * @return string
+<a name="line490"></a>     */
+<a name="line491"></a>    public function tagLoad($tag, $content)
+<a name="line492"></a>    {
+<a name="line493"></a>        $file     = isset($tag['file']) ? $tag['file'] : $tag['href'];
+<a name="line494"></a>        $type     = isset($tag['type']) ? strtolower($tag['type']) : '';
+<a name="line495"></a>        $parseStr = '';
+<a name="line496"></a>        $endStr   = '';
+<a name="line497"></a>        // 判断是否存在加载条件 允许使用函数判断(默认为isset)
+<a name="line498"></a>        if (isset($tag['value'])) {
+<a name="line499"></a>            $name = $tag['value'];
+<a name="line500"></a>            $name = $this->autoBuildVar($name);
+<a name="line501"></a>            $name = 'isset(' . $name . ')';
+<a name="line502"></a>            $parseStr .= '<?php if(' . $name . '): ?>';
+<a name="line503"></a>            $endStr = '<?php endif; ?>';
+<a name="line504"></a>        }
+<a name="line505"></a>
+<a name="line506"></a>        // 文件方式导入
+<a name="line507"></a>        $array = explode(',', $file);
+<a name="line508"></a>        foreach ($array as $val) {
+<a name="line509"></a>            $type = strtolower(substr(strrchr($val, '.'), 1));
+<a name="line510"></a>            switch ($type) {
+<a name="line511"></a>                case 'js':
+<a name="line512"></a>                    $parseStr .= '<script type="text/javascript" src="' . $val . '"></script>';
+<a name="line513"></a>                    break;
+<a name="line514"></a>                case 'css':
+<a name="line515"></a>                    $parseStr .= '<link rel="stylesheet" type="text/css" href="' . $val . '" />';
+<a name="line516"></a>                    break;
+<a name="line517"></a>                case 'php':
+<a name="line518"></a>                    $parseStr .= '<?php include "' . $val . '"; ?>';
+<a name="line519"></a>                    break;
+<a name="line520"></a>            }
+<a name="line521"></a>        }
+<a name="line522"></a>        return $parseStr . $endStr;
+<a name="line523"></a>    }
+<a name="line524"></a>
+<a name="line525"></a>    /**
+<a name="line526"></a>     * assign标签解析
+<a name="line527"></a>     * 在模板中给某个变量赋值 支持变量赋值
+<a name="line528"></a>     * 格式： {assign name="" value="" /}
+<a name="line529"></a>     * @access public
+<a name="line530"></a>     * @param array $tag 标签属性
+<a name="line531"></a>     * @param string $content 标签内容
+<a name="line532"></a>     * @return string
+<a name="line533"></a>     */
+<a name="line534"></a>    public function tagAssign($tag, $content)
+<a name="line535"></a>    {
+<a name="line536"></a>        $name = $this->autoBuildVar($tag['name']);
+<a name="line537"></a>        $flag = substr($tag['value'], 0, 1);
+<a name="line538"></a>        if ('$' == $flag || ':' == $flag) {
+<a name="line539"></a>            $value = $this->autoBuildVar($tag['value']);
+<a name="line540"></a>        } else {
+<a name="line541"></a>            $value = '\'' . $tag['value'] . '\'';
+<a name="line542"></a>        }
+<a name="line543"></a>        $parseStr = '<?php ' . $name . ' = ' . $value . '; ?>';
+<a name="line544"></a>        return $parseStr;
+<a name="line545"></a>    }
+<a name="line546"></a>
+<a name="line547"></a>    /**
+<a name="line548"></a>     * define标签解析
+<a name="line549"></a>     * 在模板中定义常量 支持变量赋值
+<a name="line550"></a>     * 格式： {define name="" value="" /}
+<a name="line551"></a>     * @access public
+<a name="line552"></a>     * @param array $tag 标签属性
+<a name="line553"></a>     * @param string $content 标签内容
+<a name="line554"></a>     * @return string
+<a name="line555"></a>     */
+<a name="line556"></a>    public function tagDefine($tag, $content)
+<a name="line557"></a>    {
+<a name="line558"></a>        $name = '\'' . $tag['name'] . '\'';
+<a name="line559"></a>        $flag = substr($tag['value'], 0, 1);
+<a name="line560"></a>        if ('$' == $flag || ':' == $flag) {
+<a name="line561"></a>            $value = $this->autoBuildVar($tag['value']);
+<a name="line562"></a>        } else {
+<a name="line563"></a>            $value = '\'' . $tag['value'] . '\'';
+<a name="line564"></a>        }
+<a name="line565"></a>        $parseStr = '<?php define(' . $name . ', ' . $value . '); ?>';
+<a name="line566"></a>        return $parseStr;
+<a name="line567"></a>    }
+<a name="line568"></a>
+<a name="line569"></a>    /**
+<a name="line570"></a>     * for标签解析
+<a name="line571"></a>     * 格式：
+<a name="line572"></a>     * {for start="" end="" comparison="" step="" name=""}
+<a name="line573"></a>     * content
+<a name="line574"></a>     * {/for}
+<a name="line575"></a>     * @access public
+<a name="line576"></a>     * @param array $tag 标签属性
+<a name="line577"></a>     * @param string $content 标签内容
+<a name="line578"></a>     * @return string
+<a name="line579"></a>     */
+<a name="line580"></a>    public function tagFor($tag, $content)
+<a name="line581"></a>    {
+<a name="line582"></a>        //设置默认值
+<a name="line583"></a>        $start      = 0;
+<a name="line584"></a>        $end        = 0;
+<a name="line585"></a>        $step       = 1;
+<a name="line586"></a>        $comparison = 'lt';
+<a name="line587"></a>        $name       = 'i';
+<a name="line588"></a>        $rand       = rand(); //添加随机数，防止嵌套变量冲突
+<a name="line589"></a>        //获取属性
+<a name="line590"></a>        foreach ($tag as $key => $value) {
+<a name="line591"></a>            $value = trim($value);
+<a name="line592"></a>            $flag  = substr($value, 0, 1);
+<a name="line593"></a>            if ('$' == $flag || ':' == $flag) {
+<a name="line594"></a>                $value = $this->autoBuildVar($value);
+<a name="line595"></a>            }
+<a name="line596"></a>
+<a name="line597"></a>            switch ($key) {
+<a name="line598"></a>                case 'start':
+<a name="line599"></a>                    $start = $value;
+<a name="line600"></a>                    break;
+<a name="line601"></a>                case 'end':
+<a name="line602"></a>                    $end = $value;
+<a name="line603"></a>                    break;
+<a name="line604"></a>                case 'step':
+<a name="line605"></a>                    $step = $value;
+<a name="line606"></a>                    break;
+<a name="line607"></a>                case 'comparison':
+<a name="line608"></a>                    $comparison = $value;
+<a name="line609"></a>                    break;
+<a name="line610"></a>                case 'name':
+<a name="line611"></a>                    $name = $value;
+<a name="line612"></a>                    break;
+<a name="line613"></a>            }
+<a name="line614"></a>        }
+<a name="line615"></a>
+<a name="line616"></a>        $parseStr = '<?php $__FOR_START_' . $rand . '__=' . $start . ';$__FOR_END_' . $rand . '__=' . $end . ';';
+<a name="line617"></a>        $parseStr .= 'for($' . $name . '=$__FOR_START_' . $rand . '__;' . $this->parseCondition('$' . $name . ' ' . $comparison . ' $__FOR_END_' . $rand . '__') . ';$' . $name . '+=' . $step . '){ ?>';
+<a name="line618"></a>        $parseStr .= $content;
+<a name="line619"></a>        $parseStr .= '<?php } ?>';
+<a name="line620"></a>        return $parseStr;
+<a name="line621"></a>    }
+<a name="line622"></a>
+<a name="line623"></a>     /**
+<a name="line624"></a>     * U函数的tag标签
+<a name="line625"></a>     * 格式：{url link="模块/控制器/方法" vars="参数" suffix="true或者false 是否带有后缀" domain="true或者false 是否携带域名" /}
+<a name="line626"></a>     * @access public
+<a name="line627"></a>     * @param array $tag 标签属性
+<a name="line628"></a>     * @param string $content 标签内容
+<a name="line629"></a>     * @return string
+<a name="line630"></a>     */
+<a name="line631"></a>    public function tagUrl($tag, $content)
+<a name="line632"></a>    {
+<a name="line633"></a>        $url    = isset($tag['link']) ? $tag['link'] : '';
+<a name="line634"></a>        $vars   = isset($tag['vars']) ? $tag['vars'] : '';
+<a name="line635"></a>        $suffix = isset($tag['suffix']) ? $tag['suffix'] : 'true';
+<a name="line636"></a>        $domain = isset($tag['domain']) ? $tag['domain'] : 'false';
+<a name="line637"></a>        return '<?php echo url("' . $url . '","' . $vars . '",' . $suffix . ',' . $domain . ');?>';
+<a name="line638"></a>    }
+<a name="line639"></a>
+<a name="line640"></a>    /**
+<a name="line641"></a>     * function标签解析 匿名函数，可实现递归
+<a name="line642"></a>     * 使用：
+<a name="line643"></a>     * {function name="func" vars="$data" call="$list" use="&$a,&$b"}
+<a name="line644"></a>     *      {if is_array($data)}
+<a name="line645"></a>     *          {foreach $data as $val}
+<a name="line646"></a>     *              {~func($val) /}
+<a name="line647"></a>     *          {/foreach}
+<a name="line648"></a>     *      {else /}
+<a name="line649"></a>     *          {$data}
+<a name="line650"></a>     *      {/if}
+<a name="line651"></a>     * {/function}
+<a name="line652"></a>     * @access public
+<a name="line653"></a>     * @param array $tag 标签属性
+<a name="line654"></a>     * @param string $content 标签内容
+<a name="line655"></a>     * @return string
+<a name="line656"></a>     */
+<a name="line657"></a>    public function tagFunction($tag, $content)
+<a name="line658"></a>    {
+<a name="line659"></a>        $name = !empty($tag['name']) ? $tag['name'] : 'func';
+<a name="line660"></a>        $vars = !empty($tag['vars']) ? $tag['vars'] : '';
+<a name="line661"></a>        $call = !empty($tag['call']) ? $tag['call'] : '';
+<a name="line662"></a>        $use  = ['&$' . $name];
+<a name="line663"></a>        if (!empty($tag['use'])) {
+<a name="line664"></a>            foreach (explode(',', $tag['use']) as $val) {
+<a name="line665"></a>                $use[] = '&' . ltrim(trim($val), '&');
+<a name="line666"></a>            }
+<a name="line667"></a>        }
+<a name="line668"></a>        $parseStr = '<?php $' . $name . '=function(' . $vars . ') use(' . implode(',', $use) . ') {';
+<a name="line669"></a>        $parseStr .= ' ?>' . $content . '<?php }; ';
+<a name="line670"></a>        $parseStr .= $call ? '$' . $name . '(' . $call . '); ?>' : '?>';
+<a name="line671"></a>        return $parseStr;
+<a name="line672"></a>    }
+<a name="line673"></a>}
+<a name="line674"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\template\taglib\cx.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

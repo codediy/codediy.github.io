@@ -1,0 +1,364 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\Session.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\session.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\Session.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think;
+<a name="line13"></a>
+<a name="line14"></a>use think\App;
+<a name="line15"></a>use think\exception\ClassNotFoundException;
+<a name="line16"></a>
+<a name="line17"></a>class Session
+<a name="line18"></a>{
+<a name="line19"></a>    protected static $prefix = '';
+<a name="line20"></a>    protected static $init   = null;
+<a name="line21"></a>
+<a name="line22"></a>    /**
+<a name="line23"></a>     * 设置或者获取session作用域（前缀）
+<a name="line24"></a>     * @param string $prefix
+<a name="line25"></a>     * @return string|void
+<a name="line26"></a>     */
+<a name="line27"></a>    public static function prefix($prefix = '')
+<a name="line28"></a>    {
+<a name="line29"></a>        if (empty($prefix) && null !== $prefix) {
+<a name="line30"></a>            return self::$prefix;
+<a name="line31"></a>        } else {
+<a name="line32"></a>            self::$prefix = $prefix;
+<a name="line33"></a>        }
+<a name="line34"></a>    }
+<a name="line35"></a>
+<a name="line36"></a>    /**
+<a name="line37"></a>     * session初始化
+<a name="line38"></a>     * @param array $config
+<a name="line39"></a>     * @return void
+<a name="line40"></a>     * @throws \think\Exception
+<a name="line41"></a>     */
+<a name="line42"></a>    public static function init(array $config = [])
+<a name="line43"></a>    {
+<a name="line44"></a>        if (empty($config)) {
+<a name="line45"></a>            $config = Config::get('session');
+<a name="line46"></a>        }
+<a name="line47"></a>        // 记录初始化信息
+<a name="line48"></a>        App::$debug && Log::record('[ SESSION ] INIT ' . var_export($config, true), 'info');
+<a name="line49"></a>        $isDoStart = false;
+<a name="line50"></a>        if (isset($config['use_trans_sid'])) {
+<a name="line51"></a>            ini_set('session.use_trans_sid', $config['use_trans_sid'] ? 1 : 0);
+<a name="line52"></a>        }
+<a name="line53"></a>
+<a name="line54"></a>        // 启动session
+<a name="line55"></a>        if (!empty($config['auto_start']) && PHP_SESSION_ACTIVE != session_status()) {
+<a name="line56"></a>            ini_set('session.auto_start', 0);
+<a name="line57"></a>            $isDoStart = true;
+<a name="line58"></a>        }
+<a name="line59"></a>
+<a name="line60"></a>        if (isset($config['prefix'])) {
+<a name="line61"></a>            self::$prefix = $config['prefix'];
+<a name="line62"></a>        }
+<a name="line63"></a>        if (isset($config['var_session_id']) && isset($_REQUEST[$config['var_session_id']])) {
+<a name="line64"></a>            session_id($_REQUEST[$config['var_session_id']]);
+<a name="line65"></a>        } elseif (isset($config['id']) && !empty($config['id'])) {
+<a name="line66"></a>            session_id($config['id']);
+<a name="line67"></a>        }
+<a name="line68"></a>        if (isset($config['name'])) {
+<a name="line69"></a>            session_name($config['name']);
+<a name="line70"></a>        }
+<a name="line71"></a>        if (isset($config['path'])) {
+<a name="line72"></a>            session_save_path($config['path']);
+<a name="line73"></a>        }
+<a name="line74"></a>        if (isset($config['domain'])) {
+<a name="line75"></a>            ini_set('session.cookie_domain', $config['domain']);
+<a name="line76"></a>        }
+<a name="line77"></a>        if (isset($config['expire'])) {
+<a name="line78"></a>            ini_set('session.gc_maxlifetime', $config['expire']);
+<a name="line79"></a>            ini_set('session.cookie_lifetime', $config['expire']);
+<a name="line80"></a>        }
+<a name="line81"></a>
+<a name="line82"></a>        if (isset($config['use_cookies'])) {
+<a name="line83"></a>            ini_set('session.use_cookies', $config['use_cookies'] ? 1 : 0);
+<a name="line84"></a>        }
+<a name="line85"></a>        if (isset($config['cache_limiter'])) {
+<a name="line86"></a>            session_cache_limiter($config['cache_limiter']);
+<a name="line87"></a>        }
+<a name="line88"></a>        if (isset($config['cache_expire'])) {
+<a name="line89"></a>            session_cache_expire($config['cache_expire']);
+<a name="line90"></a>        }
+<a name="line91"></a>        if (!empty($config['type'])) {
+<a name="line92"></a>            // 读取session驱动
+<a name="line93"></a>            $class = false !== strpos($config['type'], '\\') ? $config['type'] : '\\think\\session\\driver\\' . ucwords($config['type']);
+<a name="line94"></a>
+<a name="line95"></a>            // 检查驱动类
+<a name="line96"></a>            if (!class_exists($class) || !session_set_save_handler(new $class($config))) {
+<a name="line97"></a>                throw new ClassNotFoundException('error session handler:' . $class, $class);
+<a name="line98"></a>            }
+<a name="line99"></a>        }
+<a name="line100"></a>        if ($isDoStart) {
+<a name="line101"></a>            session_start();
+<a name="line102"></a>            self::$init = true;
+<a name="line103"></a>        } else {
+<a name="line104"></a>            self::$init = false;
+<a name="line105"></a>        }
+<a name="line106"></a>    }
+<a name="line107"></a>
+<a name="line108"></a>    /**
+<a name="line109"></a>     * session自动启动或者初始化
+<a name="line110"></a>     * @return void
+<a name="line111"></a>     */
+<a name="line112"></a>    public static function boot()
+<a name="line113"></a>    {
+<a name="line114"></a>        if (is_null(self::$init)) {
+<a name="line115"></a>            self::init();
+<a name="line116"></a>        } elseif (false === self::$init) {
+<a name="line117"></a>            session_start();
+<a name="line118"></a>            self::$init = true;
+<a name="line119"></a>        }
+<a name="line120"></a>    }
+<a name="line121"></a>
+<a name="line122"></a>    /**
+<a name="line123"></a>     * session设置
+<a name="line124"></a>     * @param string        $name session名称
+<a name="line125"></a>     * @param mixed         $value session值
+<a name="line126"></a>     * @param string|null   $prefix 作用域（前缀）
+<a name="line127"></a>     * @return void
+<a name="line128"></a>     */
+<a name="line129"></a>    public static function set($name, $value = '', $prefix = null)
+<a name="line130"></a>    {
+<a name="line131"></a>        empty(self::$init) && self::boot();
+<a name="line132"></a>
+<a name="line133"></a>        $prefix = !is_null($prefix) ? $prefix : self::$prefix;
+<a name="line134"></a>        if (strpos($name, '.')) {
+<a name="line135"></a>            // 二维数组赋值
+<a name="line136"></a>            list($name1, $name2) = explode('.', $name);
+<a name="line137"></a>            if ($prefix) {
+<a name="line138"></a>                $_SESSION[$prefix][$name1][$name2] = $value;
+<a name="line139"></a>            } else {
+<a name="line140"></a>                $_SESSION[$name1][$name2] = $value;
+<a name="line141"></a>            }
+<a name="line142"></a>        } elseif ($prefix) {
+<a name="line143"></a>            $_SESSION[$prefix][$name] = $value;
+<a name="line144"></a>        } else {
+<a name="line145"></a>            $_SESSION[$name] = $value;
+<a name="line146"></a>        }
+<a name="line147"></a>    }
+<a name="line148"></a>
+<a name="line149"></a>    /**
+<a name="line150"></a>     * session获取
+<a name="line151"></a>     * @param string        $name session名称
+<a name="line152"></a>     * @param string|null   $prefix 作用域（前缀）
+<a name="line153"></a>     * @return mixed
+<a name="line154"></a>     */
+<a name="line155"></a>    public static function get($name = '', $prefix = null)
+<a name="line156"></a>    {
+<a name="line157"></a>        empty(self::$init) && self::boot();
+<a name="line158"></a>        $prefix = !is_null($prefix) ? $prefix : self::$prefix;
+<a name="line159"></a>        if ('' == $name) {
+<a name="line160"></a>            // 获取全部的session
+<a name="line161"></a>            $value = $prefix ? (!empty($_SESSION[$prefix]) ? $_SESSION[$prefix] : []) : $_SESSION;
+<a name="line162"></a>        } elseif ($prefix) {
+<a name="line163"></a>            // 获取session
+<a name="line164"></a>            if (strpos($name, '.')) {
+<a name="line165"></a>                list($name1, $name2) = explode('.', $name);
+<a name="line166"></a>                $value               = isset($_SESSION[$prefix][$name1][$name2]) ? $_SESSION[$prefix][$name1][$name2] : null;
+<a name="line167"></a>            } else {
+<a name="line168"></a>                $value = isset($_SESSION[$prefix][$name]) ? $_SESSION[$prefix][$name] : null;
+<a name="line169"></a>            }
+<a name="line170"></a>        } else {
+<a name="line171"></a>            if (strpos($name, '.')) {
+<a name="line172"></a>                list($name1, $name2) = explode('.', $name);
+<a name="line173"></a>                $value               = isset($_SESSION[$name1][$name2]) ? $_SESSION[$name1][$name2] : null;
+<a name="line174"></a>            } else {
+<a name="line175"></a>                $value = isset($_SESSION[$name]) ? $_SESSION[$name] : null;
+<a name="line176"></a>            }
+<a name="line177"></a>        }
+<a name="line178"></a>        return $value;
+<a name="line179"></a>    }
+<a name="line180"></a>
+<a name="line181"></a>    /**
+<a name="line182"></a>     * session获取并删除
+<a name="line183"></a>     * @param string        $name session名称
+<a name="line184"></a>     * @param string|null   $prefix 作用域（前缀）
+<a name="line185"></a>     * @return mixed
+<a name="line186"></a>     */
+<a name="line187"></a>    public static function pull($name, $prefix = null)
+<a name="line188"></a>    {
+<a name="line189"></a>        $result = self::get($name, $prefix);
+<a name="line190"></a>        if ($result) {
+<a name="line191"></a>            self::delete($name, $prefix);
+<a name="line192"></a>            return $result;
+<a name="line193"></a>        } else {
+<a name="line194"></a>            return null;
+<a name="line195"></a>        }
+<a name="line196"></a>    }
+<a name="line197"></a>
+<a name="line198"></a>    /**
+<a name="line199"></a>     * 删除session数据
+<a name="line200"></a>     * @param string        $name session名称
+<a name="line201"></a>     * @param string|null   $prefix 作用域（前缀）
+<a name="line202"></a>     * @return void
+<a name="line203"></a>     */
+<a name="line204"></a>    public static function delete($name, $prefix = null)
+<a name="line205"></a>    {
+<a name="line206"></a>        empty(self::$init) && self::boot();
+<a name="line207"></a>        $prefix = !is_null($prefix) ? $prefix : self::$prefix;
+<a name="line208"></a>        if (strpos($name, '.')) {
+<a name="line209"></a>            list($name1, $name2) = explode('.', $name);
+<a name="line210"></a>            if ($prefix) {
+<a name="line211"></a>                unset($_SESSION[$prefix][$name1][$name2]);
+<a name="line212"></a>            } else {
+<a name="line213"></a>                unset($_SESSION[$name1][$name2]);
+<a name="line214"></a>            }
+<a name="line215"></a>        } else {
+<a name="line216"></a>            if ($prefix) {
+<a name="line217"></a>                unset($_SESSION[$prefix][$name]);
+<a name="line218"></a>            } else {
+<a name="line219"></a>                unset($_SESSION[$name]);
+<a name="line220"></a>            }
+<a name="line221"></a>        }
+<a name="line222"></a>    }
+<a name="line223"></a>
+<a name="line224"></a>    /**
+<a name="line225"></a>     * 清空session数据
+<a name="line226"></a>     * @param string|null   $prefix 作用域（前缀）
+<a name="line227"></a>     * @return void
+<a name="line228"></a>     */
+<a name="line229"></a>    public static function clear($prefix = null)
+<a name="line230"></a>    {
+<a name="line231"></a>        empty(self::$init) && self::boot();
+<a name="line232"></a>        $prefix = !is_null($prefix) ? $prefix : self::$prefix;
+<a name="line233"></a>        if ($prefix) {
+<a name="line234"></a>            unset($_SESSION[$prefix]);
+<a name="line235"></a>        } else {
+<a name="line236"></a>            $_SESSION = [];
+<a name="line237"></a>        }
+<a name="line238"></a>    }
+<a name="line239"></a>
+<a name="line240"></a>    /**
+<a name="line241"></a>     * 判断session数据
+<a name="line242"></a>     * @param string        $name session名称
+<a name="line243"></a>     * @param string|null   $prefix
+<a name="line244"></a>     * @return bool
+<a name="line245"></a>     */
+<a name="line246"></a>    public static function has($name, $prefix = null)
+<a name="line247"></a>    {
+<a name="line248"></a>        empty(self::$init) && self::boot();
+<a name="line249"></a>        $prefix = !is_null($prefix) ? $prefix : self::$prefix;
+<a name="line250"></a>        if (strpos($name, '.')) {
+<a name="line251"></a>            // 支持数组
+<a name="line252"></a>            list($name1, $name2) = explode('.', $name);
+<a name="line253"></a>            return $prefix ? isset($_SESSION[$prefix][$name1][$name2]) : isset($_SESSION[$name1][$name2]);
+<a name="line254"></a>        } else {
+<a name="line255"></a>            return $prefix ? isset($_SESSION[$prefix][$name]) : isset($_SESSION[$name]);
+<a name="line256"></a>        }
+<a name="line257"></a>    }
+<a name="line258"></a>
+<a name="line259"></a>    /**
+<a name="line260"></a>     * 启动session
+<a name="line261"></a>     * @return void
+<a name="line262"></a>     */
+<a name="line263"></a>    public static function start()
+<a name="line264"></a>    {
+<a name="line265"></a>        session_start();
+<a name="line266"></a>        self::$init = true;
+<a name="line267"></a>    }
+<a name="line268"></a>
+<a name="line269"></a>    /**
+<a name="line270"></a>     * 销毁session
+<a name="line271"></a>     * @return void
+<a name="line272"></a>     */
+<a name="line273"></a>    public static function destroy()
+<a name="line274"></a>    {
+<a name="line275"></a>        if (!empty($_SESSION)) {
+<a name="line276"></a>            $_SESSION = [];
+<a name="line277"></a>        }
+<a name="line278"></a>        session_unset();
+<a name="line279"></a>        session_destroy();
+<a name="line280"></a>        self::$init = null;
+<a name="line281"></a>    }
+<a name="line282"></a>
+<a name="line283"></a>    /**
+<a name="line284"></a>     * 重新生成session_id
+<a name="line285"></a>     * @param bool $delete 是否删除关联会话文件
+<a name="line286"></a>     * @return void
+<a name="line287"></a>     */
+<a name="line288"></a>    private static function regenerate($delete = false)
+<a name="line289"></a>    {
+<a name="line290"></a>        session_regenerate_id($delete);
+<a name="line291"></a>    }
+<a name="line292"></a>
+<a name="line293"></a>    /**
+<a name="line294"></a>     * 暂停session
+<a name="line295"></a>     * @return void
+<a name="line296"></a>     */
+<a name="line297"></a>    public static function pause()
+<a name="line298"></a>    {
+<a name="line299"></a>        // 暂停session
+<a name="line300"></a>        session_write_close();
+<a name="line301"></a>        self::$init = false;
+<a name="line302"></a>    }
+<a name="line303"></a>}
+<a name="line304"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\session.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

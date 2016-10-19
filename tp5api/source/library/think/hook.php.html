@@ -1,0 +1,191 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\Hook.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\hook.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\Hook.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>
+<a name="line3"></a>// +----------------------------------------------------------------------
+<a name="line4"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line5"></a>// +----------------------------------------------------------------------
+<a name="line6"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line7"></a>// +----------------------------------------------------------------------
+<a name="line8"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line9"></a>// +----------------------------------------------------------------------
+<a name="line10"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line11"></a>// +----------------------------------------------------------------------
+<a name="line12"></a>
+<a name="line13"></a>namespace think;
+<a name="line14"></a>
+<a name="line15"></a>use think\App;
+<a name="line16"></a>use think\Debug;
+<a name="line17"></a>use think\Log;
+<a name="line18"></a>
+<a name="line19"></a>class Hook
+<a name="line20"></a>{
+<a name="line21"></a>
+<a name="line22"></a>	private static $tags = [];
+<a name="line23"></a>
+<a name="line24"></a>	/**
+<a name="line25"></a>	 * 动态添加行为扩展到某个标签
+<a name="line26"></a>	 * @param string    $tag 标签名称
+<a name="line27"></a>	 * @param mixed     $behavior 行为名称
+<a name="line28"></a>	 * @param bool      $first 是否放到开头执行
+<a name="line29"></a>	 * @return void
+<a name="line30"></a>	 */
+<a name="line31"></a>	public static function add($tag, $behavior, $first = false)
+<a name="line32"></a>	{
+<a name="line33"></a>		isset(self::$tags[$tag]) || self::$tags[$tag] = [];
+<a name="line34"></a>		if (is_array($behavior) && !is_callable($behavior)) {
+<a name="line35"></a>			if (!array_key_exists('_overlay', $behavior) || !$behavior['_overlay']) {
+<a name="line36"></a>				unset($behavior['_overlay']);
+<a name="line37"></a>				self::$tags[$tag] = array_merge(self::$tags[$tag], $behavior);
+<a name="line38"></a>			} else {
+<a name="line39"></a>				unset($behavior['_overlay']);
+<a name="line40"></a>				self::$tags[$tag] = $behavior;
+<a name="line41"></a>			}
+<a name="line42"></a>		} elseif ($first) {
+<a name="line43"></a>			array_unshift(self::$tags[$tag], $behavior);
+<a name="line44"></a>		} else {
+<a name="line45"></a>			self::$tags[$tag][] = $behavior;
+<a name="line46"></a>		}
+<a name="line47"></a>	}
+<a name="line48"></a>
+<a name="line49"></a>	/**
+<a name="line50"></a>	 * 批量导入插件
+<a name="line51"></a>	 * @param array    $tags 插件信息
+<a name="line52"></a>	 * @param boolean $recursive 是否递归合并
+<a name="line53"></a>	 */
+<a name="line54"></a>	public static function import(array $tags, $recursive = true)
+<a name="line55"></a>	{
+<a name="line56"></a>		if ($recursive) {
+<a name="line57"></a>			foreach ($tags as $tag => $behavior) {
+<a name="line58"></a>				self::add($tag, $behavior);
+<a name="line59"></a>			}
+<a name="line60"></a>		} else {
+<a name="line61"></a>			self::$tags = $tags + self::$tags;
+<a name="line62"></a>		}
+<a name="line63"></a>	}
+<a name="line64"></a>
+<a name="line65"></a>	/**
+<a name="line66"></a>	 * 获取插件信息
+<a name="line67"></a>	 * @param string $tag 插件位置 留空获取全部
+<a name="line68"></a>	 * @return array
+<a name="line69"></a>	 */
+<a name="line70"></a>	public static function get($tag = '')
+<a name="line71"></a>	{
+<a name="line72"></a>		if (empty($tag)) {//获取全部的插件信息
+<a name="line73"></a>			return self::$tags;
+<a name="line74"></a>		} else {
+<a name="line75"></a>			return array_key_exists($tag, self::$tags) ? self::$tags[$tag] : [];
+<a name="line76"></a>		}
+<a name="line77"></a>	}
+<a name="line78"></a>
+<a name="line79"></a>	/**
+<a name="line80"></a>	 * 监听标签的行为
+<a name="line81"></a>	 * @param string $tag    标签名称
+<a name="line82"></a>	 * @param mixed  $params 传入参数
+<a name="line83"></a>	 * @param mixed  $extra  额外参数
+<a name="line84"></a>	 * @param bool   $once   只获取一个有效返回值
+<a name="line85"></a>	 * @return mixed
+<a name="line86"></a>	 */
+<a name="line87"></a>	public static function listen($tag, &$params = null, $extra = null, $once = false)
+<a name="line88"></a>	{
+<a name="line89"></a>		$results = [];
+<a name="line90"></a>		$tags = static::get($tag);
+<a name="line91"></a>		foreach ($tags as $key => $name) {
+<a name="line92"></a>			$results[$key] = self::exec($name, $tag, $params, $extra);
+<a name="line93"></a>			if (false === $results[$key]) {// 如果返回false 则中断行为执行
+<a name="line94"></a>				break;
+<a name="line95"></a>			} elseif (!is_null($results[$key]) && $once) {
+<a name="line96"></a>				break;
+<a name="line97"></a>			}
+<a name="line98"></a>		}
+<a name="line99"></a>		return $once ? end($results) : $results;
+<a name="line100"></a>	}
+<a name="line101"></a>
+<a name="line102"></a>	/**
+<a name="line103"></a>	 * 执行某个行为
+<a name="line104"></a>	 * @param mixed     $class 要执行的行为
+<a name="line105"></a>	 * @param string    $tag 方法名（标签名）
+<a name="line106"></a>	 * @param Mixed     $params 传人的参数
+<a name="line107"></a>	 * @param mixed     $extra 额外参数
+<a name="line108"></a>	 * @return mixed
+<a name="line109"></a>	 */
+<a name="line110"></a>	public static function exec($class, $tag = '', &$params = null, $extra = null)
+<a name="line111"></a>	{
+<a name="line112"></a>		App::$debug && Debug::remark('behavior_start', 'time');
+<a name="line113"></a>		if (is_callable($class)) {
+<a name="line114"></a>			$result = call_user_func_array($class, [ & $params, $extra]);
+<a name="line115"></a>			$class = 'Closure';
+<a name="line116"></a>		} elseif (is_object($class)) {
+<a name="line117"></a>			$result = call_user_func_array([$class, $tag], [ & $params, $extra]);
+<a name="line118"></a>			$class = get_class($class);
+<a name="line119"></a>		} else {
+<a name="line120"></a>			$obj = new $class();
+<a name="line121"></a>			$result = ($tag && is_callable([$obj, $tag])) ? $obj->$tag($params, $extra) : $obj->run($params, $extra);
+<a name="line122"></a>		}
+<a name="line123"></a>		if (App::$debug) {
+<a name="line124"></a>			Debug::remark('behavior_end', 'time');
+<a name="line125"></a>			Log::record('[ BEHAVIOR ] Run ' . $class . ' @' . $tag . ' [ RunTime:' . Debug::getRangeTime('behavior_start', 'behavior_end') . 's ]', 'info');
+<a name="line126"></a>		}
+<a name="line127"></a>		return $result;
+<a name="line128"></a>	}
+<a name="line129"></a>
+<a name="line130"></a>}
+<a name="line131"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\hook.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

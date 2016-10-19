@@ -1,0 +1,310 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:04 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>Log (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\log.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\Log</div>
+<a href="../source/library/think/log.php.html#line27" class="location">library\think\Log.php at line 27</a>
+
+<h1>Class Log</h1>
+
+<pre class="tree"><strong>Log</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>Log</strong></p>
+
+<div class="comment" id="overview_description"><p>Class Log</p></div>
+
+<dl>
+<dt>Method:</dt>
+<dd>void log($msg) static</dd>
+<dd>void error($msg) static</dd>
+<dd>void info($msg) static</dd>
+<dd>void sql($msg) static</dd>
+<dd>void notice($msg) static</dd>
+<dd>void alert($msg) static</dd>
+</dl>
+<hr>
+
+<table id="summary_field">
+<tr><th colspan="2">Constant Summary</th></tr>
+<tr>
+<td class="type">final static  str</td>
+<td class="description"><p class="name"><a href="#ALERT">ALERT</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  str</td>
+<td class="description"><p class="name"><a href="#ERROR">ERROR</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  str</td>
+<td class="description"><p class="name"><a href="#INFO">INFO</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  str</td>
+<td class="description"><p class="name"><a href="#LOG">LOG</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  str</td>
+<td class="description"><p class="name"><a href="#NOTICE">NOTICE</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  str</td>
+<td class="description"><p class="name"><a href="#SQL">SQL</a></p></td>
+</tr>
+</table>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#init()">init</a>(array config)</p><p class="description">日志初始化</p></td>
+</tr>
+<tr>
+<td class="type">static  array</td>
+<td class="description"><p class="name"><a href="#getLog()">getLog</a>(string type)</p><p class="description">获取日志信息</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#record()">record</a>(mixed msg, string type)</p><p class="description">记录调试信息</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#clear()">clear</a>()</p><p class="description">清空日志信息</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#key()">key</a>(string key)</p><p class="description">当前日志记录的授权key</p></td>
+</tr>
+<tr>
+<td class="type">static  bool</td>
+<td class="description"><p class="name"><a href="#check()">check</a>(array config)</p><p class="description">检查日志写入权限</p></td>
+</tr>
+<tr>
+<td class="type">static  bool</td>
+<td class="description"><p class="name"><a href="#save()">save</a>()</p><p class="description">保存调试信息</p></td>
+</tr>
+<tr>
+<td class="type">static  bool</td>
+<td class="description"><p class="name"><a href="#write()">write</a>(mixed msg, string type, bool force)</p><p class="description">实时写入日志信息 并支持行为</p></td>
+</tr>
+</table>
+
+<h2 id="detail_field">Constant Detail</h2>
+<a href="../source/library/think/log.php.html#line34" class="location">library\think\Log.php at line 34</a>
+
+<h3 id="ALERT">ALERT</h3>
+<code class="signature">public final static  str <strong>ALERT</strong> = 'alert'</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/log.php.html#line30" class="location">library\think\Log.php at line 30</a>
+
+<h3 id="ERROR">ERROR</h3>
+<code class="signature">public final static  str <strong>ERROR</strong> = 'error'</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/log.php.html#line31" class="location">library\think\Log.php at line 31</a>
+
+<h3 id="INFO">INFO</h3>
+<code class="signature">public final static  str <strong>INFO</strong> = 'info'</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/log.php.html#line29" class="location">library\think\Log.php at line 29</a>
+
+<h3 id="LOG">LOG</h3>
+<code class="signature">public final static  str <strong>LOG</strong> = 'log'</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/log.php.html#line33" class="location">library\think\Log.php at line 33</a>
+
+<h3 id="NOTICE">NOTICE</h3>
+<code class="signature">public final static  str <strong>NOTICE</strong> = 'notice'</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/log.php.html#line32" class="location">library\think\Log.php at line 32</a>
+
+<h3 id="SQL">SQL</h3>
+<code class="signature">public final static  str <strong>SQL</strong> = 'sql'</code>
+<div class="details">
+</div>
+
+<hr>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../source/library/think/log.php.html#line52" class="location">library\think\Log.php at line 52</a>
+
+<h3 id="init()">init</h3>
+<code class="signature">public static  void <strong>init</strong>(array config)</code>
+<div class="details">
+<p>日志初始化</p></div>
+
+<hr>
+
+<a href="../source/library/think/log.php.html#line72" class="location">library\think\Log.php at line 72</a>
+
+<h3 id="getLog()">getLog</h3>
+<code class="signature">public static  array <strong>getLog</strong>(string type)</code>
+<div class="details">
+<p>获取日志信息</p><dl>
+<dt>Parameters:</dt>
+<dd>type - 信息类型</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/log.php.html#line83" class="location">library\think\Log.php at line 83</a>
+
+<h3 id="record()">record</h3>
+<code class="signature">public static  void <strong>record</strong>(mixed msg, string type)</code>
+<div class="details">
+<p>记录调试信息</p><dl>
+<dt>Parameters:</dt>
+<dd>msg - 调试信息</dd>
+<dd>type - 信息类型</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/log.php.html#line92" class="location">library\think\Log.php at line 92</a>
+
+<h3 id="clear()">clear</h3>
+<code class="signature">public static  void <strong>clear</strong>()</code>
+<div class="details">
+<p>清空日志信息</p></div>
+
+<hr>
+
+<a href="../source/library/think/log.php.html#line102" class="location">library\think\Log.php at line 102</a>
+
+<h3 id="key()">key</h3>
+<code class="signature">public static  void <strong>key</strong>(string key)</code>
+<div class="details">
+<p>当前日志记录的授权key</p><dl>
+<dt>Parameters:</dt>
+<dd>key - 授权key</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/log.php.html#line112" class="location">library\think\Log.php at line 112</a>
+
+<h3 id="check()">check</h3>
+<code class="signature">public static  bool <strong>check</strong>(array config)</code>
+<div class="details">
+<p>检查日志写入权限</p><dl>
+<dt>Parameters:</dt>
+<dd>config - 当前日志配置参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/log.php.html#line124" class="location">library\think\Log.php at line 124</a>
+
+<h3 id="save()">save</h3>
+<code class="signature">public static  bool <strong>save</strong>()</code>
+<div class="details">
+<p>保存调试信息</p></div>
+
+<hr>
+
+<a href="../source/library/think/log.php.html#line166" class="location">library\think\Log.php at line 166</a>
+
+<h3 id="write()">write</h3>
+<code class="signature">public static  bool <strong>write</strong>(mixed msg, string type, bool force)</code>
+<div class="details">
+<p>实时写入日志信息 并支持行为</p><dl>
+<dt>Parameters:</dt>
+<dd>msg - 调试信息</dd>
+<dd>type - 信息类型</dd>
+<dd>force - 是否强制写入</dd>
+</dl>
+</div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\log.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

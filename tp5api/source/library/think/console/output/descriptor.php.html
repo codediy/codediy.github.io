@@ -1,0 +1,380 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\console\output\Descriptor.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\console\output\descriptor.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\console\output\Descriptor.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2015 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: yunwuxin <448901948@qq.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think\console\output;
+<a name="line13"></a>
+<a name="line14"></a>use think\Console;
+<a name="line15"></a>use think\console\Command;
+<a name="line16"></a>use think\console\input\Argument as InputArgument;
+<a name="line17"></a>use think\console\input\Definition as InputDefinition;
+<a name="line18"></a>use think\console\input\Option as InputOption;
+<a name="line19"></a>use think\console\Output;
+<a name="line20"></a>use think\console\output\descriptor\Console as ConsoleDescription;
+<a name="line21"></a>
+<a name="line22"></a>class Descriptor
+<a name="line23"></a>{
+<a name="line24"></a>
+<a name="line25"></a>    /**
+<a name="line26"></a>     * @var Output
+<a name="line27"></a>     */
+<a name="line28"></a>    protected $output;
+<a name="line29"></a>
+<a name="line30"></a>    /**
+<a name="line31"></a>     * {@inheritdoc}
+<a name="line32"></a>     */
+<a name="line33"></a>    public function describe(Output $output, $object, array $options = [])
+<a name="line34"></a>    {
+<a name="line35"></a>        $this->output = $output;
+<a name="line36"></a>
+<a name="line37"></a>        switch (true) {
+<a name="line38"></a>            case $object instanceof InputArgument:
+<a name="line39"></a>                $this->describeInputArgument($object, $options);
+<a name="line40"></a>                break;
+<a name="line41"></a>            case $object instanceof InputOption:
+<a name="line42"></a>                $this->describeInputOption($object, $options);
+<a name="line43"></a>                break;
+<a name="line44"></a>            case $object instanceof InputDefinition:
+<a name="line45"></a>                $this->describeInputDefinition($object, $options);
+<a name="line46"></a>                break;
+<a name="line47"></a>            case $object instanceof Command:
+<a name="line48"></a>                $this->describeCommand($object, $options);
+<a name="line49"></a>                break;
+<a name="line50"></a>            case $object instanceof Console:
+<a name="line51"></a>                $this->describeConsole($object, $options);
+<a name="line52"></a>                break;
+<a name="line53"></a>            default:
+<a name="line54"></a>                throw new \InvalidArgumentException(sprintf('Object of type "%s" is not describable.', get_class($object)));
+<a name="line55"></a>        }
+<a name="line56"></a>    }
+<a name="line57"></a>
+<a name="line58"></a>    /**
+<a name="line59"></a>     * 输出内容
+<a name="line60"></a>     * @param string $content
+<a name="line61"></a>     * @param bool   $decorated
+<a name="line62"></a>     */
+<a name="line63"></a>    protected function write($content, $decorated = false)
+<a name="line64"></a>    {
+<a name="line65"></a>        $this->output->write($content, false, $decorated ? Output::OUTPUT_NORMAL : Output::OUTPUT_RAW);
+<a name="line66"></a>    }
+<a name="line67"></a>
+<a name="line68"></a>    /**
+<a name="line69"></a>     * 描述参数
+<a name="line70"></a>     * @param InputArgument $argument
+<a name="line71"></a>     * @param array         $options
+<a name="line72"></a>     * @return string|mixed
+<a name="line73"></a>     */
+<a name="line74"></a>    protected function describeInputArgument(InputArgument $argument, array $options = [])
+<a name="line75"></a>    {
+<a name="line76"></a>        if (null !== $argument->getDefault()
+<a name="line77"></a>            && (!is_array($argument->getDefault())
+<a name="line78"></a>                || count($argument->getDefault()))
+<a name="line79"></a>        ) {
+<a name="line80"></a>            $default = sprintf('<comment> [default: %s]</comment>', $this->formatDefaultValue($argument->getDefault()));
+<a name="line81"></a>        } else {
+<a name="line82"></a>            $default = '';
+<a name="line83"></a>        }
+<a name="line84"></a>
+<a name="line85"></a>        $totalWidth   = isset($options['total_width']) ? $options['total_width'] : strlen($argument->getName());
+<a name="line86"></a>        $spacingWidth = $totalWidth - strlen($argument->getName()) + 2;
+<a name="line87"></a>
+<a name="line88"></a>        $this->writeText(sprintf("  <info>%s</info>%s%s%s", $argument->getName(), str_repeat(' ', $spacingWidth), // + 17 = 2 spaces + <info> + </info> + 2 spaces
+<a name="line89"></a>            preg_replace('/\s*\R\s*/', PHP_EOL . str_repeat(' ', $totalWidth + 17), $argument->getDescription()), $default), $options);
+<a name="line90"></a>    }
+<a name="line91"></a>
+<a name="line92"></a>    /**
+<a name="line93"></a>     * 描述选项
+<a name="line94"></a>     * @param InputOption $option
+<a name="line95"></a>     * @param array       $options
+<a name="line96"></a>     * @return string|mixed
+<a name="line97"></a>     */
+<a name="line98"></a>    protected function describeInputOption(InputOption $option, array $options = [])
+<a name="line99"></a>    {
+<a name="line100"></a>        if ($option->acceptValue() && null !== $option->getDefault()
+<a name="line101"></a>            && (!is_array($option->getDefault())
+<a name="line102"></a>                || count($option->getDefault()))
+<a name="line103"></a>        ) {
+<a name="line104"></a>            $default = sprintf('<comment> [default: %s]</comment>', $this->formatDefaultValue($option->getDefault()));
+<a name="line105"></a>        } else {
+<a name="line106"></a>            $default = '';
+<a name="line107"></a>        }
+<a name="line108"></a>
+<a name="line109"></a>        $value = '';
+<a name="line110"></a>        if ($option->acceptValue()) {
+<a name="line111"></a>            $value = '=' . strtoupper($option->getName());
+<a name="line112"></a>
+<a name="line113"></a>            if ($option->isValueOptional()) {
+<a name="line114"></a>                $value = '[' . $value . ']';
+<a name="line115"></a>            }
+<a name="line116"></a>        }
+<a name="line117"></a>
+<a name="line118"></a>        $totalWidth = isset($options['total_width']) ? $options['total_width'] : $this->calculateTotalWidthForOptions([$option]);
+<a name="line119"></a>        $synopsis   = sprintf('%s%s', $option->getShortcut() ? sprintf('-%s, ', $option->getShortcut()) : '    ', sprintf('--%s%s', $option->getName(), $value));
+<a name="line120"></a>
+<a name="line121"></a>        $spacingWidth = $totalWidth - strlen($synopsis) + 2;
+<a name="line122"></a>
+<a name="line123"></a>        $this->writeText(sprintf("  <info>%s</info>%s%s%s%s", $synopsis, str_repeat(' ', $spacingWidth), // + 17 = 2 spaces + <info> + </info> + 2 spaces
+<a name="line124"></a>            preg_replace('/\s*\R\s*/', "\n" . str_repeat(' ', $totalWidth + 17), $option->getDescription()), $default, $option->isArray() ? '<comment> (multiple values allowed)</comment>' : ''), $options);
+<a name="line125"></a>    }
+<a name="line126"></a>
+<a name="line127"></a>    /**
+<a name="line128"></a>     * 描述输入
+<a name="line129"></a>     * @param InputDefinition $definition
+<a name="line130"></a>     * @param array           $options
+<a name="line131"></a>     * @return string|mixed
+<a name="line132"></a>     */
+<a name="line133"></a>    protected function describeInputDefinition(InputDefinition $definition, array $options = [])
+<a name="line134"></a>    {
+<a name="line135"></a>        $totalWidth = $this->calculateTotalWidthForOptions($definition->getOptions());
+<a name="line136"></a>        foreach ($definition->getArguments() as $argument) {
+<a name="line137"></a>            $totalWidth = max($totalWidth, strlen($argument->getName()));
+<a name="line138"></a>        }
+<a name="line139"></a>
+<a name="line140"></a>        if ($definition->getArguments()) {
+<a name="line141"></a>            $this->writeText('<comment>Arguments:</comment>', $options);
+<a name="line142"></a>            $this->writeText("\n");
+<a name="line143"></a>            foreach ($definition->getArguments() as $argument) {
+<a name="line144"></a>                $this->describeInputArgument($argument, array_merge($options, ['total_width' => $totalWidth]));
+<a name="line145"></a>                $this->writeText("\n");
+<a name="line146"></a>            }
+<a name="line147"></a>        }
+<a name="line148"></a>
+<a name="line149"></a>        if ($definition->getArguments() && $definition->getOptions()) {
+<a name="line150"></a>            $this->writeText("\n");
+<a name="line151"></a>        }
+<a name="line152"></a>
+<a name="line153"></a>        if ($definition->getOptions()) {
+<a name="line154"></a>            $laterOptions = [];
+<a name="line155"></a>
+<a name="line156"></a>            $this->writeText('<comment>Options:</comment>', $options);
+<a name="line157"></a>            foreach ($definition->getOptions() as $option) {
+<a name="line158"></a>                if (strlen($option->getShortcut()) > 1) {
+<a name="line159"></a>                    $laterOptions[] = $option;
+<a name="line160"></a>                    continue;
+<a name="line161"></a>                }
+<a name="line162"></a>                $this->writeText("\n");
+<a name="line163"></a>                $this->describeInputOption($option, array_merge($options, ['total_width' => $totalWidth]));
+<a name="line164"></a>            }
+<a name="line165"></a>            foreach ($laterOptions as $option) {
+<a name="line166"></a>                $this->writeText("\n");
+<a name="line167"></a>                $this->describeInputOption($option, array_merge($options, ['total_width' => $totalWidth]));
+<a name="line168"></a>            }
+<a name="line169"></a>        }
+<a name="line170"></a>    }
+<a name="line171"></a>
+<a name="line172"></a>    /**
+<a name="line173"></a>     * 描述指令
+<a name="line174"></a>     * @param Command $command
+<a name="line175"></a>     * @param array   $options
+<a name="line176"></a>     * @return string|mixed
+<a name="line177"></a>     */
+<a name="line178"></a>    protected function describeCommand(Command $command, array $options = [])
+<a name="line179"></a>    {
+<a name="line180"></a>        $command->getSynopsis(true);
+<a name="line181"></a>        $command->getSynopsis(false);
+<a name="line182"></a>        $command->mergeConsoleDefinition(false);
+<a name="line183"></a>
+<a name="line184"></a>        $this->writeText('<comment>Usage:</comment>', $options);
+<a name="line185"></a>        foreach (array_merge([$command->getSynopsis(true)], $command->getAliases(), $command->getUsages()) as $usage) {
+<a name="line186"></a>            $this->writeText("\n");
+<a name="line187"></a>            $this->writeText('  ' . $usage, $options);
+<a name="line188"></a>        }
+<a name="line189"></a>        $this->writeText("\n");
+<a name="line190"></a>
+<a name="line191"></a>        $definition = $command->getNativeDefinition();
+<a name="line192"></a>        if ($definition->getOptions() || $definition->getArguments()) {
+<a name="line193"></a>            $this->writeText("\n");
+<a name="line194"></a>            $this->describeInputDefinition($definition, $options);
+<a name="line195"></a>            $this->writeText("\n");
+<a name="line196"></a>        }
+<a name="line197"></a>
+<a name="line198"></a>        if ($help = $command->getProcessedHelp()) {
+<a name="line199"></a>            $this->writeText("\n");
+<a name="line200"></a>            $this->writeText('<comment>Help:</comment>', $options);
+<a name="line201"></a>            $this->writeText("\n");
+<a name="line202"></a>            $this->writeText(' ' . str_replace("\n", "\n ", $help), $options);
+<a name="line203"></a>            $this->writeText("\n");
+<a name="line204"></a>        }
+<a name="line205"></a>    }
+<a name="line206"></a>
+<a name="line207"></a>    /**
+<a name="line208"></a>     * 描述控制台
+<a name="line209"></a>     * @param Console $console
+<a name="line210"></a>     * @param array   $options
+<a name="line211"></a>     * @return string|mixed
+<a name="line212"></a>     */
+<a name="line213"></a>    protected function describeConsole(Console $console, array $options = [])
+<a name="line214"></a>    {
+<a name="line215"></a>        $describedNamespace = isset($options['namespace']) ? $options['namespace'] : null;
+<a name="line216"></a>        $description        = new ConsoleDescription($console, $describedNamespace);
+<a name="line217"></a>
+<a name="line218"></a>        if (isset($options['raw_text']) && $options['raw_text']) {
+<a name="line219"></a>            $width = $this->getColumnWidth($description->getCommands());
+<a name="line220"></a>
+<a name="line221"></a>            foreach ($description->getCommands() as $command) {
+<a name="line222"></a>                $this->writeText(sprintf("%-${width}s %s", $command->getName(), $command->getDescription()), $options);
+<a name="line223"></a>                $this->writeText("\n");
+<a name="line224"></a>            }
+<a name="line225"></a>        } else {
+<a name="line226"></a>            if ('' != $help = $console->getHelp()) {
+<a name="line227"></a>                $this->writeText("$help\n\n", $options);
+<a name="line228"></a>            }
+<a name="line229"></a>
+<a name="line230"></a>            $this->writeText("<comment>Usage:</comment>\n", $options);
+<a name="line231"></a>            $this->writeText("  command [options] [arguments]\n\n", $options);
+<a name="line232"></a>
+<a name="line233"></a>            $this->describeInputDefinition(new InputDefinition($console->getDefinition()->getOptions()), $options);
+<a name="line234"></a>
+<a name="line235"></a>            $this->writeText("\n");
+<a name="line236"></a>            $this->writeText("\n");
+<a name="line237"></a>
+<a name="line238"></a>            $width = $this->getColumnWidth($description->getCommands());
+<a name="line239"></a>
+<a name="line240"></a>            if ($describedNamespace) {
+<a name="line241"></a>                $this->writeText(sprintf('<comment>Available commands for the "%s" namespace:</comment>', $describedNamespace), $options);
+<a name="line242"></a>            } else {
+<a name="line243"></a>                $this->writeText('<comment>Available commands:</comment>', $options);
+<a name="line244"></a>            }
+<a name="line245"></a>
+<a name="line246"></a>            // add commands by namespace
+<a name="line247"></a>            foreach ($description->getNamespaces() as $namespace) {
+<a name="line248"></a>                if (!$describedNamespace && ConsoleDescription::GLOBAL_NAMESPACE !== $namespace['id']) {
+<a name="line249"></a>                    $this->writeText("\n");
+<a name="line250"></a>                    $this->writeText(' <comment>' . $namespace['id'] . '</comment>', $options);
+<a name="line251"></a>                }
+<a name="line252"></a>
+<a name="line253"></a>                foreach ($namespace['commands'] as $name) {
+<a name="line254"></a>                    $this->writeText("\n");
+<a name="line255"></a>                    $spacingWidth = $width - strlen($name);
+<a name="line256"></a>                    $this->writeText(sprintf("  <info>%s</info>%s%s", $name, str_repeat(' ', $spacingWidth), $description->getCommand($name)
+<a name="line257"></a>                            ->getDescription()), $options);
+<a name="line258"></a>                }
+<a name="line259"></a>            }
+<a name="line260"></a>
+<a name="line261"></a>            $this->writeText("\n");
+<a name="line262"></a>        }
+<a name="line263"></a>    }
+<a name="line264"></a>
+<a name="line265"></a>    /**
+<a name="line266"></a>     * {@inheritdoc}
+<a name="line267"></a>     */
+<a name="line268"></a>    private function writeText($content, array $options = [])
+<a name="line269"></a>    {
+<a name="line270"></a>        $this->write(isset($options['raw_text'])
+<a name="line271"></a>            && $options['raw_text'] ? strip_tags($content) : $content, isset($options['raw_output']) ? !$options['raw_output'] : true);
+<a name="line272"></a>    }
+<a name="line273"></a>
+<a name="line274"></a>    /**
+<a name="line275"></a>     * 格式化
+<a name="line276"></a>     * @param mixed $default
+<a name="line277"></a>     * @return string
+<a name="line278"></a>     */
+<a name="line279"></a>    private function formatDefaultValue($default)
+<a name="line280"></a>    {
+<a name="line281"></a>        return json_encode($default, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+<a name="line282"></a>    }
+<a name="line283"></a>
+<a name="line284"></a>    /**
+<a name="line285"></a>     * @param Command[] $commands
+<a name="line286"></a>     * @return int
+<a name="line287"></a>     */
+<a name="line288"></a>    private function getColumnWidth(array $commands)
+<a name="line289"></a>    {
+<a name="line290"></a>        $width = 0;
+<a name="line291"></a>        foreach ($commands as $command) {
+<a name="line292"></a>            $width = strlen($command->getName()) > $width ? strlen($command->getName()) : $width;
+<a name="line293"></a>        }
+<a name="line294"></a>
+<a name="line295"></a>        return $width + 2;
+<a name="line296"></a>    }
+<a name="line297"></a>
+<a name="line298"></a>    /**
+<a name="line299"></a>     * @param InputOption[] $options
+<a name="line300"></a>     * @return int
+<a name="line301"></a>     */
+<a name="line302"></a>    private function calculateTotalWidthForOptions($options)
+<a name="line303"></a>    {
+<a name="line304"></a>        $totalWidth = 0;
+<a name="line305"></a>        foreach ($options as $option) {
+<a name="line306"></a>            $nameLength = 4 + strlen($option->getName()) + 2; // - + shortcut + , + whitespace + name + --
+<a name="line307"></a>
+<a name="line308"></a>            if ($option->acceptValue()) {
+<a name="line309"></a>                $valueLength = 1 + strlen($option->getName()); // = + value
+<a name="line310"></a>                $valueLength += $option->isValueOptional() ? 2 : 0; // [ + ]
+<a name="line311"></a>
+<a name="line312"></a>                $nameLength += $valueLength;
+<a name="line313"></a>            }
+<a name="line314"></a>            $totalWidth = max($totalWidth, $nameLength);
+<a name="line315"></a>        }
+<a name="line316"></a>
+<a name="line317"></a>        return $totalWidth;
+<a name="line318"></a>    }
+<a name="line319"></a>}
+<a name="line320"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\console\output\descriptor.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

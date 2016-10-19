@@ -1,0 +1,607 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>helper.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\helper.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>helper.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>//------------------------
+<a name="line13"></a>// ThinkPHP 助手函数
+<a name="line14"></a>//-------------------------
+<a name="line15"></a>
+<a name="line16"></a>use think\Cache;
+<a name="line17"></a>use think\Config;
+<a name="line18"></a>use think\Cookie;
+<a name="line19"></a>use think\Db;
+<a name="line20"></a>use think\Debug;
+<a name="line21"></a>use think\exception\HttpException;
+<a name="line22"></a>use think\exception\HttpResponseException;
+<a name="line23"></a>use think\Lang;
+<a name="line24"></a>use think\Loader;
+<a name="line25"></a>use think\Log;
+<a name="line26"></a>use think\Request;
+<a name="line27"></a>use think\Response;
+<a name="line28"></a>use think\Session;
+<a name="line29"></a>use think\Url;
+<a name="line30"></a>use think\View;
+<a name="line31"></a>
+<a name="line32"></a>if (!function_exists('load_trait')) {
+<a name="line33"></a>    /**
+<a name="line34"></a>     * 快速导入Traits PHP5.5以上无需调用
+<a name="line35"></a>     * @param string    $class trait库
+<a name="line36"></a>     * @param string    $ext 类库后缀
+<a name="line37"></a>     * @return boolean
+<a name="line38"></a>     */
+<a name="line39"></a>    function load_trait($class, $ext = EXT)
+<a name="line40"></a>    {
+<a name="line41"></a>        return Loader::import($class, TRAIT_PATH, $ext);
+<a name="line42"></a>    }
+<a name="line43"></a>}
+<a name="line44"></a>
+<a name="line45"></a>if (!function_exists('exception')) {
+<a name="line46"></a>    /**
+<a name="line47"></a>     * 抛出异常处理
+<a name="line48"></a>     *
+<a name="line49"></a>     * @param string    $msg  异常消息
+<a name="line50"></a>     * @param integer   $code 异常代码 默认为0
+<a name="line51"></a>     * @param string    $exception 异常类
+<a name="line52"></a>     *
+<a name="line53"></a>     * @throws Exception
+<a name="line54"></a>     */
+<a name="line55"></a>    function exception($msg, $code = 0, $exception = '')
+<a name="line56"></a>    {
+<a name="line57"></a>        $e = $exception ?: '\think\Exception';
+<a name="line58"></a>        throw new $e($msg, $code);
+<a name="line59"></a>    }
+<a name="line60"></a>}
+<a name="line61"></a>
+<a name="line62"></a>if (!function_exists('debug')) {
+<a name="line63"></a>    /**
+<a name="line64"></a>     * 记录时间（微秒）和内存使用情况
+<a name="line65"></a>     * @param string            $start 开始标签
+<a name="line66"></a>     * @param string            $end 结束标签
+<a name="line67"></a>     * @param integer|string    $dec 小数位 如果是m 表示统计内存占用
+<a name="line68"></a>     * @return mixed
+<a name="line69"></a>     */
+<a name="line70"></a>    function debug($start, $end = '', $dec = 6)
+<a name="line71"></a>    {
+<a name="line72"></a>        if ('' == $end) {
+<a name="line73"></a>            Debug::remark($start);
+<a name="line74"></a>        } else {
+<a name="line75"></a>            return 'm' == $dec ? Debug::getRangeMem($start, $end) : Debug::getRangeTime($start, $end, $dec);
+<a name="line76"></a>        }
+<a name="line77"></a>    }
+<a name="line78"></a>}
+<a name="line79"></a>
+<a name="line80"></a>if (!function_exists('lang')) {
+<a name="line81"></a>    /**
+<a name="line82"></a>     * 获取语言变量值
+<a name="line83"></a>     * @param string    $name 语言变量名
+<a name="line84"></a>     * @param array     $vars 动态变量值
+<a name="line85"></a>     * @param string    $lang 语言
+<a name="line86"></a>     * @return mixed
+<a name="line87"></a>     */
+<a name="line88"></a>    function lang($name, $vars = [], $lang = '')
+<a name="line89"></a>    {
+<a name="line90"></a>        return Lang::get($name, $vars, $lang);
+<a name="line91"></a>    }
+<a name="line92"></a>}
+<a name="line93"></a>
+<a name="line94"></a>if (!function_exists('config')) {
+<a name="line95"></a>    /**
+<a name="line96"></a>     * 获取和设置配置参数
+<a name="line97"></a>     * @param string|array  $name 参数名
+<a name="line98"></a>     * @param mixed         $value 参数值
+<a name="line99"></a>     * @param string        $range 作用域
+<a name="line100"></a>     * @return mixed
+<a name="line101"></a>     */
+<a name="line102"></a>    function config($name = '', $value = null, $range = '')
+<a name="line103"></a>    {
+<a name="line104"></a>        if (is_null($value) && is_string($name)) {
+<a name="line105"></a>            return 0 === strpos($name, '?') ? Config::has(substr($name, 1), $range) : Config::get($name, $range);
+<a name="line106"></a>        } else {
+<a name="line107"></a>            return Config::set($name, $value, $range);
+<a name="line108"></a>        }
+<a name="line109"></a>    }
+<a name="line110"></a>}
+<a name="line111"></a>
+<a name="line112"></a>if (!function_exists('input')) {
+<a name="line113"></a>    /**
+<a name="line114"></a>     * 获取输入数据 支持默认值和过滤
+<a name="line115"></a>     * @param string    $key 获取的变量名
+<a name="line116"></a>     * @param mixed     $default 默认值
+<a name="line117"></a>     * @param string    $filter 过滤方法
+<a name="line118"></a>     * @return mixed
+<a name="line119"></a>     */
+<a name="line120"></a>    function input($key = '', $default = null, $filter = null)
+<a name="line121"></a>    {
+<a name="line122"></a>        if (0 === strpos($key, '?')) {
+<a name="line123"></a>            $key = substr($key, 1);
+<a name="line124"></a>            $has = true;
+<a name="line125"></a>        }
+<a name="line126"></a>        if ($pos = strpos($key, '.')) {
+<a name="line127"></a>            // 指定参数来源
+<a name="line128"></a>            $method = substr($key, 0, $pos);
+<a name="line129"></a>            if (in_array($method, ['get', 'post', 'put', 'patch', 'delete', 'param', 'request', 'session', 'cookie', 'server', 'env', 'path', 'file'])) {
+<a name="line130"></a>                $key = substr($key, $pos + 1);
+<a name="line131"></a>            } else {
+<a name="line132"></a>                $method = 'param';
+<a name="line133"></a>            }
+<a name="line134"></a>        } else {
+<a name="line135"></a>            // 默认为自动判断
+<a name="line136"></a>            $method = 'param';
+<a name="line137"></a>        }
+<a name="line138"></a>        if (isset($has)) {
+<a name="line139"></a>            return request()->has($key, $method, $default);
+<a name="line140"></a>        } else {
+<a name="line141"></a>            return request()->$method($key, $default, $filter);
+<a name="line142"></a>        }
+<a name="line143"></a>    }
+<a name="line144"></a>}
+<a name="line145"></a>
+<a name="line146"></a>if (!function_exists('widget')) {
+<a name="line147"></a>    /**
+<a name="line148"></a>     * 渲染输出Widget
+<a name="line149"></a>     * @param string    $name Widget名称
+<a name="line150"></a>     * @param array     $data 传入的参数
+<a name="line151"></a>     * @return mixed
+<a name="line152"></a>     */
+<a name="line153"></a>    function widget($name, $data = [])
+<a name="line154"></a>    {
+<a name="line155"></a>        return Loader::action($name, $data, 'widget');
+<a name="line156"></a>    }
+<a name="line157"></a>}
+<a name="line158"></a>
+<a name="line159"></a>if (!function_exists('model')) {
+<a name="line160"></a>    /**
+<a name="line161"></a>     * 实例化Model
+<a name="line162"></a>     * @param string    $name Model名称
+<a name="line163"></a>     * @param string    $layer 业务层名称
+<a name="line164"></a>     * @param bool      $appendSuffix 是否添加类名后缀
+<a name="line165"></a>     * @return \think\Model
+<a name="line166"></a>     */
+<a name="line167"></a>    function model($name = '', $layer = 'model', $appendSuffix = false)
+<a name="line168"></a>    {
+<a name="line169"></a>        return Loader::model($name, $layer, $appendSuffix);
+<a name="line170"></a>    }
+<a name="line171"></a>}
+<a name="line172"></a>
+<a name="line173"></a>if (!function_exists('validate')) {
+<a name="line174"></a>    /**
+<a name="line175"></a>     * 实例化验证器
+<a name="line176"></a>     * @param string    $name 验证器名称
+<a name="line177"></a>     * @param string    $layer 业务层名称
+<a name="line178"></a>     * @param bool      $appendSuffix 是否添加类名后缀
+<a name="line179"></a>     * @return \think\Validate
+<a name="line180"></a>     */
+<a name="line181"></a>    function validate($name = '', $layer = 'validate', $appendSuffix = false)
+<a name="line182"></a>    {
+<a name="line183"></a>        return Loader::validate($name, $layer, $appendSuffix);
+<a name="line184"></a>    }
+<a name="line185"></a>}
+<a name="line186"></a>
+<a name="line187"></a>if (!function_exists('db')) {
+<a name="line188"></a>    /**
+<a name="line189"></a>     * 实例化数据库类
+<a name="line190"></a>     * @param string        $name 操作的数据表名称（不含前缀）
+<a name="line191"></a>     * @param array|string  $config 数据库配置参数
+<a name="line192"></a>     * @param bool          $force 是否强制重新连接
+<a name="line193"></a>     * @return \think\db\Query
+<a name="line194"></a>     */
+<a name="line195"></a>    function db($name = '', $config = [], $force = true)
+<a name="line196"></a>    {
+<a name="line197"></a>        return Db::connect($config, $force)->name($name);
+<a name="line198"></a>    }
+<a name="line199"></a>}
+<a name="line200"></a>
+<a name="line201"></a>if (!function_exists('controller')) {
+<a name="line202"></a>    /**
+<a name="line203"></a>     * 实例化控制器 格式：[模块/]控制器
+<a name="line204"></a>     * @param string    $name 资源地址
+<a name="line205"></a>     * @param string    $layer 控制层名称
+<a name="line206"></a>     * @param bool      $appendSuffix 是否添加类名后缀
+<a name="line207"></a>     * @return \think\Controller
+<a name="line208"></a>     */
+<a name="line209"></a>    function controller($name, $layer = 'controller', $appendSuffix = false)
+<a name="line210"></a>    {
+<a name="line211"></a>        return Loader::controller($name, $layer, $appendSuffix);
+<a name="line212"></a>    }
+<a name="line213"></a>}
+<a name="line214"></a>
+<a name="line215"></a>if (!function_exists('action')) {
+<a name="line216"></a>    /**
+<a name="line217"></a>     * 调用模块的操作方法 参数格式 [模块/控制器/]操作
+<a name="line218"></a>     * @param string        $url 调用地址
+<a name="line219"></a>     * @param string|array  $vars 调用参数 支持字符串和数组
+<a name="line220"></a>     * @param string        $layer 要调用的控制层名称
+<a name="line221"></a>     * @param bool          $appendSuffix 是否添加类名后缀
+<a name="line222"></a>     * @return mixed
+<a name="line223"></a>     */
+<a name="line224"></a>    function action($url, $vars = [], $layer = 'controller', $appendSuffix = false)
+<a name="line225"></a>    {
+<a name="line226"></a>        return Loader::action($url, $vars, $layer, $appendSuffix);
+<a name="line227"></a>    }
+<a name="line228"></a>}
+<a name="line229"></a>
+<a name="line230"></a>if (!function_exists('import')) {
+<a name="line231"></a>    /**
+<a name="line232"></a>     * 导入所需的类库 同java的Import 本函数有缓存功能
+<a name="line233"></a>     * @param string    $class 类库命名空间字符串
+<a name="line234"></a>     * @param string    $baseUrl 起始路径
+<a name="line235"></a>     * @param string    $ext 导入的文件扩展名
+<a name="line236"></a>     * @return boolean
+<a name="line237"></a>     */
+<a name="line238"></a>    function import($class, $baseUrl = '', $ext = EXT)
+<a name="line239"></a>    {
+<a name="line240"></a>        return Loader::import($class, $baseUrl, $ext);
+<a name="line241"></a>    }
+<a name="line242"></a>}
+<a name="line243"></a>
+<a name="line244"></a>if (!function_exists('vendor')) {
+<a name="line245"></a>    /**
+<a name="line246"></a>     * 快速导入第三方框架类库 所有第三方框架的类库文件统一放到 系统的Vendor目录下面
+<a name="line247"></a>     * @param string    $class 类库
+<a name="line248"></a>     * @param string    $ext 类库后缀
+<a name="line249"></a>     * @return boolean
+<a name="line250"></a>     */
+<a name="line251"></a>    function vendor($class, $ext = EXT)
+<a name="line252"></a>    {
+<a name="line253"></a>        return Loader::import($class, VENDOR_PATH, $ext);
+<a name="line254"></a>    }
+<a name="line255"></a>}
+<a name="line256"></a>
+<a name="line257"></a>if (!function_exists('dump')) {
+<a name="line258"></a>    /**
+<a name="line259"></a>     * 浏览器友好的变量输出
+<a name="line260"></a>     * @param mixed     $var 变量
+<a name="line261"></a>     * @param boolean   $echo 是否输出 默认为true 如果为false 则返回输出字符串
+<a name="line262"></a>     * @param string    $label 标签 默认为空
+<a name="line263"></a>     * @return void|string
+<a name="line264"></a>     */
+<a name="line265"></a>    function dump($var, $echo = true, $label = null)
+<a name="line266"></a>    {
+<a name="line267"></a>        return Debug::dump($var, $echo, $label);
+<a name="line268"></a>    }
+<a name="line269"></a>}
+<a name="line270"></a>
+<a name="line271"></a>if (!function_exists('url')) {
+<a name="line272"></a>    /**
+<a name="line273"></a>     * Url生成
+<a name="line274"></a>     * @param string        $url 路由地址
+<a name="line275"></a>     * @param string|array  $vars 变量
+<a name="line276"></a>     * @param bool|string   $suffix 生成的URL后缀
+<a name="line277"></a>     * @param bool|string   $domain 域名
+<a name="line278"></a>     * @return string
+<a name="line279"></a>     */
+<a name="line280"></a>    function url($url = '', $vars = '', $suffix = true, $domain = false)
+<a name="line281"></a>    {
+<a name="line282"></a>        return Url::build($url, $vars, $suffix, $domain);
+<a name="line283"></a>    }
+<a name="line284"></a>}
+<a name="line285"></a>
+<a name="line286"></a>if (!function_exists('session')) {
+<a name="line287"></a>    /**
+<a name="line288"></a>     * Session管理
+<a name="line289"></a>     * @param string|array  $name session名称，如果为数组表示进行session设置
+<a name="line290"></a>     * @param mixed         $value session值
+<a name="line291"></a>     * @param string        $prefix 前缀
+<a name="line292"></a>     * @return mixed
+<a name="line293"></a>     */
+<a name="line294"></a>    function session($name, $value = '', $prefix = null)
+<a name="line295"></a>    {
+<a name="line296"></a>        if (is_array($name)) {
+<a name="line297"></a>            // 初始化
+<a name="line298"></a>            Session::init($name);
+<a name="line299"></a>        } elseif (is_null($name)) {
+<a name="line300"></a>            // 清除
+<a name="line301"></a>            Session::clear($value);
+<a name="line302"></a>        } elseif ('' === $value) {
+<a name="line303"></a>            // 判断或获取
+<a name="line304"></a>            return 0 === strpos($name, '?') ? Session::has(substr($name, 1), $prefix) : Session::get($name, $prefix);
+<a name="line305"></a>        } elseif (is_null($value)) {
+<a name="line306"></a>            // 删除
+<a name="line307"></a>            return Session::delete($name, $prefix);
+<a name="line308"></a>        } else {
+<a name="line309"></a>            // 设置
+<a name="line310"></a>            return Session::set($name, $value, $prefix);
+<a name="line311"></a>        }
+<a name="line312"></a>    }
+<a name="line313"></a>}
+<a name="line314"></a>
+<a name="line315"></a>if (!function_exists('cookie')) {
+<a name="line316"></a>    /**
+<a name="line317"></a>     * Cookie管理
+<a name="line318"></a>     * @param string|array  $name cookie名称，如果为数组表示进行cookie设置
+<a name="line319"></a>     * @param mixed         $value cookie值
+<a name="line320"></a>     * @param mixed         $option 参数
+<a name="line321"></a>     * @return mixed
+<a name="line322"></a>     */
+<a name="line323"></a>    function cookie($name, $value = '', $option = null)
+<a name="line324"></a>    {
+<a name="line325"></a>        if (is_array($name)) {
+<a name="line326"></a>            // 初始化
+<a name="line327"></a>            Cookie::init($name);
+<a name="line328"></a>        } elseif (is_null($name)) {
+<a name="line329"></a>            // 清除
+<a name="line330"></a>            Cookie::clear($value);
+<a name="line331"></a>        } elseif ('' === $value) {
+<a name="line332"></a>            // 获取
+<a name="line333"></a>            return 0 === strpos($name, '?') ? Cookie::has(substr($name, 1), $option) : Cookie::get($name);
+<a name="line334"></a>        } elseif (is_null($value)) {
+<a name="line335"></a>            // 删除
+<a name="line336"></a>            return Cookie::delete($name);
+<a name="line337"></a>        } else {
+<a name="line338"></a>            // 设置
+<a name="line339"></a>            return Cookie::set($name, $value, $option);
+<a name="line340"></a>        }
+<a name="line341"></a>    }
+<a name="line342"></a>}
+<a name="line343"></a>
+<a name="line344"></a>if (!function_exists('cache')) {
+<a name="line345"></a>    /**
+<a name="line346"></a>     * 缓存管理
+<a name="line347"></a>     * @param mixed     $name 缓存名称，如果为数组表示进行缓存设置
+<a name="line348"></a>     * @param mixed     $value 缓存值
+<a name="line349"></a>     * @param mixed     $options 缓存参数
+<a name="line350"></a>     * @param string    $tag 缓存标签
+<a name="line351"></a>     * @return mixed
+<a name="line352"></a>     */
+<a name="line353"></a>    function cache($name, $value = '', $options = null, $tag = null)
+<a name="line354"></a>    {
+<a name="line355"></a>        if (is_array($options)) {
+<a name="line356"></a>            // 缓存操作的同时初始化
+<a name="line357"></a>            Cache::connect($options);
+<a name="line358"></a>        } elseif (is_array($name)) {
+<a name="line359"></a>            // 缓存初始化
+<a name="line360"></a>            return Cache::connect($name);
+<a name="line361"></a>        }
+<a name="line362"></a>        if ('' === $value) {
+<a name="line363"></a>            // 获取缓存
+<a name="line364"></a>            return 0 === strpos($name, '?') ? Cache::has(substr($name, 1)) : Cache::get($name);
+<a name="line365"></a>        } elseif (is_null($value)) {
+<a name="line366"></a>            // 删除缓存
+<a name="line367"></a>            return Cache::rm($name);
+<a name="line368"></a>        } else {
+<a name="line369"></a>            // 缓存数据
+<a name="line370"></a>            if (is_array($options)) {
+<a name="line371"></a>                $expire = isset($options['expire']) ? $options['expire'] : null; //修复查询缓存无法设置过期时间
+<a name="line372"></a>            } else {
+<a name="line373"></a>                $expire = is_numeric($options) ? $options : null; //默认快捷缓存设置过期时间
+<a name="line374"></a>            }
+<a name="line375"></a>            if (is_null($tag)) {
+<a name="line376"></a>                return Cache::set($name, $value, $expire);
+<a name="line377"></a>            } else {
+<a name="line378"></a>                return Cache::tag($tag)->set($name, $value, $expire);
+<a name="line379"></a>            }
+<a name="line380"></a>        }
+<a name="line381"></a>    }
+<a name="line382"></a>}
+<a name="line383"></a>
+<a name="line384"></a>if (!function_exists('trace')) {
+<a name="line385"></a>    /**
+<a name="line386"></a>     * 记录日志信息
+<a name="line387"></a>     * @param mixed     $log log信息 支持字符串和数组
+<a name="line388"></a>     * @param string    $level 日志级别
+<a name="line389"></a>     * @return void|array
+<a name="line390"></a>     */
+<a name="line391"></a>    function trace($log = '[think]', $level = 'log')
+<a name="line392"></a>    {
+<a name="line393"></a>        if ('[think]' === $log) {
+<a name="line394"></a>            return Log::getLog();
+<a name="line395"></a>        } else {
+<a name="line396"></a>            Log::record($log, $level);
+<a name="line397"></a>        }
+<a name="line398"></a>    }
+<a name="line399"></a>}
+<a name="line400"></a>
+<a name="line401"></a>if (!function_exists('request')) {
+<a name="line402"></a>    /**
+<a name="line403"></a>     * 获取当前Request对象实例
+<a name="line404"></a>     * @return Request
+<a name="line405"></a>     */
+<a name="line406"></a>    function request()
+<a name="line407"></a>    {
+<a name="line408"></a>        return Request::instance();
+<a name="line409"></a>    }
+<a name="line410"></a>}
+<a name="line411"></a>
+<a name="line412"></a>if (!function_exists('response')) {
+<a name="line413"></a>    /**
+<a name="line414"></a>     * 创建普通 Response 对象实例
+<a name="line415"></a>     * @param mixed      $data   输出数据
+<a name="line416"></a>     * @param int|string $code   状态码
+<a name="line417"></a>     * @param array      $header 头信息
+<a name="line418"></a>     * @param string     $type
+<a name="line419"></a>     * @return Response
+<a name="line420"></a>     */
+<a name="line421"></a>    function response($data = [], $code = 200, $header = [], $type = 'html')
+<a name="line422"></a>    {
+<a name="line423"></a>        return Response::create($data, $type, $code, $header);
+<a name="line424"></a>    }
+<a name="line425"></a>}
+<a name="line426"></a>
+<a name="line427"></a>if (!function_exists('view')) {
+<a name="line428"></a>    /**
+<a name="line429"></a>     * 渲染模板输出
+<a name="line430"></a>     * @param string    $template 模板文件
+<a name="line431"></a>     * @param array     $vars 模板变量
+<a name="line432"></a>     * @param array     $replace 模板替换
+<a name="line433"></a>     * @param integer   $code 状态码
+<a name="line434"></a>     * @return \think\response\View
+<a name="line435"></a>     */
+<a name="line436"></a>    function view($template = '', $vars = [], $replace = [], $code = 200)
+<a name="line437"></a>    {
+<a name="line438"></a>        return Response::create($template, 'view', $code)->replace($replace)->assign($vars);
+<a name="line439"></a>    }
+<a name="line440"></a>}
+<a name="line441"></a>
+<a name="line442"></a>if (!function_exists('json')) {
+<a name="line443"></a>    /**
+<a name="line444"></a>     * 获取\think\response\Json对象实例
+<a name="line445"></a>     * @param mixed   $data 返回的数据
+<a name="line446"></a>     * @param integer $code 状态码
+<a name="line447"></a>     * @param array   $header 头部
+<a name="line448"></a>     * @param array   $options 参数
+<a name="line449"></a>     * @return \think\response\Json
+<a name="line450"></a>     */
+<a name="line451"></a>    function json($data = [], $code = 200, $header = [], $options = [])
+<a name="line452"></a>    {
+<a name="line453"></a>        return Response::create($data, 'json', $code, $header, $options);
+<a name="line454"></a>    }
+<a name="line455"></a>}
+<a name="line456"></a>
+<a name="line457"></a>if (!function_exists('jsonp')) {
+<a name="line458"></a>    /**
+<a name="line459"></a>     * 获取\think\response\Jsonp对象实例
+<a name="line460"></a>     * @param mixed   $data    返回的数据
+<a name="line461"></a>     * @param integer $code    状态码
+<a name="line462"></a>     * @param array   $header 头部
+<a name="line463"></a>     * @param array   $options 参数
+<a name="line464"></a>     * @return \think\response\Jsonp
+<a name="line465"></a>     */
+<a name="line466"></a>    function jsonp($data = [], $code = 200, $header = [], $options = [])
+<a name="line467"></a>    {
+<a name="line468"></a>        return Response::create($data, 'jsonp', $code, $header, $options);
+<a name="line469"></a>    }
+<a name="line470"></a>}
+<a name="line471"></a>
+<a name="line472"></a>if (!function_exists('xml')) {
+<a name="line473"></a>    /**
+<a name="line474"></a>     * 获取\think\response\Xml对象实例
+<a name="line475"></a>     * @param mixed   $data    返回的数据
+<a name="line476"></a>     * @param integer $code    状态码
+<a name="line477"></a>     * @param array   $header  头部
+<a name="line478"></a>     * @param array   $options 参数
+<a name="line479"></a>     * @return \think\response\Xml
+<a name="line480"></a>     */
+<a name="line481"></a>    function xml($data = [], $code = 200, $header = [], $options = [])
+<a name="line482"></a>    {
+<a name="line483"></a>        return Response::create($data, 'xml', $code, $header, $options);
+<a name="line484"></a>    }
+<a name="line485"></a>}
+<a name="line486"></a>
+<a name="line487"></a>if (!function_exists('redirect')) {
+<a name="line488"></a>    /**
+<a name="line489"></a>     * 获取\think\response\Redirect对象实例
+<a name="line490"></a>     * @param mixed         $url 重定向地址 支持Url::build方法的地址
+<a name="line491"></a>     * @param array|integer $params 额外参数
+<a name="line492"></a>     * @param integer       $code 状态码
+<a name="line493"></a>     * @return \think\response\Redirect
+<a name="line494"></a>     */
+<a name="line495"></a>    function redirect($url = [], $params = [], $code = 302)
+<a name="line496"></a>    {
+<a name="line497"></a>        if (is_integer($params)) {
+<a name="line498"></a>            $code   = $params;
+<a name="line499"></a>            $params = [];
+<a name="line500"></a>        }
+<a name="line501"></a>        return Response::create($url, 'redirect', $code)->params($params);
+<a name="line502"></a>    }
+<a name="line503"></a>}
+<a name="line504"></a>
+<a name="line505"></a>if (!function_exists('abort')) {
+<a name="line506"></a>    /**
+<a name="line507"></a>     * 抛出HTTP异常
+<a name="line508"></a>     * @param integer|Response      $code 状态码 或者 Response对象实例
+<a name="line509"></a>     * @param string                $message 错误信息
+<a name="line510"></a>     * @param array                 $header 参数
+<a name="line511"></a>     */
+<a name="line512"></a>    function abort($code, $message = null, $header = [])
+<a name="line513"></a>    {
+<a name="line514"></a>        if ($code instanceof Response) {
+<a name="line515"></a>            throw new HttpResponseException($code);
+<a name="line516"></a>        } else {
+<a name="line517"></a>            throw new HttpException($code, $message, null, $header);
+<a name="line518"></a>        }
+<a name="line519"></a>    }
+<a name="line520"></a>}
+<a name="line521"></a>
+<a name="line522"></a>if (!function_exists('halt')) {
+<a name="line523"></a>    /**
+<a name="line524"></a>     * 调试变量并且中断输出
+<a name="line525"></a>     * @param mixed      $var 调试变量或者信息
+<a name="line526"></a>     */
+<a name="line527"></a>    function halt($var)
+<a name="line528"></a>    {
+<a name="line529"></a>        dump($var);
+<a name="line530"></a>        throw new HttpResponseException(new Response);
+<a name="line531"></a>    }
+<a name="line532"></a>}
+<a name="line533"></a>
+<a name="line534"></a>if (!function_exists('token')) {
+<a name="line535"></a>    /**
+<a name="line536"></a>     * 生成表单令牌
+<a name="line537"></a>     * @param string $name 令牌名称
+<a name="line538"></a>     * @param mixed  $type 令牌生成方法
+<a name="line539"></a>     * @return string
+<a name="line540"></a>     */
+<a name="line541"></a>    function token($name = '__token__', $type = 'md5')
+<a name="line542"></a>    {
+<a name="line543"></a>        $token = Request::instance()->token($name, $type);
+<a name="line544"></a>        return '<input type="hidden" name="' . $name . '" value="' . $token . '" />';
+<a name="line545"></a>    }
+<a name="line546"></a>}
+<a name="line547"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\helper.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

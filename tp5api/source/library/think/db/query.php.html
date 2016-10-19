@@ -1,0 +1,2330 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\db\Query.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\db\query.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\db\Query.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think\db;
+<a name="line13"></a>
+<a name="line14"></a>use PDO;
+<a name="line15"></a>use think\Cache;
+<a name="line16"></a>use think\Collection;
+<a name="line17"></a>use think\Config;
+<a name="line18"></a>use think\Db;
+<a name="line19"></a>use think\db\Builder;
+<a name="line20"></a>use think\db\Connection;
+<a name="line21"></a>use think\db\exception\BindParamException;
+<a name="line22"></a>use think\db\exception\DataNotFoundException;
+<a name="line23"></a>use think\db\exception\ModelNotFoundException;
+<a name="line24"></a>use think\Exception;
+<a name="line25"></a>use think\exception\DbException;
+<a name="line26"></a>use think\exception\PDOException;
+<a name="line27"></a>use think\Loader;
+<a name="line28"></a>use think\Model;
+<a name="line29"></a>use think\model\Relation;
+<a name="line30"></a>use think\Paginator;
+<a name="line31"></a>
+<a name="line32"></a>class Query
+<a name="line33"></a>{
+<a name="line34"></a>    // 数据库Connection对象实例
+<a name="line35"></a>    protected $connection;
+<a name="line36"></a>    // 数据库驱动类型
+<a name="line37"></a>    protected $builder;
+<a name="line38"></a>    // 当前模型类名称
+<a name="line39"></a>    protected $model;
+<a name="line40"></a>    // 当前数据表名称（含前缀）
+<a name="line41"></a>    protected $table = '';
+<a name="line42"></a>    // 当前数据表名称（不含前缀）
+<a name="line43"></a>    protected $name = '';
+<a name="line44"></a>    // 当前数据表主键
+<a name="line45"></a>    protected $pk;
+<a name="line46"></a>    // 当前数据表前缀
+<a name="line47"></a>    protected $prefix = '';
+<a name="line48"></a>    // 查询参数
+<a name="line49"></a>    protected $options = [];
+<a name="line50"></a>    // 参数绑定
+<a name="line51"></a>    protected $bind = [];
+<a name="line52"></a>    // 数据表信息
+<a name="line53"></a>    protected static $info = [];
+<a name="line54"></a>
+<a name="line55"></a>    /**
+<a name="line56"></a>     * 架构函数
+<a name="line57"></a>     * @access public
+<a name="line58"></a>     * @param Connection $connection 数据库对象实例
+<a name="line59"></a>     * @param string     $model      模型名
+<a name="line60"></a>     */
+<a name="line61"></a>    public function __construct(Connection $connection = null, $model = '')
+<a name="line62"></a>    {
+<a name="line63"></a>        $this->connection = $connection ?: Db::connect([], true);
+<a name="line64"></a>        $this->builder    = $this->connection->getConfig('builder') ?: $this->connection->getConfig('type');
+<a name="line65"></a>        $this->prefix     = $this->connection->getConfig('prefix');
+<a name="line66"></a>        $this->model      = $model;
+<a name="line67"></a>    }
+<a name="line68"></a>
+<a name="line69"></a>    /**
+<a name="line70"></a>     * 利用__call方法实现一些特殊的Model方法
+<a name="line71"></a>     * @access public
+<a name="line72"></a>     * @param string $method 方法名称
+<a name="line73"></a>     * @param array  $args   调用参数
+<a name="line74"></a>     * @return mixed
+<a name="line75"></a>     * @throws DbException
+<a name="line76"></a>     * @throws Exception
+<a name="line77"></a>     */
+<a name="line78"></a>    public function __call($method, $args)
+<a name="line79"></a>    {
+<a name="line80"></a>        if (strtolower(substr($method, 0, 5)) == 'getby') {
+<a name="line81"></a>            // 根据某个字段获取记录
+<a name="line82"></a>            $field         = Loader::parseName(substr($method, 5));
+<a name="line83"></a>            $where[$field] = $args[0];
+<a name="line84"></a>            return $this->where($where)->find();
+<a name="line85"></a>        } elseif (strtolower(substr($method, 0, 10)) == 'getfieldby') {
+<a name="line86"></a>            // 根据某个字段获取记录的某个值
+<a name="line87"></a>            $name         = Loader::parseName(substr($method, 10));
+<a name="line88"></a>            $where[$name] = $args[0];
+<a name="line89"></a>            return $this->where($where)->value($args[1]);
+<a name="line90"></a>        } else {
+<a name="line91"></a>            throw new Exception('method not exist:' . __CLASS__ . '->' . $method);
+<a name="line92"></a>        }
+<a name="line93"></a>    }
+<a name="line94"></a>
+<a name="line95"></a>    /**
+<a name="line96"></a>     * 获取当前的数据库Connection对象
+<a name="line97"></a>     * @access public
+<a name="line98"></a>     * @return Connection
+<a name="line99"></a>     */
+<a name="line100"></a>    public function getConnection()
+<a name="line101"></a>    {
+<a name="line102"></a>        return $this->connection;
+<a name="line103"></a>    }
+<a name="line104"></a>
+<a name="line105"></a>    /**
+<a name="line106"></a>     * 切换当前的数据库连接
+<a name="line107"></a>     * @access public
+<a name="line108"></a>     * @param mixed $config
+<a name="line109"></a>     * @return $this
+<a name="line110"></a>     */
+<a name="line111"></a>    public function connect($config)
+<a name="line112"></a>    {
+<a name="line113"></a>        $this->connection = Db::connect($config);
+<a name="line114"></a>        return $this;
+<a name="line115"></a>    }
+<a name="line116"></a>
+<a name="line117"></a>    /**
+<a name="line118"></a>     * 指定默认的数据表名（不含前缀）
+<a name="line119"></a>     * @access public
+<a name="line120"></a>     * @param string $name
+<a name="line121"></a>     * @return $this
+<a name="line122"></a>     */
+<a name="line123"></a>    public function name($name)
+<a name="line124"></a>    {
+<a name="line125"></a>        $this->name = $name;
+<a name="line126"></a>        return $this;
+<a name="line127"></a>    }
+<a name="line128"></a>
+<a name="line129"></a>    /**
+<a name="line130"></a>     * 指定默认数据表名（含前缀）
+<a name="line131"></a>     * @access public
+<a name="line132"></a>     * @param string $table 表名
+<a name="line133"></a>     * @return $this
+<a name="line134"></a>     */
+<a name="line135"></a>    public function setTable($table)
+<a name="line136"></a>    {
+<a name="line137"></a>        $this->table = $table;
+<a name="line138"></a>        return $this;
+<a name="line139"></a>    }
+<a name="line140"></a>
+<a name="line141"></a>    /**
+<a name="line142"></a>     * 得到当前或者指定名称的数据表
+<a name="line143"></a>     * @access public
+<a name="line144"></a>     * @param string $name
+<a name="line145"></a>     * @return string
+<a name="line146"></a>     */
+<a name="line147"></a>    public function getTable($name = '')
+<a name="line148"></a>    {
+<a name="line149"></a>        if ($name || empty($this->table)) {
+<a name="line150"></a>            $name      = $name ?: $this->name;
+<a name="line151"></a>            $tableName = $this->prefix;
+<a name="line152"></a>            if ($name) {
+<a name="line153"></a>                $tableName .= Loader::parseName($name);
+<a name="line154"></a>            }
+<a name="line155"></a>        } else {
+<a name="line156"></a>            $tableName = $this->table;
+<a name="line157"></a>        }
+<a name="line158"></a>        return $tableName;
+<a name="line159"></a>    }
+<a name="line160"></a>
+<a name="line161"></a>    /**
+<a name="line162"></a>     * 将SQL语句中的__TABLE_NAME__字符串替换成带前缀的表名（小写）
+<a name="line163"></a>     * @access public
+<a name="line164"></a>     * @param string $sql sql语句
+<a name="line165"></a>     * @return string
+<a name="line166"></a>     */
+<a name="line167"></a>    public function parseSqlTable($sql)
+<a name="line168"></a>    {
+<a name="line169"></a>        if (false !== strpos($sql, '__')) {
+<a name="line170"></a>            $prefix = $this->prefix;
+<a name="line171"></a>            $sql    = preg_replace_callback("/__([A-Z0-9_-]+)__/sU", function ($match) use ($prefix) {
+<a name="line172"></a>                return $prefix . strtolower($match[1]);
+<a name="line173"></a>            }, $sql);
+<a name="line174"></a>        }
+<a name="line175"></a>        return $sql;
+<a name="line176"></a>    }
+<a name="line177"></a>
+<a name="line178"></a>    /**
+<a name="line179"></a>     * 执行查询 返回数据集
+<a name="line180"></a>     * @access public
+<a name="line181"></a>     * @param string      $sql    sql指令
+<a name="line182"></a>     * @param array       $bind   参数绑定
+<a name="line183"></a>     * @param boolean     $master 是否在主服务器读操作
+<a name="line184"></a>     * @param bool|string $class  指定返回的数据集对象
+<a name="line185"></a>     * @return mixed
+<a name="line186"></a>     * @throws BindParamException
+<a name="line187"></a>     * @throws PDOException
+<a name="line188"></a>     */
+<a name="line189"></a>    public function query($sql, $bind = [], $master = false, $class = false)
+<a name="line190"></a>    {
+<a name="line191"></a>        return $this->connection->query($sql, $bind, $master, $class);
+<a name="line192"></a>    }
+<a name="line193"></a>
+<a name="line194"></a>    /**
+<a name="line195"></a>     * 执行语句
+<a name="line196"></a>     * @access public
+<a name="line197"></a>     * @param string  $sql          sql指令
+<a name="line198"></a>     * @param array   $bind         参数绑定
+<a name="line199"></a>     * @return int
+<a name="line200"></a>     * @throws BindParamException
+<a name="line201"></a>     * @throws PDOException
+<a name="line202"></a>     */
+<a name="line203"></a>    public function execute($sql, $bind = [])
+<a name="line204"></a>    {
+<a name="line205"></a>        return $this->connection->execute($sql, $bind);
+<a name="line206"></a>    }
+<a name="line207"></a>
+<a name="line208"></a>    /**
+<a name="line209"></a>     * 获取最近插入的ID
+<a name="line210"></a>     * @access public
+<a name="line211"></a>     * @param string  $sequence     自增序列名
+<a name="line212"></a>     * @return string
+<a name="line213"></a>     */
+<a name="line214"></a>    public function getLastInsID($sequence = null)
+<a name="line215"></a>    {
+<a name="line216"></a>        return $this->connection->getLastInsID($sequence);
+<a name="line217"></a>    }
+<a name="line218"></a>
+<a name="line219"></a>    /**
+<a name="line220"></a>     * 获取最近一次查询的sql语句
+<a name="line221"></a>     * @access public
+<a name="line222"></a>     * @return string
+<a name="line223"></a>     */
+<a name="line224"></a>    public function getLastSql()
+<a name="line225"></a>    {
+<a name="line226"></a>        return $this->connection->getLastSql();
+<a name="line227"></a>    }
+<a name="line228"></a>
+<a name="line229"></a>    /**
+<a name="line230"></a>     * 执行数据库事务
+<a name="line231"></a>     * @access public
+<a name="line232"></a>     * @param callable $callback 数据操作方法回调
+<a name="line233"></a>     * @return mixed
+<a name="line234"></a>     */
+<a name="line235"></a>    public function transaction($callback)
+<a name="line236"></a>    {
+<a name="line237"></a>        return $this->connection->transaction($callback);
+<a name="line238"></a>    }
+<a name="line239"></a>
+<a name="line240"></a>    /**
+<a name="line241"></a>     * 启动事务
+<a name="line242"></a>     * @access public
+<a name="line243"></a>     * @return void
+<a name="line244"></a>     */
+<a name="line245"></a>    public function startTrans()
+<a name="line246"></a>    {
+<a name="line247"></a>        $this->connection->startTrans();
+<a name="line248"></a>    }
+<a name="line249"></a>
+<a name="line250"></a>    /**
+<a name="line251"></a>     * 用于非自动提交状态下面的查询提交
+<a name="line252"></a>     * @access public
+<a name="line253"></a>     * @return void
+<a name="line254"></a>     * @throws PDOException
+<a name="line255"></a>     */
+<a name="line256"></a>    public function commit()
+<a name="line257"></a>    {
+<a name="line258"></a>        $this->connection->commit();
+<a name="line259"></a>    }
+<a name="line260"></a>
+<a name="line261"></a>    /**
+<a name="line262"></a>     * 事务回滚
+<a name="line263"></a>     * @access public
+<a name="line264"></a>     * @return void
+<a name="line265"></a>     * @throws PDOException
+<a name="line266"></a>     */
+<a name="line267"></a>    public function rollback()
+<a name="line268"></a>    {
+<a name="line269"></a>        $this->connection->rollback();
+<a name="line270"></a>    }
+<a name="line271"></a>
+<a name="line272"></a>    /**
+<a name="line273"></a>     * 批处理执行SQL语句
+<a name="line274"></a>     * 批处理的指令都认为是execute操作
+<a name="line275"></a>     * @access public
+<a name="line276"></a>     * @param array $sql SQL批处理指令
+<a name="line277"></a>     * @return boolean
+<a name="line278"></a>     */
+<a name="line279"></a>    public function batchQuery($sql = [])
+<a name="line280"></a>    {
+<a name="line281"></a>        return $this->connection->batchQuery($sql);
+<a name="line282"></a>    }
+<a name="line283"></a>
+<a name="line284"></a>    /**
+<a name="line285"></a>     * 获取数据库的配置参数
+<a name="line286"></a>     * @access public
+<a name="line287"></a>     * @param string $name 参数名称
+<a name="line288"></a>     * @return boolean
+<a name="line289"></a>     */
+<a name="line290"></a>    public function getConfig($name = '')
+<a name="line291"></a>    {
+<a name="line292"></a>        return $this->connection->getConfig($name);
+<a name="line293"></a>    }
+<a name="line294"></a>
+<a name="line295"></a>    /**
+<a name="line296"></a>     * 得到分表的的数据表名
+<a name="line297"></a>     * @access public
+<a name="line298"></a>     * @param array  $data  操作的数据
+<a name="line299"></a>     * @param string $field 分表依据的字段
+<a name="line300"></a>     * @param array  $rule  分表规则
+<a name="line301"></a>     * @return string
+<a name="line302"></a>     */
+<a name="line303"></a>    public function getPartitionTableName($data, $field, $rule = [])
+<a name="line304"></a>    {
+<a name="line305"></a>        // 对数据表进行分区
+<a name="line306"></a>        if ($field && isset($data[$field])) {
+<a name="line307"></a>            $value = $data[$field];
+<a name="line308"></a>            $type  = $rule['type'];
+<a name="line309"></a>            switch ($type) {
+<a name="line310"></a>                case 'id':
+<a name="line311"></a>                    // 按照id范围分表
+<a name="line312"></a>                    $step = $rule['expr'];
+<a name="line313"></a>                    $seq  = floor($value / $step) + 1;
+<a name="line314"></a>                    break;
+<a name="line315"></a>                case 'year':
+<a name="line316"></a>                    // 按照年份分表
+<a name="line317"></a>                    if (!is_numeric($value)) {
+<a name="line318"></a>                        $value = strtotime($value);
+<a name="line319"></a>                    }
+<a name="line320"></a>                    $seq = date('Y', $value) - $rule['expr'] + 1;
+<a name="line321"></a>                    break;
+<a name="line322"></a>                case 'mod':
+<a name="line323"></a>                    // 按照id的模数分表
+<a name="line324"></a>                    $seq = ($value % $rule['num']) + 1;
+<a name="line325"></a>                    break;
+<a name="line326"></a>                case 'md5':
+<a name="line327"></a>                    // 按照md5的序列分表
+<a name="line328"></a>                    $seq = (ord(substr(md5($value), 0, 1)) % $rule['num']) + 1;
+<a name="line329"></a>                    break;
+<a name="line330"></a>                default:
+<a name="line331"></a>                    if (function_exists($type)) {
+<a name="line332"></a>                        // 支持指定函数哈希
+<a name="line333"></a>                        $seq = (ord(substr($type($value), 0, 1)) % $rule['num']) + 1;
+<a name="line334"></a>                    } else {
+<a name="line335"></a>                        // 按照字段的首字母的值分表
+<a name="line336"></a>                        $seq = (ord($value{0}) % $rule['num']) + 1;
+<a name="line337"></a>                    }
+<a name="line338"></a>            }
+<a name="line339"></a>            return $this->getTable() . '_' . $seq;
+<a name="line340"></a>        } else {
+<a name="line341"></a>            // 当设置的分表字段不在查询条件或者数据中
+<a name="line342"></a>            // 进行联合查询，必须设定 partition['num']
+<a name="line343"></a>            $tableName = [];
+<a name="line344"></a>            for ($i = 0; $i < $rule['num']; $i++) {
+<a name="line345"></a>                $tableName[] = 'SELECT * FROM ' . $this->getTable() . '_' . ($i + 1);
+<a name="line346"></a>            }
+<a name="line347"></a>
+<a name="line348"></a>            $tableName = '( ' . implode(" UNION ", $tableName) . ') AS ' . $this->name;
+<a name="line349"></a>            return $tableName;
+<a name="line350"></a>        }
+<a name="line351"></a>    }
+<a name="line352"></a>
+<a name="line353"></a>    /**
+<a name="line354"></a>     * 获取当前的builder实例对象
+<a name="line355"></a>     * @access protected
+<a name="line356"></a>     * @return Builder
+<a name="line357"></a>     */
+<a name="line358"></a>    protected function builder()
+<a name="line359"></a>    {
+<a name="line360"></a>        static $builder = [];
+<a name="line361"></a>        $driver         = $this->builder;
+<a name="line362"></a>        if (!isset($builder[$driver])) {
+<a name="line363"></a>            $class            = false !== strpos($driver, '\\') ? $driver : '\\think\\db\\builder\\' . ucfirst($driver);
+<a name="line364"></a>            $builder[$driver] = new $class($this->connection);
+<a name="line365"></a>        }
+<a name="line366"></a>        // 设置当前查询对象
+<a name="line367"></a>        $builder[$driver]->setQuery($this);
+<a name="line368"></a>        return $builder[$driver];
+<a name="line369"></a>    }
+<a name="line370"></a>
+<a name="line371"></a>    /**
+<a name="line372"></a>     * 得到某个字段的值
+<a name="line373"></a>     * @access public
+<a name="line374"></a>     * @param string $field   字段名
+<a name="line375"></a>     * @param mixed  $default 默认值
+<a name="line376"></a>     * @return mixed
+<a name="line377"></a>     */
+<a name="line378"></a>    public function value($field, $default = null)
+<a name="line379"></a>    {
+<a name="line380"></a>        $result = false;
+<a name="line381"></a>        if (!empty($this->options['cache'])) {
+<a name="line382"></a>            // 判断查询缓存
+<a name="line383"></a>            $cache = $this->options['cache'];
+<a name="line384"></a>            if (empty($this->options['table'])) {
+<a name="line385"></a>                $this->options['table'] = $this->getTable();
+<a name="line386"></a>            }
+<a name="line387"></a>            $key    = is_string($cache['key']) ? $cache['key'] : md5($field . serialize($this->options));
+<a name="line388"></a>            $result = Cache::get($key);
+<a name="line389"></a>        }
+<a name="line390"></a>        if (false === $result) {
+<a name="line391"></a>            if (isset($this->options['field'])) {
+<a name="line392"></a>                unset($this->options['field']);
+<a name="line393"></a>            }
+<a name="line394"></a>            $pdo = $this->field($field)->fetchPdo(true)->find();
+<a name="line395"></a>            if (is_string($pdo)) {
+<a name="line396"></a>                // 返回SQL语句
+<a name="line397"></a>                return $pdo;
+<a name="line398"></a>            }
+<a name="line399"></a>            $result = $pdo->fetchColumn();
+<a name="line400"></a>            if (isset($cache)) {
+<a name="line401"></a>                // 缓存数据
+<a name="line402"></a>                if (isset($cache['tag'])) {
+<a name="line403"></a>                    Cache::tag($cache['tag'])->set($key, $result, $cache['expire']);
+<a name="line404"></a>                } else {
+<a name="line405"></a>                    Cache::set($key, $result, $cache['expire']);
+<a name="line406"></a>                }
+<a name="line407"></a>            }
+<a name="line408"></a>        } else {
+<a name="line409"></a>            // 清空查询条件
+<a name="line410"></a>            $this->options = [];
+<a name="line411"></a>        }
+<a name="line412"></a>        return false !== $result ? $result : $default;
+<a name="line413"></a>    }
+<a name="line414"></a>
+<a name="line415"></a>    /**
+<a name="line416"></a>     * 得到某个列的数组
+<a name="line417"></a>     * @access public
+<a name="line418"></a>     * @param string $field 字段名 多个字段用逗号分隔
+<a name="line419"></a>     * @param string $key   索引
+<a name="line420"></a>     * @return array
+<a name="line421"></a>     */
+<a name="line422"></a>    public function column($field, $key = '')
+<a name="line423"></a>    {
+<a name="line424"></a>        $result = false;
+<a name="line425"></a>        if (!empty($this->options['cache'])) {
+<a name="line426"></a>            // 判断查询缓存
+<a name="line427"></a>            $cache = $this->options['cache'];
+<a name="line428"></a>            if (empty($this->options['table'])) {
+<a name="line429"></a>                $this->options['table'] = $this->getTable();
+<a name="line430"></a>            }
+<a name="line431"></a>            $guid   = is_string($cache['key']) ? $cache['key'] : md5($field . serialize($this->options));
+<a name="line432"></a>            $result = Cache::get($guid);
+<a name="line433"></a>        }
+<a name="line434"></a>        if (false === $result) {
+<a name="line435"></a>            if (isset($this->options['field'])) {
+<a name="line436"></a>                unset($this->options['field']);
+<a name="line437"></a>            }
+<a name="line438"></a>            if ($key && '*' != $field) {
+<a name="line439"></a>                $field = $key . ',' . $field;
+<a name="line440"></a>            }
+<a name="line441"></a>            $pdo = $this->field($field)->fetchPdo(true)->select();
+<a name="line442"></a>            if (is_string($pdo)) {
+<a name="line443"></a>                // 返回SQL语句
+<a name="line444"></a>                return $pdo;
+<a name="line445"></a>            }
+<a name="line446"></a>            if (1 == $pdo->columnCount()) {
+<a name="line447"></a>                $result = $pdo->fetchAll(PDO::FETCH_COLUMN);
+<a name="line448"></a>            } else {
+<a name="line449"></a>                $resultSet = $pdo->fetchAll(PDO::FETCH_ASSOC);
+<a name="line450"></a>                if ($resultSet) {
+<a name="line451"></a>                    $fields = array_keys($resultSet[0]);
+<a name="line452"></a>                    $count  = count($fields);
+<a name="line453"></a>                    $key1   = array_shift($fields);
+<a name="line454"></a>                    $key2   = $fields ? array_shift($fields) : '';
+<a name="line455"></a>                    $key    = $key ?: $key1;
+<a name="line456"></a>                    foreach ($resultSet as $val) {
+<a name="line457"></a>                        if ($count > 2) {
+<a name="line458"></a>                            $result[$val[$key]] = $val;
+<a name="line459"></a>                        } elseif (2 == $count) {
+<a name="line460"></a>                            $result[$val[$key]] = $val[$key2];
+<a name="line461"></a>                        } elseif (1 == $count) {
+<a name="line462"></a>                            $result[$val[$key]] = $val[$key1];
+<a name="line463"></a>                        }
+<a name="line464"></a>                    }
+<a name="line465"></a>                } else {
+<a name="line466"></a>                    $result = [];
+<a name="line467"></a>                }
+<a name="line468"></a>            }
+<a name="line469"></a>            if (isset($cache) && isset($guid)) {
+<a name="line470"></a>                // 缓存数据
+<a name="line471"></a>                if (isset($cache['tag'])) {
+<a name="line472"></a>                    Cache::tag($cache['tag'])->set($guid, $result, $cache['expire']);
+<a name="line473"></a>                } else {
+<a name="line474"></a>                    Cache::set($guid, $result, $cache['expire']);
+<a name="line475"></a>                }
+<a name="line476"></a>            }
+<a name="line477"></a>        } else {
+<a name="line478"></a>            // 清空查询条件
+<a name="line479"></a>            $this->options = [];
+<a name="line480"></a>        }
+<a name="line481"></a>        return $result;
+<a name="line482"></a>    }
+<a name="line483"></a>
+<a name="line484"></a>    /**
+<a name="line485"></a>     * COUNT查询
+<a name="line486"></a>     * @access public
+<a name="line487"></a>     * @param string $field 字段名
+<a name="line488"></a>     * @return integer
+<a name="line489"></a>     */
+<a name="line490"></a>    public function count($field = '*')
+<a name="line491"></a>    {
+<a name="line492"></a>        return (int) $this->value('COUNT(' . $field . ') AS tp_count', 0);
+<a name="line493"></a>    }
+<a name="line494"></a>
+<a name="line495"></a>    /**
+<a name="line496"></a>     * SUM查询
+<a name="line497"></a>     * @access public
+<a name="line498"></a>     * @param string $field 字段名
+<a name="line499"></a>     * @return float|int
+<a name="line500"></a>     */
+<a name="line501"></a>    public function sum($field = '*')
+<a name="line502"></a>    {
+<a name="line503"></a>        return $this->value('SUM(' . $field . ') AS tp_sum', 0) + 0;
+<a name="line504"></a>    }
+<a name="line505"></a>
+<a name="line506"></a>    /**
+<a name="line507"></a>     * MIN查询
+<a name="line508"></a>     * @access public
+<a name="line509"></a>     * @param string $field 字段名
+<a name="line510"></a>     * @return float|int
+<a name="line511"></a>     */
+<a name="line512"></a>    public function min($field = '*')
+<a name="line513"></a>    {
+<a name="line514"></a>        return $this->value('MIN(' . $field . ') AS tp_min', 0) + 0;
+<a name="line515"></a>    }
+<a name="line516"></a>
+<a name="line517"></a>    /**
+<a name="line518"></a>     * MAX查询
+<a name="line519"></a>     * @access public
+<a name="line520"></a>     * @param string $field 字段名
+<a name="line521"></a>     * @return float|int
+<a name="line522"></a>     */
+<a name="line523"></a>    public function max($field = '*')
+<a name="line524"></a>    {
+<a name="line525"></a>        return $this->value('MAX(' . $field . ') AS tp_max', 0) + 0;
+<a name="line526"></a>    }
+<a name="line527"></a>
+<a name="line528"></a>    /**
+<a name="line529"></a>     * AVG查询
+<a name="line530"></a>     * @access public
+<a name="line531"></a>     * @param string $field 字段名
+<a name="line532"></a>     * @return float|int
+<a name="line533"></a>     */
+<a name="line534"></a>    public function avg($field = '*')
+<a name="line535"></a>    {
+<a name="line536"></a>        return $this->value('AVG(' . $field . ') AS tp_avg', 0) + 0;
+<a name="line537"></a>    }
+<a name="line538"></a>
+<a name="line539"></a>    /**
+<a name="line540"></a>     * 设置记录的某个字段值
+<a name="line541"></a>     * 支持使用数据库字段和方法
+<a name="line542"></a>     * @access public
+<a name="line543"></a>     * @param string|array $field 字段名
+<a name="line544"></a>     * @param mixed        $value 字段值
+<a name="line545"></a>     * @return integer
+<a name="line546"></a>     */
+<a name="line547"></a>    public function setField($field, $value = '')
+<a name="line548"></a>    {
+<a name="line549"></a>        if (is_array($field)) {
+<a name="line550"></a>            $data = $field;
+<a name="line551"></a>        } else {
+<a name="line552"></a>            $data[$field] = $value;
+<a name="line553"></a>        }
+<a name="line554"></a>        return $this->update($data);
+<a name="line555"></a>    }
+<a name="line556"></a>
+<a name="line557"></a>    /**
+<a name="line558"></a>     * 字段值(延迟)增长
+<a name="line559"></a>     * @access public
+<a name="line560"></a>     * @param string  $field    字段名
+<a name="line561"></a>     * @param integer $step     增长值
+<a name="line562"></a>     * @param integer $lazyTime 延时时间(s)
+<a name="line563"></a>     * @return integer|true
+<a name="line564"></a>     * @throws Exception
+<a name="line565"></a>     */
+<a name="line566"></a>    public function setInc($field, $step = 1, $lazyTime = 0)
+<a name="line567"></a>    {
+<a name="line568"></a>        $condition = !empty($this->options['where']) ? $this->options['where'] : [];
+<a name="line569"></a>        if (empty($condition)) {
+<a name="line570"></a>            // 没有条件不做任何更新
+<a name="line571"></a>            throw new Exception('no data to update');
+<a name="line572"></a>        }
+<a name="line573"></a>        if ($lazyTime > 0) {
+<a name="line574"></a>            // 延迟写入
+<a name="line575"></a>            $guid = md5($this->getTable() . '_' . $field . '_' . serialize($condition));
+<a name="line576"></a>            $step = $this->lazyWrite('inc', $guid, $step, $lazyTime);
+<a name="line577"></a>            if (false === $step) {
+<a name="line578"></a>                // 清空查询条件
+<a name="line579"></a>                $this->options = [];
+<a name="line580"></a>                return true;
+<a name="line581"></a>            }
+<a name="line582"></a>        }
+<a name="line583"></a>        return $this->setField($field, ['exp', $field . '+' . $step]);
+<a name="line584"></a>    }
+<a name="line585"></a>
+<a name="line586"></a>    /**
+<a name="line587"></a>     * 字段值（延迟）减少
+<a name="line588"></a>     * @access public
+<a name="line589"></a>     * @param string  $field    字段名
+<a name="line590"></a>     * @param integer $step     减少值
+<a name="line591"></a>     * @param integer $lazyTime 延时时间(s)
+<a name="line592"></a>     * @return integer|true
+<a name="line593"></a>     * @throws Exception
+<a name="line594"></a>     */
+<a name="line595"></a>    public function setDec($field, $step = 1, $lazyTime = 0)
+<a name="line596"></a>    {
+<a name="line597"></a>        $condition = !empty($this->options['where']) ? $this->options['where'] : [];
+<a name="line598"></a>        if (empty($condition)) {
+<a name="line599"></a>            // 没有条件不做任何更新
+<a name="line600"></a>            throw new Exception('no data to update');
+<a name="line601"></a>        }
+<a name="line602"></a>        if ($lazyTime > 0) {
+<a name="line603"></a>            // 延迟写入
+<a name="line604"></a>            $guid = md5($this->getTable() . '_' . $field . '_' . serialize($condition));
+<a name="line605"></a>            $step = $this->lazyWrite('dec', $guid, $step, $lazyTime);
+<a name="line606"></a>            if (false === $step) {
+<a name="line607"></a>                // 清空查询条件
+<a name="line608"></a>                $this->options = [];
+<a name="line609"></a>                return true;
+<a name="line610"></a>            }
+<a name="line611"></a>        }
+<a name="line612"></a>        return $this->setField($field, ['exp', $field . '-' . $step]);
+<a name="line613"></a>    }
+<a name="line614"></a>
+<a name="line615"></a>    /**
+<a name="line616"></a>     * 延时更新检查 返回false表示需要延时
+<a name="line617"></a>     * 否则返回实际写入的数值
+<a name="line618"></a>     * @access protected
+<a name="line619"></a>     * @param string  $type     自增或者自减
+<a name="line620"></a>     * @param string  $guid     写入标识
+<a name="line621"></a>     * @param integer $step     写入步进值
+<a name="line622"></a>     * @param integer $lazyTime 延时时间(s)
+<a name="line623"></a>     * @return false|integer
+<a name="line624"></a>     */
+<a name="line625"></a>    protected function lazyWrite($type, $guid, $step, $lazyTime)
+<a name="line626"></a>    {
+<a name="line627"></a>        if (!Cache::has($guid . '_time')) {
+<a name="line628"></a>            // 计时开始
+<a name="line629"></a>            Cache::set($guid . '_time', $_SERVER['REQUEST_TIME'], 0);
+<a name="line630"></a>            Cache::$type($guid, $step, 0);
+<a name="line631"></a>        } elseif ($_SERVER['REQUEST_TIME'] > Cache::get($guid . '_time') + $lazyTime) {
+<a name="line632"></a>            // 删除缓存
+<a name="line633"></a>            $value = Cache::$type($guid, $step, 0);
+<a name="line634"></a>            Cache::rm($guid);
+<a name="line635"></a>            Cache::rm($guid . '_time');
+<a name="line636"></a>            return 0 === $value ? false : $value;
+<a name="line637"></a>        } else {
+<a name="line638"></a>            // 更新缓存
+<a name="line639"></a>            Cache::$type($guid, $step, 0);
+<a name="line640"></a>        }
+<a name="line641"></a>        return false;
+<a name="line642"></a>    }
+<a name="line643"></a>
+<a name="line644"></a>    /**
+<a name="line645"></a>     * 查询SQL组装 join
+<a name="line646"></a>     * @access public
+<a name="line647"></a>     * @param mixed  $join      关联的表名
+<a name="line648"></a>     * @param mixed  $condition 条件
+<a name="line649"></a>     * @param string $type      JOIN类型
+<a name="line650"></a>     * @return $this
+<a name="line651"></a>     */
+<a name="line652"></a>    public function join($join, $condition = null, $type = 'INNER')
+<a name="line653"></a>    {
+<a name="line654"></a>        if (empty($condition)) {
+<a name="line655"></a>            // 如果为组数，则循环调用join
+<a name="line656"></a>            foreach ($join as $key => $value) {
+<a name="line657"></a>                if (is_array($value) && 2 <= count($value)) {
+<a name="line658"></a>                    $this->join($value[0], $value[1], isset($value[2]) ? $value[2] : $type);
+<a name="line659"></a>                }
+<a name="line660"></a>            }
+<a name="line661"></a>        } else {
+<a name="line662"></a>            // 传入的表名为数组
+<a name="line663"></a>            if (is_array($join)) {
+<a name="line664"></a>                if (0 !== $key = key($join)) {
+<a name="line665"></a>                    // 设置了键名则键名为表名，键值作为表的别名
+<a name="line666"></a>                    $table = [$key => array_shift($join)];
+<a name="line667"></a>                    $this->alias($table);
+<a name="line668"></a>                } else {
+<a name="line669"></a>                    $table = array_shift($join);
+<a name="line670"></a>                }
+<a name="line671"></a>            } else {
+<a name="line672"></a>                $table = trim($join);
+<a name="line673"></a>                if (strpos($table, ' ') && !strpos($table, ')')) {
+<a name="line674"></a>                    list($table, $alias) = explode(' ', $table);
+<a name="line675"></a>                    $table               = [$table => $alias];
+<a name="line676"></a>                    $this->alias($table);
+<a name="line677"></a>                }
+<a name="line678"></a>            }
+<a name="line679"></a>            $this->options['join'][] = [$table, strtoupper($type), $condition];
+<a name="line680"></a>        }
+<a name="line681"></a>        return $this;
+<a name="line682"></a>    }
+<a name="line683"></a>
+<a name="line684"></a>    /**
+<a name="line685"></a>     * 查询SQL组装 union
+<a name="line686"></a>     * @access public
+<a name="line687"></a>     * @param mixed   $union
+<a name="line688"></a>     * @param boolean $all
+<a name="line689"></a>     * @return $this
+<a name="line690"></a>     */
+<a name="line691"></a>    public function union($union, $all = false)
+<a name="line692"></a>    {
+<a name="line693"></a>        $this->options['union']['type'] = $all ? 'UNION ALL' : 'UNION';
+<a name="line694"></a>
+<a name="line695"></a>        if (is_array($union)) {
+<a name="line696"></a>            $this->options['union'] = array_merge($this->options['union'], $union);
+<a name="line697"></a>        } else {
+<a name="line698"></a>            $this->options['union'][] = $union;
+<a name="line699"></a>        }
+<a name="line700"></a>        return $this;
+<a name="line701"></a>    }
+<a name="line702"></a>
+<a name="line703"></a>    /**
+<a name="line704"></a>     * 指定查询字段 支持字段排除和指定数据表
+<a name="line705"></a>     * @access public
+<a name="line706"></a>     * @param mixed   $field
+<a name="line707"></a>     * @param boolean $except    是否排除
+<a name="line708"></a>     * @param string  $tableName 数据表名
+<a name="line709"></a>     * @param string  $prefix    字段前缀
+<a name="line710"></a>     * @param string  $alias     别名前缀
+<a name="line711"></a>     * @return $this
+<a name="line712"></a>     */
+<a name="line713"></a>    public function field($field, $except = false, $tableName = '', $prefix = '', $alias = '')
+<a name="line714"></a>    {
+<a name="line715"></a>        if (empty($field)) {
+<a name="line716"></a>            return $this;
+<a name="line717"></a>        }
+<a name="line718"></a>        if (is_string($field)) {
+<a name="line719"></a>            $field = array_map('trim', explode(',', $field));
+<a name="line720"></a>        }
+<a name="line721"></a>        if (true === $field) {
+<a name="line722"></a>            // 获取全部字段
+<a name="line723"></a>            $fields = $this->getTableInfo($tableName ?: (isset($this->options['table']) ? $this->options['table'] : ''), 'fields');
+<a name="line724"></a>            $field  = $fields ?: ['*'];
+<a name="line725"></a>        } elseif ($except) {
+<a name="line726"></a>            // 字段排除
+<a name="line727"></a>            $fields = $this->getTableInfo($tableName ?: (isset($this->options['table']) ? $this->options['table'] : ''), 'fields');
+<a name="line728"></a>            $field  = $fields ? array_diff($fields, $field) : $field;
+<a name="line729"></a>        }
+<a name="line730"></a>        if ($tableName) {
+<a name="line731"></a>            // 添加统一的前缀
+<a name="line732"></a>            $prefix = $prefix ?: $tableName;
+<a name="line733"></a>            foreach ($field as $key => $val) {
+<a name="line734"></a>                if (is_numeric($key)) {
+<a name="line735"></a>                    $val = $prefix . '.' . $val . ($alias ? ' AS ' . $alias . $val : '');
+<a name="line736"></a>                }
+<a name="line737"></a>                $field[$key] = $val;
+<a name="line738"></a>            }
+<a name="line739"></a>        }
+<a name="line740"></a>
+<a name="line741"></a>        if (isset($this->options['field'])) {
+<a name="line742"></a>            $field = array_merge($this->options['field'], $field);
+<a name="line743"></a>        }
+<a name="line744"></a>        $this->options['field'] = array_unique($field);
+<a name="line745"></a>        return $this;
+<a name="line746"></a>    }
+<a name="line747"></a>
+<a name="line748"></a>    /**
+<a name="line749"></a>     * 指定JOIN查询字段
+<a name="line750"></a>     * @access public
+<a name="line751"></a>     * @param string|array $table 数据表
+<a name="line752"></a>     * @param string|array $field 查询字段
+<a name="line753"></a>     * @param string|array $on    JOIN条件
+<a name="line754"></a>     * @param string       $type  JOIN类型
+<a name="line755"></a>     * @return $this
+<a name="line756"></a>     */
+<a name="line757"></a>    public function view($join, $field = true, $on = null, $type = 'INNER')
+<a name="line758"></a>    {
+<a name="line759"></a>        $this->options['view'] = true;
+<a name="line760"></a>        if (is_array($join) && is_null($field)) {
+<a name="line761"></a>            foreach ($join as $key => $val) {
+<a name="line762"></a>                $this->view($key, $val[0], isset($val[1]) ? $val[1] : null, isset($val[2]) ? $val[2] : 'INNER');
+<a name="line763"></a>            }
+<a name="line764"></a>        } else {
+<a name="line765"></a>            $fields = [];
+<a name="line766"></a>            if (is_array($join)) {
+<a name="line767"></a>                // 支持数据表别名
+<a name="line768"></a>                list($join, $alias, $table) = array_pad($join, 3, '');
+<a name="line769"></a>            } else {
+<a name="line770"></a>                $alias = $join;
+<a name="line771"></a>            }
+<a name="line772"></a>            $table = !empty($table) ? $table : $this->getTable($join);
+<a name="line773"></a>            if (true === $field) {
+<a name="line774"></a>                $fields = $alias . '.*';
+<a name="line775"></a>            } else {
+<a name="line776"></a>                if (is_string($field)) {
+<a name="line777"></a>                    $field = explode(',', $field);
+<a name="line778"></a>                }
+<a name="line779"></a>                foreach ($field as $key => $val) {
+<a name="line780"></a>                    if (is_numeric($key)) {
+<a name="line781"></a>                        $fields[]                   = $alias . '.' . $val;
+<a name="line782"></a>                        $this->options['map'][$val] = $alias . '.' . $val;
+<a name="line783"></a>                    } else {
+<a name="line784"></a>                        if (preg_match('/[,=\.\'\"\(\s]/', $key)) {
+<a name="line785"></a>                            $name = $key;
+<a name="line786"></a>                        } else {
+<a name="line787"></a>                            $name = $alias . '.' . $key;
+<a name="line788"></a>                        }
+<a name="line789"></a>                        $fields[]                   = $name . ' AS ' . $val;
+<a name="line790"></a>                        $this->options['map'][$val] = $name;
+<a name="line791"></a>                    }
+<a name="line792"></a>                }
+<a name="line793"></a>            }
+<a name="line794"></a>            $this->field($fields);
+<a name="line795"></a>            if ($on) {
+<a name="line796"></a>                $this->join($table . ' ' . $alias, $on, $type);
+<a name="line797"></a>            } else {
+<a name="line798"></a>                $this->table($table . ' ' . $alias);
+<a name="line799"></a>            }
+<a name="line800"></a>        }
+<a name="line801"></a>        return $this;
+<a name="line802"></a>    }
+<a name="line803"></a>
+<a name="line804"></a>    /**
+<a name="line805"></a>     * 设置分表规则
+<a name="line806"></a>     * @access public
+<a name="line807"></a>     * @param array  $data  操作的数据
+<a name="line808"></a>     * @param string $field 分表依据的字段
+<a name="line809"></a>     * @param array  $rule  分表规则
+<a name="line810"></a>     * @return $this
+<a name="line811"></a>     */
+<a name="line812"></a>    public function partition($data, $field, $rule = [])
+<a name="line813"></a>    {
+<a name="line814"></a>        $this->options['table'] = $this->getPartitionTableName($data, $field, $rule);
+<a name="line815"></a>        return $this;
+<a name="line816"></a>    }
+<a name="line817"></a>
+<a name="line818"></a>    /**
+<a name="line819"></a>     * 指定AND查询条件
+<a name="line820"></a>     * @access public
+<a name="line821"></a>     * @param mixed $field     查询字段
+<a name="line822"></a>     * @param mixed $op        查询表达式
+<a name="line823"></a>     * @param mixed $condition 查询条件
+<a name="line824"></a>     * @return $this
+<a name="line825"></a>     */
+<a name="line826"></a>    public function where($field, $op = null, $condition = null)
+<a name="line827"></a>    {
+<a name="line828"></a>        $param = func_get_args();
+<a name="line829"></a>        array_shift($param);
+<a name="line830"></a>        $this->parseWhereExp('AND', $field, $op, $condition, $param);
+<a name="line831"></a>        return $this;
+<a name="line832"></a>    }
+<a name="line833"></a>
+<a name="line834"></a>    /**
+<a name="line835"></a>     * 指定OR查询条件
+<a name="line836"></a>     * @access public
+<a name="line837"></a>     * @param mixed $field     查询字段
+<a name="line838"></a>     * @param mixed $op        查询表达式
+<a name="line839"></a>     * @param mixed $condition 查询条件
+<a name="line840"></a>     * @return $this
+<a name="line841"></a>     */
+<a name="line842"></a>    public function whereOr($field, $op = null, $condition = null)
+<a name="line843"></a>    {
+<a name="line844"></a>        $param = func_get_args();
+<a name="line845"></a>        array_shift($param);
+<a name="line846"></a>        $this->parseWhereExp('OR', $field, $op, $condition, $param);
+<a name="line847"></a>        return $this;
+<a name="line848"></a>    }
+<a name="line849"></a>
+<a name="line850"></a>    /**
+<a name="line851"></a>     * 指定XOR查询条件
+<a name="line852"></a>     * @access public
+<a name="line853"></a>     * @param mixed $field     查询字段
+<a name="line854"></a>     * @param mixed $op        查询表达式
+<a name="line855"></a>     * @param mixed $condition 查询条件
+<a name="line856"></a>     * @return $this
+<a name="line857"></a>     */
+<a name="line858"></a>    public function whereXor($field, $op = null, $condition = null)
+<a name="line859"></a>    {
+<a name="line860"></a>        $param = func_get_args();
+<a name="line861"></a>        array_shift($param);
+<a name="line862"></a>        $this->parseWhereExp('XOR', $field, $op, $condition, $param);
+<a name="line863"></a>        return $this;
+<a name="line864"></a>    }
+<a name="line865"></a>
+<a name="line866"></a>    /**
+<a name="line867"></a>     * 分析查询表达式
+<a name="line868"></a>     * @access public
+<a name="line869"></a>     * @param string                $logic     查询逻辑 and or xor
+<a name="line870"></a>     * @param string|array|\Closure $field     查询字段
+<a name="line871"></a>     * @param mixed                 $op        查询表达式
+<a name="line872"></a>     * @param mixed                 $condition 查询条件
+<a name="line873"></a>     * @param array                 $param     查询参数
+<a name="line874"></a>     * @return void
+<a name="line875"></a>     */
+<a name="line876"></a>    protected function parseWhereExp($logic, $field, $op, $condition, $param = [])
+<a name="line877"></a>    {
+<a name="line878"></a>        if ($field instanceof \Closure) {
+<a name="line879"></a>            $this->options['where'][$logic][] = is_string($op) ? [$op, $field] : $field;
+<a name="line880"></a>            return;
+<a name="line881"></a>        }
+<a name="line882"></a>
+<a name="line883"></a>        if (is_string($field) && !empty($this->options['via']) && !strpos($field, '.')) {
+<a name="line884"></a>            $field = $this->options['via'] . '.' . $field;
+<a name="line885"></a>        }
+<a name="line886"></a>        if (is_string($field) && preg_match('/[,=\>\<\'\"\(\s]/', $field)) {
+<a name="line887"></a>            $where[] = ['exp', $field];
+<a name="line888"></a>            if (is_array($op)) {
+<a name="line889"></a>                // 参数绑定
+<a name="line890"></a>                $this->bind($op);
+<a name="line891"></a>            }
+<a name="line892"></a>        } elseif (is_null($op) && is_null($condition)) {
+<a name="line893"></a>            if (is_array($field)) {
+<a name="line894"></a>                // 数组批量查询
+<a name="line895"></a>                $where = $field;
+<a name="line896"></a>            } elseif ($field) {
+<a name="line897"></a>                // 字符串查询
+<a name="line898"></a>                if (is_numeric($field)) {
+<a name="line899"></a>                    $where[] = ['exp', $field];
+<a name="line900"></a>                } else {
+<a name="line901"></a>                    $where[$field] = ['null', ''];
+<a name="line902"></a>                }
+<a name="line903"></a>            }
+<a name="line904"></a>        } elseif (is_array($op)) {
+<a name="line905"></a>            $where[$field] = $param;
+<a name="line906"></a>        } elseif (in_array(strtolower($op), ['null', 'notnull', 'not null'])) {
+<a name="line907"></a>            // null查询
+<a name="line908"></a>            $where[$field] = [$op, ''];
+<a name="line909"></a>        } elseif (is_null($condition)) {
+<a name="line910"></a>            // 字段相等查询
+<a name="line911"></a>            $where[$field] = ['eq', $op];
+<a name="line912"></a>        } else {
+<a name="line913"></a>            $where[$field] = [$op, $condition];
+<a name="line914"></a>        }
+<a name="line915"></a>        if (!empty($where)) {
+<a name="line916"></a>            if (!isset($this->options['where'][$logic])) {
+<a name="line917"></a>                $this->options['where'][$logic] = [];
+<a name="line918"></a>            }
+<a name="line919"></a>            $this->options['where'][$logic] = array_merge($this->options['where'][$logic], $where);
+<a name="line920"></a>        }
+<a name="line921"></a>    }
+<a name="line922"></a>
+<a name="line923"></a>    /**
+<a name="line924"></a>     * 指定查询数量
+<a name="line925"></a>     * @access public
+<a name="line926"></a>     * @param mixed $offset 起始位置
+<a name="line927"></a>     * @param mixed $length 查询数量
+<a name="line928"></a>     * @return $this
+<a name="line929"></a>     */
+<a name="line930"></a>    public function limit($offset, $length = null)
+<a name="line931"></a>    {
+<a name="line932"></a>        if (is_null($length) && strpos($offset, ',')) {
+<a name="line933"></a>            list($offset, $length) = explode(',', $offset);
+<a name="line934"></a>        }
+<a name="line935"></a>        $this->options['limit'] = intval($offset) . ($length ? ',' . intval($length) : '');
+<a name="line936"></a>        return $this;
+<a name="line937"></a>    }
+<a name="line938"></a>
+<a name="line939"></a>    /**
+<a name="line940"></a>     * 指定分页
+<a name="line941"></a>     * @access public
+<a name="line942"></a>     * @param mixed $page     页数
+<a name="line943"></a>     * @param mixed $listRows 每页数量
+<a name="line944"></a>     * @return $this
+<a name="line945"></a>     */
+<a name="line946"></a>    public function page($page, $listRows = null)
+<a name="line947"></a>    {
+<a name="line948"></a>        if (is_null($listRows) && strpos($page, ',')) {
+<a name="line949"></a>            list($page, $listRows) = explode(',', $page);
+<a name="line950"></a>        }
+<a name="line951"></a>        $this->options['page'] = [intval($page), intval($listRows)];
+<a name="line952"></a>        return $this;
+<a name="line953"></a>    }
+<a name="line954"></a>
+<a name="line955"></a>    /**
+<a name="line956"></a>     * 分页查询
+<a name="line957"></a>     * @param int|null $listRows 每页数量
+<a name="line958"></a>     * @param int|bool $simple   简洁模式或者总记录数
+<a name="line959"></a>     * @param array    $config   配置参数
+<a name="line960"></a>     *                           page:当前页,
+<a name="line961"></a>     *                           path:url路径,
+<a name="line962"></a>     *                           query:url额外参数,
+<a name="line963"></a>     *                           fragment:url锚点,
+<a name="line964"></a>     *                           var_page:分页变量,
+<a name="line965"></a>     *                           list_rows:每页数量
+<a name="line966"></a>     *                           type:分页类名
+<a name="line967"></a>     * @return \think\paginator\Collection
+<a name="line968"></a>     * @throws DbException
+<a name="line969"></a>     */
+<a name="line970"></a>    public function paginate($listRows = null, $simple = false, $config = [])
+<a name="line971"></a>    {
+<a name="line972"></a>        if (is_int($simple)) {
+<a name="line973"></a>            $total  = $simple;
+<a name="line974"></a>            $simple = false;
+<a name="line975"></a>        }
+<a name="line976"></a>        $config   = array_merge(Config::get('paginate'), $config);
+<a name="line977"></a>        $listRows = $listRows ?: $config['list_rows'];
+<a name="line978"></a>
+<a name="line979"></a>        /** @var Paginator $class */
+<a name="line980"></a>        $class = false !== strpos($config['type'], '\\') ? $config['type'] : '\\think\\paginator\\driver\\' . ucwords($config['type']);
+<a name="line981"></a>        $page  = isset($config['page']) ? (int) $config['page'] : call_user_func([
+<a name="line982"></a>            $class,
+<a name="line983"></a>            'getCurrentPage',
+<a name="line984"></a>        ], $config['var_page']);
+<a name="line985"></a>
+<a name="line986"></a>        $page = $page < 1 ? 1 : $page;
+<a name="line987"></a>
+<a name="line988"></a>        $config['path'] = isset($config['path']) ? $config['path'] : call_user_func([$class, 'getCurrentPath']);
+<a name="line989"></a>
+<a name="line990"></a>        if (!isset($total) && !$simple) {
+<a name="line991"></a>            $options = $this->getOptions();
+<a name="line992"></a>            $total   = $this->count();
+<a name="line993"></a>            $bind    = $this->bind;
+<a name="line994"></a>            $results = $this->options($options)->bind($bind)->page($page, $listRows)->select();
+<a name="line995"></a>        } elseif ($simple) {
+<a name="line996"></a>            $results = $this->limit(($page - 1) * $listRows, $listRows + 1)->select();
+<a name="line997"></a>            $total   = null;
+<a name="line998"></a>        } else {
+<a name="line999"></a>            $results = $this->page($page, $listRows)->select();
+<a name="line1000"></a>        }
+<a name="line1001"></a>        return $class::make($results, $listRows, $page, $total, $simple, $config);
+<a name="line1002"></a>    }
+<a name="line1003"></a>
+<a name="line1004"></a>    /**
+<a name="line1005"></a>     * 指定当前操作的数据表
+<a name="line1006"></a>     * @access public
+<a name="line1007"></a>     * @param mixed $table 表名
+<a name="line1008"></a>     * @return $this
+<a name="line1009"></a>     */
+<a name="line1010"></a>    public function table($table)
+<a name="line1011"></a>    {
+<a name="line1012"></a>        if (is_string($table)) {
+<a name="line1013"></a>            if (strpos($table, ',')) {
+<a name="line1014"></a>                $tables = explode(',', $table);
+<a name="line1015"></a>                $table  = [];
+<a name="line1016"></a>                foreach ($tables as $item) {
+<a name="line1017"></a>                    list($item, $alias) = explode(' ', trim($item));
+<a name="line1018"></a>                    if ($alias) {
+<a name="line1019"></a>                        $this->alias([$item => $alias]);
+<a name="line1020"></a>                        $table[$item] = $alias;
+<a name="line1021"></a>                    } else {
+<a name="line1022"></a>                        $table[] = $item;
+<a name="line1023"></a>                    }
+<a name="line1024"></a>                }
+<a name="line1025"></a>            } elseif (strpos($table, ' ')) {
+<a name="line1026"></a>                list($table, $alias) = explode(' ', $table);
+<a name="line1027"></a>                $table               = [$table => $alias];
+<a name="line1028"></a>                $this->alias($table);
+<a name="line1029"></a>            }
+<a name="line1030"></a>        } else {
+<a name="line1031"></a>            $tables = $table;
+<a name="line1032"></a>            $table  = [];
+<a name="line1033"></a>            foreach ($tables as $key => $val) {
+<a name="line1034"></a>                if (is_numeric($key)) {
+<a name="line1035"></a>                    $table[] = $val;
+<a name="line1036"></a>                } else {
+<a name="line1037"></a>                    $this->alias([$key => $val]);
+<a name="line1038"></a>                    $table[$key] = $val;
+<a name="line1039"></a>                }
+<a name="line1040"></a>            }
+<a name="line1041"></a>        }
+<a name="line1042"></a>        $this->options['table'] = $table;
+<a name="line1043"></a>        return $this;
+<a name="line1044"></a>    }
+<a name="line1045"></a>
+<a name="line1046"></a>    /**
+<a name="line1047"></a>     * USING支持 用于多表删除
+<a name="line1048"></a>     * @access public
+<a name="line1049"></a>     * @param mixed $using
+<a name="line1050"></a>     * @return $this
+<a name="line1051"></a>     */
+<a name="line1052"></a>    public function using($using)
+<a name="line1053"></a>    {
+<a name="line1054"></a>        $this->options['using'] = $using;
+<a name="line1055"></a>        return $this;
+<a name="line1056"></a>    }
+<a name="line1057"></a>
+<a name="line1058"></a>    /**
+<a name="line1059"></a>     * 指定排序 order('id','desc') 或者 order(['id'=>'desc','create_time'=>'desc'])
+<a name="line1060"></a>     * @access public
+<a name="line1061"></a>     * @param string|array $field 排序字段
+<a name="line1062"></a>     * @param string       $order 排序
+<a name="line1063"></a>     * @return $this
+<a name="line1064"></a>     */
+<a name="line1065"></a>    public function order($field, $order = null)
+<a name="line1066"></a>    {
+<a name="line1067"></a>        if (!empty($field)) {
+<a name="line1068"></a>            if (is_string($field)) {
+<a name="line1069"></a>                if (!empty($this->options['via'])) {
+<a name="line1070"></a>                    $field = $this->options['via'] . '.' . $field;
+<a name="line1071"></a>                }
+<a name="line1072"></a>                $field = empty($order) ? $field : [$field => $order];
+<a name="line1073"></a>            } elseif (!empty($this->options['via'])) {
+<a name="line1074"></a>                foreach ($field as $key => $val) {
+<a name="line1075"></a>                    if (is_numeric($key)) {
+<a name="line1076"></a>                        $field[$key] = $this->options['via'] . '.' . $val;
+<a name="line1077"></a>                    } else {
+<a name="line1078"></a>                        $field[$this->options['via'] . '.' . $key] = $val;
+<a name="line1079"></a>                        unset($field[$key]);
+<a name="line1080"></a>                    }
+<a name="line1081"></a>                }
+<a name="line1082"></a>            }
+<a name="line1083"></a>            $this->options['order'] = $field;
+<a name="line1084"></a>        }
+<a name="line1085"></a>        return $this;
+<a name="line1086"></a>    }
+<a name="line1087"></a>
+<a name="line1088"></a>    /**
+<a name="line1089"></a>     * 查询缓存
+<a name="line1090"></a>     * @access public
+<a name="line1091"></a>     * @param mixed   $key    缓存key
+<a name="line1092"></a>     * @param integer $expire 缓存有效期
+<a name="line1093"></a>     * @param string  $tag    缓存标签
+<a name="line1094"></a>     * @return $this
+<a name="line1095"></a>     */
+<a name="line1096"></a>    public function cache($key = true, $expire = null, $tag = null)
+<a name="line1097"></a>    {
+<a name="line1098"></a>        // 增加快捷调用方式 cache(10) 等同于 cache(true, 10)
+<a name="line1099"></a>        if (is_numeric($key) && is_null($expire)) {
+<a name="line1100"></a>            $expire = $key;
+<a name="line1101"></a>            $key    = true;
+<a name="line1102"></a>        }
+<a name="line1103"></a>        if (false !== $key) {
+<a name="line1104"></a>            $this->options['cache'] = ['key' => $key, 'expire' => $expire, 'tag' => $tag];
+<a name="line1105"></a>        }
+<a name="line1106"></a>        return $this;
+<a name="line1107"></a>    }
+<a name="line1108"></a>
+<a name="line1109"></a>    /**
+<a name="line1110"></a>     * 指定group查询
+<a name="line1111"></a>     * @access public
+<a name="line1112"></a>     * @param string $group GROUP
+<a name="line1113"></a>     * @return $this
+<a name="line1114"></a>     */
+<a name="line1115"></a>    public function group($group)
+<a name="line1116"></a>    {
+<a name="line1117"></a>        $this->options['group'] = $group;
+<a name="line1118"></a>        return $this;
+<a name="line1119"></a>    }
+<a name="line1120"></a>
+<a name="line1121"></a>    /**
+<a name="line1122"></a>     * 指定having查询
+<a name="line1123"></a>     * @access public
+<a name="line1124"></a>     * @param string $having having
+<a name="line1125"></a>     * @return $this
+<a name="line1126"></a>     */
+<a name="line1127"></a>    public function having($having)
+<a name="line1128"></a>    {
+<a name="line1129"></a>        $this->options['having'] = $having;
+<a name="line1130"></a>        return $this;
+<a name="line1131"></a>    }
+<a name="line1132"></a>
+<a name="line1133"></a>    /**
+<a name="line1134"></a>     * 指定查询lock
+<a name="line1135"></a>     * @access public
+<a name="line1136"></a>     * @param boolean $lock 是否lock
+<a name="line1137"></a>     * @return $this
+<a name="line1138"></a>     */
+<a name="line1139"></a>    public function lock($lock = false)
+<a name="line1140"></a>    {
+<a name="line1141"></a>        $this->options['lock']   = $lock;
+<a name="line1142"></a>        $this->options['master'] = true;
+<a name="line1143"></a>        return $this;
+<a name="line1144"></a>    }
+<a name="line1145"></a>
+<a name="line1146"></a>    /**
+<a name="line1147"></a>     * 指定distinct查询
+<a name="line1148"></a>     * @access public
+<a name="line1149"></a>     * @param string $distinct 是否唯一
+<a name="line1150"></a>     * @return $this
+<a name="line1151"></a>     */
+<a name="line1152"></a>    public function distinct($distinct)
+<a name="line1153"></a>    {
+<a name="line1154"></a>        $this->options['distinct'] = $distinct;
+<a name="line1155"></a>        return $this;
+<a name="line1156"></a>    }
+<a name="line1157"></a>
+<a name="line1158"></a>    /**
+<a name="line1159"></a>     * 指定数据表别名
+<a name="line1160"></a>     * @access public
+<a name="line1161"></a>     * @param mixed $alias 数据表别名
+<a name="line1162"></a>     * @return $this
+<a name="line1163"></a>     */
+<a name="line1164"></a>    public function alias($alias)
+<a name="line1165"></a>    {
+<a name="line1166"></a>        if (is_array($alias)) {
+<a name="line1167"></a>            foreach ($alias as $key => $val) {
+<a name="line1168"></a>                $this->options['alias'][$key] = $val;
+<a name="line1169"></a>            }
+<a name="line1170"></a>        } else {
+<a name="line1171"></a>            if (isset($this->options['table'])) {
+<a name="line1172"></a>                $table = is_array($this->options['table']) ? key($this->options['table']) : $this->options['table'];
+<a name="line1173"></a>            } else {
+<a name="line1174"></a>                $table = $this->getTable();
+<a name="line1175"></a>            }
+<a name="line1176"></a>
+<a name="line1177"></a>            $this->options['alias'][$table] = $alias;
+<a name="line1178"></a>        }
+<a name="line1179"></a>        return $this;
+<a name="line1180"></a>    }
+<a name="line1181"></a>
+<a name="line1182"></a>    /**
+<a name="line1183"></a>     * 指定强制索引
+<a name="line1184"></a>     * @access public
+<a name="line1185"></a>     * @param string $force 索引名称
+<a name="line1186"></a>     * @return $this
+<a name="line1187"></a>     */
+<a name="line1188"></a>    public function force($force)
+<a name="line1189"></a>    {
+<a name="line1190"></a>        $this->options['force'] = $force;
+<a name="line1191"></a>        return $this;
+<a name="line1192"></a>    }
+<a name="line1193"></a>
+<a name="line1194"></a>    /**
+<a name="line1195"></a>     * 查询注释
+<a name="line1196"></a>     * @access public
+<a name="line1197"></a>     * @param string $comment 注释
+<a name="line1198"></a>     * @return $this
+<a name="line1199"></a>     */
+<a name="line1200"></a>    public function comment($comment)
+<a name="line1201"></a>    {
+<a name="line1202"></a>        $this->options['comment'] = $comment;
+<a name="line1203"></a>        return $this;
+<a name="line1204"></a>    }
+<a name="line1205"></a>
+<a name="line1206"></a>    /**
+<a name="line1207"></a>     * 获取执行的SQL语句
+<a name="line1208"></a>     * @access public
+<a name="line1209"></a>     * @param boolean $fetch 是否返回sql
+<a name="line1210"></a>     * @return $this
+<a name="line1211"></a>     */
+<a name="line1212"></a>    public function fetchSql($fetch = true)
+<a name="line1213"></a>    {
+<a name="line1214"></a>        $this->options['fetch_sql'] = $fetch;
+<a name="line1215"></a>        return $this;
+<a name="line1216"></a>    }
+<a name="line1217"></a>
+<a name="line1218"></a>    /**
+<a name="line1219"></a>     * 不主动获取数据集
+<a name="line1220"></a>     * @access public
+<a name="line1221"></a>     * @param bool $pdo 是否返回 PDOStatement 对象
+<a name="line1222"></a>     * @return $this
+<a name="line1223"></a>     */
+<a name="line1224"></a>    public function fetchPdo($pdo = true)
+<a name="line1225"></a>    {
+<a name="line1226"></a>        $this->options['fetch_class'] = $pdo;
+<a name="line1227"></a>        return $this;
+<a name="line1228"></a>    }
+<a name="line1229"></a>
+<a name="line1230"></a>    /**
+<a name="line1231"></a>     * 指定数据集返回对象
+<a name="line1232"></a>     * @access public
+<a name="line1233"></a>     * @param string $class 指定返回的数据集对象类名
+<a name="line1234"></a>     * @return $this
+<a name="line1235"></a>     */
+<a name="line1236"></a>    public function fetchClass($class)
+<a name="line1237"></a>    {
+<a name="line1238"></a>        $this->options['fetch_class'] = $class;
+<a name="line1239"></a>        return $this;
+<a name="line1240"></a>    }
+<a name="line1241"></a>
+<a name="line1242"></a>    /**
+<a name="line1243"></a>     * 设置从主服务器读取数据
+<a name="line1244"></a>     * @access public
+<a name="line1245"></a>     * @return $this
+<a name="line1246"></a>     */
+<a name="line1247"></a>    public function master()
+<a name="line1248"></a>    {
+<a name="line1249"></a>        $this->options['master'] = true;
+<a name="line1250"></a>        return $this;
+<a name="line1251"></a>    }
+<a name="line1252"></a>
+<a name="line1253"></a>    /**
+<a name="line1254"></a>     * 设置是否严格检查字段名
+<a name="line1255"></a>     * @access public
+<a name="line1256"></a>     * @param bool $strict 是否严格检查字段
+<a name="line1257"></a>     * @return $this
+<a name="line1258"></a>     */
+<a name="line1259"></a>    public function strict($strict = true)
+<a name="line1260"></a>    {
+<a name="line1261"></a>        $this->options['strict'] = $strict;
+<a name="line1262"></a>        return $this;
+<a name="line1263"></a>    }
+<a name="line1264"></a>
+<a name="line1265"></a>    /**
+<a name="line1266"></a>     * 设置查询数据不存在是否抛出异常
+<a name="line1267"></a>     * @access public
+<a name="line1268"></a>     * @param bool $fail 数据不存在是否抛出异常
+<a name="line1269"></a>     * @return $this
+<a name="line1270"></a>     */
+<a name="line1271"></a>    public function failException($fail = true)
+<a name="line1272"></a>    {
+<a name="line1273"></a>        $this->options['fail'] = $fail;
+<a name="line1274"></a>        return $this;
+<a name="line1275"></a>    }
+<a name="line1276"></a>
+<a name="line1277"></a>    /**
+<a name="line1278"></a>     * 设置自增序列名
+<a name="line1279"></a>     * @access public
+<a name="line1280"></a>     * @param string $sequence 自增序列名
+<a name="line1281"></a>     * @return $this
+<a name="line1282"></a>     */
+<a name="line1283"></a>    public function sequence($sequence = null)
+<a name="line1284"></a>    {
+<a name="line1285"></a>        $this->options['sequence'] = $sequence;
+<a name="line1286"></a>        return $this;
+<a name="line1287"></a>    }
+<a name="line1288"></a>
+<a name="line1289"></a>    /**
+<a name="line1290"></a>     * 指定数据表主键
+<a name="line1291"></a>     * @access public
+<a name="line1292"></a>     * @param string $pk 主键
+<a name="line1293"></a>     * @return $this
+<a name="line1294"></a>     */
+<a name="line1295"></a>    public function pk($pk)
+<a name="line1296"></a>    {
+<a name="line1297"></a>        $this->pk = $pk;
+<a name="line1298"></a>        return $this;
+<a name="line1299"></a>    }
+<a name="line1300"></a>
+<a name="line1301"></a>    /**
+<a name="line1302"></a>     * 查询日期或者时间
+<a name="line1303"></a>     * @access public
+<a name="line1304"></a>     * @param string       $field 日期字段名
+<a name="line1305"></a>     * @param string       $op    比较运算符或者表达式
+<a name="line1306"></a>     * @param string|array $range 比较范围
+<a name="line1307"></a>     * @return $this
+<a name="line1308"></a>     */
+<a name="line1309"></a>    public function whereTime($field, $op, $range = null)
+<a name="line1310"></a>    {
+<a name="line1311"></a>        if (is_null($range)) {
+<a name="line1312"></a>            // 使用日期表达式
+<a name="line1313"></a>            $date = getdate();
+<a name="line1314"></a>            switch (strtolower($op)) {
+<a name="line1315"></a>                case 'today':
+<a name="line1316"></a>                case 'd':
+<a name="line1317"></a>                    $range = 'today';
+<a name="line1318"></a>                    break;
+<a name="line1319"></a>                case 'week':
+<a name="line1320"></a>                case 'w':
+<a name="line1321"></a>                    $range = 'this week 00:00:00';
+<a name="line1322"></a>                    break;
+<a name="line1323"></a>                case 'month':
+<a name="line1324"></a>                case 'm':
+<a name="line1325"></a>                    $range = mktime(0, 0, 0, $date['mon'], 1, $date['year']);
+<a name="line1326"></a>                    break;
+<a name="line1327"></a>                case 'year':
+<a name="line1328"></a>                case 'y':
+<a name="line1329"></a>                    $range = mktime(0, 0, 0, 1, 1, $date['year']);
+<a name="line1330"></a>                    break;
+<a name="line1331"></a>                case 'yesterday':
+<a name="line1332"></a>                    $range = ['yesterday', 'today'];
+<a name="line1333"></a>                    break;
+<a name="line1334"></a>                case 'last week':
+<a name="line1335"></a>                    $range = ['last week 00:00:00', 'this week 00:00:00'];
+<a name="line1336"></a>                    break;
+<a name="line1337"></a>                case 'last month':
+<a name="line1338"></a>                    $range = [date('y-m-01', strtotime('-1 month')), mktime(0, 0, 0, $date['mon'], 1, $date['year'])];
+<a name="line1339"></a>                    break;
+<a name="line1340"></a>                case 'last year':
+<a name="line1341"></a>                    $range = [mktime(0, 0, 0, 1, 1, $date['year'] - 1), mktime(0, 0, 0, 1, 1, $date['year'])];
+<a name="line1342"></a>                    break;
+<a name="line1343"></a>            }
+<a name="line1344"></a>            $op = is_array($range) ? 'between' : '>';
+<a name="line1345"></a>        }
+<a name="line1346"></a>        $this->where($field, strtolower($op) . ' time', $range);
+<a name="line1347"></a>        return $this;
+<a name="line1348"></a>    }
+<a name="line1349"></a>
+<a name="line1350"></a>    /**
+<a name="line1351"></a>     * 获取数据表信息
+<a name="line1352"></a>     * @access public
+<a name="line1353"></a>     * @param mixed  $tableName 数据表名 留空自动获取
+<a name="line1354"></a>     * @param string $fetch     获取信息类型 包括 fields type bind pk
+<a name="line1355"></a>     * @return mixed
+<a name="line1356"></a>     */
+<a name="line1357"></a>    public function getTableInfo($tableName = '', $fetch = '')
+<a name="line1358"></a>    {
+<a name="line1359"></a>        if (!$tableName) {
+<a name="line1360"></a>            $tableName = $this->getTable();
+<a name="line1361"></a>        }
+<a name="line1362"></a>        if (is_array($tableName)) {
+<a name="line1363"></a>            $tableName = key($tableName) ?: current($tableName);
+<a name="line1364"></a>        }
+<a name="line1365"></a>
+<a name="line1366"></a>        if (strpos($tableName, ',')) {
+<a name="line1367"></a>            // 多表不获取字段信息
+<a name="line1368"></a>            return false;
+<a name="line1369"></a>        } else {
+<a name="line1370"></a>            $tableName = $this->parseSqlTable($tableName);
+<a name="line1371"></a>        }
+<a name="line1372"></a>
+<a name="line1373"></a>        list($guid) = explode(' ', $tableName);
+<a name="line1374"></a>        if (!isset(self::$info[$guid])) {
+<a name="line1375"></a>            if (!strpos($guid, '.')) {
+<a name="line1376"></a>                $schema = $this->getConfig('database') . '.' . $guid;
+<a name="line1377"></a>            } else {
+<a name="line1378"></a>                $schema = $guid;
+<a name="line1379"></a>            }
+<a name="line1380"></a>            // 读取缓存
+<a name="line1381"></a>            if (is_file(RUNTIME_PATH . 'schema/' . $schema . '.php')) {
+<a name="line1382"></a>                $info = include RUNTIME_PATH . 'schema/' . $schema . '.php';
+<a name="line1383"></a>            } else {
+<a name="line1384"></a>                $info = $this->connection->getFields($guid);
+<a name="line1385"></a>            }
+<a name="line1386"></a>            $fields = array_keys($info);
+<a name="line1387"></a>            $bind   = $type   = [];
+<a name="line1388"></a>            foreach ($info as $key => $val) {
+<a name="line1389"></a>                // 记录字段类型
+<a name="line1390"></a>                $type[$key] = $val['type'];
+<a name="line1391"></a>                $bind[$key] = $this->getFieldBindType($val['type']);
+<a name="line1392"></a>                if (!empty($val['primary'])) {
+<a name="line1393"></a>                    $pk[] = $key;
+<a name="line1394"></a>                }
+<a name="line1395"></a>            }
+<a name="line1396"></a>            if (isset($pk)) {
+<a name="line1397"></a>                // 设置主键
+<a name="line1398"></a>                $pk = count($pk) > 1 ? $pk : $pk[0];
+<a name="line1399"></a>            } else {
+<a name="line1400"></a>                $pk = null;
+<a name="line1401"></a>            }
+<a name="line1402"></a>            self::$info[$guid] = ['fields' => $fields, 'type' => $type, 'bind' => $bind, 'pk' => $pk];
+<a name="line1403"></a>        }
+<a name="line1404"></a>        return $fetch ? self::$info[$guid][$fetch] : self::$info[$guid];
+<a name="line1405"></a>    }
+<a name="line1406"></a>
+<a name="line1407"></a>    /**
+<a name="line1408"></a>     * 获取当前数据表的主键
+<a name="line1409"></a>     * @access public
+<a name="line1410"></a>     * @param string|array $options 数据表名或者查询参数
+<a name="line1411"></a>     * @return string|array
+<a name="line1412"></a>     */
+<a name="line1413"></a>    public function getPk($options = '')
+<a name="line1414"></a>    {
+<a name="line1415"></a>        if (!empty($this->pk)) {
+<a name="line1416"></a>            $pk = $this->pk;
+<a name="line1417"></a>        } else {
+<a name="line1418"></a>            $pk = $this->getTableInfo(is_array($options) ? $options['table'] : $options, 'pk');
+<a name="line1419"></a>        }
+<a name="line1420"></a>        return $pk;
+<a name="line1421"></a>    }
+<a name="line1422"></a>
+<a name="line1423"></a>    // 获取当前数据表字段信息
+<a name="line1424"></a>    public function getTableFields($options)
+<a name="line1425"></a>    {
+<a name="line1426"></a>        return $this->getTableInfo($options['table'], 'fields');
+<a name="line1427"></a>    }
+<a name="line1428"></a>
+<a name="line1429"></a>    // 获取当前数据表字段类型
+<a name="line1430"></a>    public function getFieldsType($options)
+<a name="line1431"></a>    {
+<a name="line1432"></a>        return $this->getTableInfo($options['table'], 'type');
+<a name="line1433"></a>    }
+<a name="line1434"></a>
+<a name="line1435"></a>    // 获取当前数据表绑定信息
+<a name="line1436"></a>    public function getFieldsBind($options)
+<a name="line1437"></a>    {
+<a name="line1438"></a>        $types = $this->getFieldsType($options);
+<a name="line1439"></a>        $bind  = [];
+<a name="line1440"></a>        if ($types) {
+<a name="line1441"></a>            foreach ($types as $key => $type) {
+<a name="line1442"></a>                $bind[$key] = $this->getFieldBindType($type);
+<a name="line1443"></a>            }
+<a name="line1444"></a>        }
+<a name="line1445"></a>        return $bind;
+<a name="line1446"></a>    }
+<a name="line1447"></a>
+<a name="line1448"></a>    /**
+<a name="line1449"></a>     * 获取字段绑定类型
+<a name="line1450"></a>     * @access public
+<a name="line1451"></a>     * @param string $type 字段类型
+<a name="line1452"></a>     * @return integer
+<a name="line1453"></a>     */
+<a name="line1454"></a>    protected function getFieldBindType($type)
+<a name="line1455"></a>    {
+<a name="line1456"></a>        if (preg_match('/(int|double|float|decimal|real|numeric|serial)/is', $type)) {
+<a name="line1457"></a>            $bind = PDO::PARAM_INT;
+<a name="line1458"></a>        } elseif (preg_match('/bool/is', $type)) {
+<a name="line1459"></a>            $bind = PDO::PARAM_BOOL;
+<a name="line1460"></a>        } else {
+<a name="line1461"></a>            $bind = PDO::PARAM_STR;
+<a name="line1462"></a>        }
+<a name="line1463"></a>        return $bind;
+<a name="line1464"></a>    }
+<a name="line1465"></a>
+<a name="line1466"></a>    /**
+<a name="line1467"></a>     * 参数绑定
+<a name="line1468"></a>     * @access public
+<a name="line1469"></a>     * @param mixed   $key   参数名
+<a name="line1470"></a>     * @param mixed   $value 绑定变量值
+<a name="line1471"></a>     * @param integer $type  绑定类型
+<a name="line1472"></a>     * @return $this
+<a name="line1473"></a>     */
+<a name="line1474"></a>    public function bind($key, $value = false, $type = PDO::PARAM_STR)
+<a name="line1475"></a>    {
+<a name="line1476"></a>        if (is_array($key)) {
+<a name="line1477"></a>            $this->bind = array_merge($this->bind, $key);
+<a name="line1478"></a>        } else {
+<a name="line1479"></a>            $this->bind[$key] = [$value, $type];
+<a name="line1480"></a>        }
+<a name="line1481"></a>        return $this;
+<a name="line1482"></a>    }
+<a name="line1483"></a>
+<a name="line1484"></a>    /**
+<a name="line1485"></a>     * 检测参数是否已经绑定
+<a name="line1486"></a>     * @access public
+<a name="line1487"></a>     * @param string $key 参数名
+<a name="line1488"></a>     * @return bool
+<a name="line1489"></a>     */
+<a name="line1490"></a>    public function isBind($key)
+<a name="line1491"></a>    {
+<a name="line1492"></a>        return isset($this->bind[$key]);
+<a name="line1493"></a>    }
+<a name="line1494"></a>
+<a name="line1495"></a>    /**
+<a name="line1496"></a>     * 查询参数赋值
+<a name="line1497"></a>     * @access protected
+<a name="line1498"></a>     * @param array $options 表达式参数
+<a name="line1499"></a>     * @return $this
+<a name="line1500"></a>     */
+<a name="line1501"></a>    protected function options(array $options)
+<a name="line1502"></a>    {
+<a name="line1503"></a>        $this->options = $options;
+<a name="line1504"></a>        return $this;
+<a name="line1505"></a>    }
+<a name="line1506"></a>
+<a name="line1507"></a>    /**
+<a name="line1508"></a>     * 获取当前的查询参数
+<a name="line1509"></a>     * @access public
+<a name="line1510"></a>     * @param string $name 参数名
+<a name="line1511"></a>     * @return mixed
+<a name="line1512"></a>     */
+<a name="line1513"></a>    public function getOptions($name = '')
+<a name="line1514"></a>    {
+<a name="line1515"></a>        if ('' === $name) {
+<a name="line1516"></a>            return $this->options;
+<a name="line1517"></a>        } else {
+<a name="line1518"></a>            return isset($this->options[$name]) ? $this->options[$name] : null;
+<a name="line1519"></a>        }
+<a name="line1520"></a>    }
+<a name="line1521"></a>
+<a name="line1522"></a>    /**
+<a name="line1523"></a>     * 设置关联查询JOIN预查询
+<a name="line1524"></a>     * @access public
+<a name="line1525"></a>     * @param string|array $with 关联方法名称
+<a name="line1526"></a>     * @return $this
+<a name="line1527"></a>     */
+<a name="line1528"></a>    public function with($with)
+<a name="line1529"></a>    {
+<a name="line1530"></a>        if (empty($with)) {
+<a name="line1531"></a>            return $this;
+<a name="line1532"></a>        }
+<a name="line1533"></a>
+<a name="line1534"></a>        if (is_string($with)) {
+<a name="line1535"></a>            $with = explode(',', $with);
+<a name="line1536"></a>        }
+<a name="line1537"></a>
+<a name="line1538"></a>        $i            = 0;
+<a name="line1539"></a>        $currentModel = $this->model;
+<a name="line1540"></a>
+<a name="line1541"></a>        /** @var Model $class */
+<a name="line1542"></a>        $class = new $currentModel;
+<a name="line1543"></a>        foreach ($with as $key => $relation) {
+<a name="line1544"></a>            $closure = false;
+<a name="line1545"></a>            if ($relation instanceof \Closure) {
+<a name="line1546"></a>                // 支持闭包查询过滤关联条件
+<a name="line1547"></a>                $closure    = $relation;
+<a name="line1548"></a>                $relation   = $key;
+<a name="line1549"></a>                $with[$key] = $key;
+<a name="line1550"></a>            } elseif (is_string($relation) && strpos($relation, '.')) {
+<a name="line1551"></a>                $with[$key]                   = $relation;
+<a name="line1552"></a>                list($relation, $subRelation) = explode('.', $relation, 2);
+<a name="line1553"></a>            }
+<a name="line1554"></a>
+<a name="line1555"></a>            /** @var Relation $model */
+<a name="line1556"></a>            $model = $class->$relation();
+<a name="line1557"></a>            $info  = $model->getRelationInfo();
+<a name="line1558"></a>            if (in_array($info['type'], [Relation::HAS_ONE, Relation::BELONGS_TO])) {
+<a name="line1559"></a>                if (0 == $i) {
+<a name="line1560"></a>                    $name  = Loader::parseName(basename(str_replace('\\', '/', $currentModel)));
+<a name="line1561"></a>                    $table = $this->getTable();
+<a name="line1562"></a>                    $alias = isset($info['alias'][$name]) ? $info['alias'][$name] : $name;
+<a name="line1563"></a>                    $this->table([$table => $alias]);
+<a name="line1564"></a>                    if (isset($this->options['field'])) {
+<a name="line1565"></a>                        $field = $this->options['field'];
+<a name="line1566"></a>                        unset($this->options['field']);
+<a name="line1567"></a>                    } else {
+<a name="line1568"></a>                        $field = true;
+<a name="line1569"></a>                    }
+<a name="line1570"></a>                    $this->field($field, false, $table, $alias);
+<a name="line1571"></a>                }
+<a name="line1572"></a>                // 预载入封装
+<a name="line1573"></a>                $joinTable = $model->getTable();
+<a name="line1574"></a>                $joinName  = Loader::parseName(basename(str_replace('\\', '/', $info['model'])));
+<a name="line1575"></a>                $joinAlias = isset($info['alias'][$joinName]) ? $info['alias'][$joinName] : $relation;
+<a name="line1576"></a>                $this->via($joinAlias);
+<a name="line1577"></a>
+<a name="line1578"></a>                if (Relation::HAS_ONE == $info['type']) {
+<a name="line1579"></a>                    $this->join($joinTable . ' ' . $joinAlias, $alias . '.' . $info['localKey'] . '=' . $joinAlias . '.' . $info['foreignKey'], $info['joinType']);
+<a name="line1580"></a>                } else {
+<a name="line1581"></a>                    $this->join($joinTable . ' ' . $joinAlias, $alias . '.' . $info['foreignKey'] . '=' . $joinAlias . '.' . $info['localKey'], $info['joinType']);
+<a name="line1582"></a>                }
+<a name="line1583"></a>
+<a name="line1584"></a>                if ($closure) {
+<a name="line1585"></a>                    // 执行闭包查询
+<a name="line1586"></a>                    call_user_func_array($closure, [ & $this]);
+<a name="line1587"></a>                    //指定获取关联的字段
+<a name="line1588"></a>                    //需要在 回调中 调方法 withField 方法，如
+<a name="line1589"></a>                    // $query->where(['id'=>1])->withField('id,name');
+<a name="line1590"></a>                    if (!empty($this->options['with_field'])) {
+<a name="line1591"></a>                        $field = $this->options['with_field'];
+<a name="line1592"></a>                        unset($this->options['with_field']);
+<a name="line1593"></a>                    }
+<a name="line1594"></a>                }
+<a name="line1595"></a>                $this->field($field, false, $joinTable, $joinAlias, $relation . '__');
+<a name="line1596"></a>                $i++;
+<a name="line1597"></a>            } elseif ($closure) {
+<a name="line1598"></a>                $with[$key] = $closure;
+<a name="line1599"></a>            }
+<a name="line1600"></a>        }
+<a name="line1601"></a>        $this->via();
+<a name="line1602"></a>        $this->options['with'] = $with;
+<a name="line1603"></a>        return $this;
+<a name="line1604"></a>    }
+<a name="line1605"></a>
+<a name="line1606"></a>    /**
+<a name="line1607"></a>     * 关联预加载中 获取关联指定字段值
+<a name="line1608"></a>     * example:
+<a name="line1609"></a>     * Model::with(['relation' => function($query){
+<a name="line1610"></a>     *     $query->withField("id,name");
+<a name="line1611"></a>     * }])
+<a name="line1612"></a>     *
+<a name="line1613"></a>     * @param string | array $field 指定获取的字段
+<a name="line1614"></a>     * @return $this
+<a name="line1615"></a>     */
+<a name="line1616"></a>    public function withField($field)
+<a name="line1617"></a>    {
+<a name="line1618"></a>        $this->options['with_field'] = $field;
+<a name="line1619"></a>        return $this;
+<a name="line1620"></a>    }
+<a name="line1621"></a>
+<a name="line1622"></a>    /**
+<a name="line1623"></a>     * 设置当前字段添加的表别名
+<a name="line1624"></a>     * @access public
+<a name="line1625"></a>     * @param string $via
+<a name="line1626"></a>     * @return $this
+<a name="line1627"></a>     */
+<a name="line1628"></a>    public function via($via = '')
+<a name="line1629"></a>    {
+<a name="line1630"></a>        $this->options['via'] = $via;
+<a name="line1631"></a>        return $this;
+<a name="line1632"></a>    }
+<a name="line1633"></a>
+<a name="line1634"></a>    /**
+<a name="line1635"></a>     * 设置关联查询
+<a name="line1636"></a>     * @access public
+<a name="line1637"></a>     * @param string $relation 关联名称
+<a name="line1638"></a>     * @return $this
+<a name="line1639"></a>     */
+<a name="line1640"></a>    public function relation($relation)
+<a name="line1641"></a>    {
+<a name="line1642"></a>        $this->options['relation'] = $relation;
+<a name="line1643"></a>        return $this;
+<a name="line1644"></a>    }
+<a name="line1645"></a>
+<a name="line1646"></a>    /**
+<a name="line1647"></a>     * 把主键值转换为查询条件 支持复合主键
+<a name="line1648"></a>     * @access public
+<a name="line1649"></a>     * @param array|string $data    主键数据
+<a name="line1650"></a>     * @param mixed        $options 表达式参数
+<a name="line1651"></a>     * @return void
+<a name="line1652"></a>     * @throws Exception
+<a name="line1653"></a>     */
+<a name="line1654"></a>    protected function parsePkWhere($data, &$options)
+<a name="line1655"></a>    {
+<a name="line1656"></a>        $pk = $this->getPk($options);
+<a name="line1657"></a>        // 获取当前数据表
+<a name="line1658"></a>        $table = is_array($options['table']) ? key($options['table']) : $options['table'];
+<a name="line1659"></a>        if (!empty($options['alias'][$table])) {
+<a name="line1660"></a>            $alias = $options['alias'][$table];
+<a name="line1661"></a>        }
+<a name="line1662"></a>        if (is_string($pk)) {
+<a name="line1663"></a>            $key = isset($alias) ? $alias . '.' . $pk : $pk;
+<a name="line1664"></a>            // 根据主键查询
+<a name="line1665"></a>            if (is_array($data)) {
+<a name="line1666"></a>                $where[$key] = isset($data[$pk]) ? $data[$pk] : ['in', $data];
+<a name="line1667"></a>            } else {
+<a name="line1668"></a>                $where[$key] = strpos($data, ',') ? ['IN', $data] : $data;
+<a name="line1669"></a>            }
+<a name="line1670"></a>        } elseif (is_array($pk) && is_array($data) && !empty($data)) {
+<a name="line1671"></a>            // 根据复合主键查询
+<a name="line1672"></a>            foreach ($pk as $key) {
+<a name="line1673"></a>                if (isset($data[$key])) {
+<a name="line1674"></a>                    $attr         = isset($alias) ? $alias . '.' . $key : $key;
+<a name="line1675"></a>                    $where[$attr] = $data[$key];
+<a name="line1676"></a>                } else {
+<a name="line1677"></a>                    throw new Exception('miss complex primary data');
+<a name="line1678"></a>                }
+<a name="line1679"></a>            }
+<a name="line1680"></a>        }
+<a name="line1681"></a>
+<a name="line1682"></a>        if (!empty($where)) {
+<a name="line1683"></a>            if (isset($options['where']['AND'])) {
+<a name="line1684"></a>                $options['where']['AND'] = array_merge($options['where']['AND'], $where);
+<a name="line1685"></a>            } else {
+<a name="line1686"></a>                $options['where']['AND'] = $where;
+<a name="line1687"></a>            }
+<a name="line1688"></a>        }
+<a name="line1689"></a>        return;
+<a name="line1690"></a>    }
+<a name="line1691"></a>
+<a name="line1692"></a>    /**
+<a name="line1693"></a>     * 插入记录
+<a name="line1694"></a>     * @access public
+<a name="line1695"></a>     * @param mixed   $data         数据
+<a name="line1696"></a>     * @param boolean $replace      是否replace
+<a name="line1697"></a>     * @param boolean $getLastInsID 返回自增主键
+<a name="line1698"></a>     * @param string  $sequence     自增序列名
+<a name="line1699"></a>     * @return integer|string
+<a name="line1700"></a>     */
+<a name="line1701"></a>    public function insert(array $data, $replace = false, $getLastInsID = false, $sequence = null)
+<a name="line1702"></a>    {
+<a name="line1703"></a>        // 分析查询表达式
+<a name="line1704"></a>        $options = $this->parseExpress();
+<a name="line1705"></a>        // 生成SQL语句
+<a name="line1706"></a>        $sql = $this->builder()->insert($data, $options, $replace);
+<a name="line1707"></a>        // 获取参数绑定
+<a name="line1708"></a>        $bind = $this->getBind();
+<a name="line1709"></a>        if ($options['fetch_sql']) {
+<a name="line1710"></a>            // 获取实际执行的SQL语句
+<a name="line1711"></a>            return $this->connection->getRealSql($sql, $bind);
+<a name="line1712"></a>        }
+<a name="line1713"></a>
+<a name="line1714"></a>        // 执行操作
+<a name="line1715"></a>        $result = $this->execute($sql, $bind);
+<a name="line1716"></a>        if ($getLastInsID) {
+<a name="line1717"></a>            $sequence = $sequence ?: (isset($options['sequence']) ? $options['sequence'] : null);
+<a name="line1718"></a>            return $this->getLastInsID($sequence);
+<a name="line1719"></a>        }
+<a name="line1720"></a>        return $result;
+<a name="line1721"></a>    }
+<a name="line1722"></a>
+<a name="line1723"></a>    /**
+<a name="line1724"></a>     * 插入记录并获取自增ID
+<a name="line1725"></a>     * @access public
+<a name="line1726"></a>     * @param mixed   $data     数据
+<a name="line1727"></a>     * @param boolean $replace  是否replace
+<a name="line1728"></a>     * @param string  $sequence 自增序列名
+<a name="line1729"></a>     * @return integer|string
+<a name="line1730"></a>     */
+<a name="line1731"></a>    public function insertGetId(array $data, $replace = false, $sequence = null)
+<a name="line1732"></a>    {
+<a name="line1733"></a>        return $this->insert($data, $replace, true, $sequence);
+<a name="line1734"></a>    }
+<a name="line1735"></a>
+<a name="line1736"></a>    /**
+<a name="line1737"></a>     * 批量插入记录
+<a name="line1738"></a>     * @access public
+<a name="line1739"></a>     * @param mixed $dataSet 数据集
+<a name="line1740"></a>     * @return integer|string
+<a name="line1741"></a>     */
+<a name="line1742"></a>    public function insertAll(array $dataSet)
+<a name="line1743"></a>    {
+<a name="line1744"></a>        // 分析查询表达式
+<a name="line1745"></a>        $options = $this->parseExpress();
+<a name="line1746"></a>        if (!is_array(reset($dataSet))) {
+<a name="line1747"></a>            return false;
+<a name="line1748"></a>        }
+<a name="line1749"></a>        // 生成SQL语句
+<a name="line1750"></a>        $sql = $this->builder()->insertAll($dataSet, $options);
+<a name="line1751"></a>        // 获取参数绑定
+<a name="line1752"></a>        $bind = $this->getBind();
+<a name="line1753"></a>        if ($options['fetch_sql']) {
+<a name="line1754"></a>            // 获取实际执行的SQL语句
+<a name="line1755"></a>            return $this->connection->getRealSql($sql, $bind);
+<a name="line1756"></a>        } else {
+<a name="line1757"></a>            // 执行操作
+<a name="line1758"></a>            return $this->execute($sql, $bind);
+<a name="line1759"></a>        }
+<a name="line1760"></a>    }
+<a name="line1761"></a>
+<a name="line1762"></a>    /**
+<a name="line1763"></a>     * 通过Select方式插入记录
+<a name="line1764"></a>     * @access public
+<a name="line1765"></a>     * @param string $fields 要插入的数据表字段名
+<a name="line1766"></a>     * @param string $table  要插入的数据表名
+<a name="line1767"></a>     * @return integer|string
+<a name="line1768"></a>     * @throws PDOException
+<a name="line1769"></a>     */
+<a name="line1770"></a>    public function selectInsert($fields, $table)
+<a name="line1771"></a>    {
+<a name="line1772"></a>        // 分析查询表达式
+<a name="line1773"></a>        $options = $this->parseExpress();
+<a name="line1774"></a>        // 生成SQL语句
+<a name="line1775"></a>        $table = $this->parseSqlTable($table);
+<a name="line1776"></a>        $sql   = $this->builder()->selectInsert($fields, $table, $options);
+<a name="line1777"></a>        // 获取参数绑定
+<a name="line1778"></a>        $bind = $this->getBind();
+<a name="line1779"></a>        if ($options['fetch_sql']) {
+<a name="line1780"></a>            // 获取实际执行的SQL语句
+<a name="line1781"></a>            return $this->connection->getRealSql($sql, $bind);
+<a name="line1782"></a>        } else {
+<a name="line1783"></a>            // 执行操作
+<a name="line1784"></a>            return $this->execute($sql, $bind);
+<a name="line1785"></a>        }
+<a name="line1786"></a>    }
+<a name="line1787"></a>
+<a name="line1788"></a>    /**
+<a name="line1789"></a>     * 更新记录
+<a name="line1790"></a>     * @access public
+<a name="line1791"></a>     * @param mixed $data 数据
+<a name="line1792"></a>     * @return integer|string
+<a name="line1793"></a>     * @throws Exception
+<a name="line1794"></a>     * @throws PDOException
+<a name="line1795"></a>     */
+<a name="line1796"></a>    public function update(array $data)
+<a name="line1797"></a>    {
+<a name="line1798"></a>        $options = $this->parseExpress();
+<a name="line1799"></a>        $pk      = $this->getPk($options);
+<a name="line1800"></a>        if (isset($options['cache']) && is_string($options['cache'])) {
+<a name="line1801"></a>            $key = $options['cache'];
+<a name="line1802"></a>        }
+<a name="line1803"></a>
+<a name="line1804"></a>        if (empty($options['where'])) {
+<a name="line1805"></a>            // 如果存在主键数据 则自动作为更新条件
+<a name="line1806"></a>            if (is_string($pk) && isset($data[$pk])) {
+<a name="line1807"></a>                $where[$pk] = $data[$pk];
+<a name="line1808"></a>                if (!isset($key)) {
+<a name="line1809"></a>                    $key = 'think:' . $options['table'] . '|' . $data[$pk];
+<a name="line1810"></a>                }
+<a name="line1811"></a>                unset($data[$pk]);
+<a name="line1812"></a>            } elseif (is_array($pk)) {
+<a name="line1813"></a>                // 增加复合主键支持
+<a name="line1814"></a>                foreach ($pk as $field) {
+<a name="line1815"></a>                    if (isset($data[$field])) {
+<a name="line1816"></a>                        $where[$field] = $data[$field];
+<a name="line1817"></a>                    } else {
+<a name="line1818"></a>                        // 如果缺少复合主键数据则不执行
+<a name="line1819"></a>                        throw new Exception('miss complex primary data');
+<a name="line1820"></a>                    }
+<a name="line1821"></a>                    unset($data[$field]);
+<a name="line1822"></a>                }
+<a name="line1823"></a>            }
+<a name="line1824"></a>            if (!isset($where)) {
+<a name="line1825"></a>                // 如果没有任何更新条件则不执行
+<a name="line1826"></a>                throw new Exception('miss update condition');
+<a name="line1827"></a>            } else {
+<a name="line1828"></a>                $options['where']['AND'] = $where;
+<a name="line1829"></a>            }
+<a name="line1830"></a>        } elseif (is_string($pk) && isset($options['where']['AND'][$pk]) && is_scalar($options['where']['AND'][$pk])) {
+<a name="line1831"></a>            $key = 'think:' . $options['table'] . '|' . $options['where']['AND'][$pk];
+<a name="line1832"></a>        }
+<a name="line1833"></a>        // 生成UPDATE SQL语句
+<a name="line1834"></a>        $sql = $this->builder()->update($data, $options);
+<a name="line1835"></a>        // 获取参数绑定
+<a name="line1836"></a>        $bind = $this->getBind();
+<a name="line1837"></a>        if ($options['fetch_sql']) {
+<a name="line1838"></a>            // 获取实际执行的SQL语句
+<a name="line1839"></a>            return $this->connection->getRealSql($sql, $bind);
+<a name="line1840"></a>        } else {
+<a name="line1841"></a>            // 检测缓存
+<a name="line1842"></a>            if (isset($key) && Cache::get($key)) {
+<a name="line1843"></a>                // 删除缓存
+<a name="line1844"></a>                Cache::rm($key);
+<a name="line1845"></a>            }
+<a name="line1846"></a>            // 执行操作
+<a name="line1847"></a>            return '' == $sql ? 0 : $this->execute($sql, $bind);
+<a name="line1848"></a>        }
+<a name="line1849"></a>    }
+<a name="line1850"></a>
+<a name="line1851"></a>    /**
+<a name="line1852"></a>     * 查找记录
+<a name="line1853"></a>     * @access public
+<a name="line1854"></a>     * @param array|string|Query|\Closure $data
+<a name="line1855"></a>     * @return Collection|false|\PDOStatement|string
+<a name="line1856"></a>     * @throws DbException
+<a name="line1857"></a>     * @throws ModelNotFoundException
+<a name="line1858"></a>     * @throws DataNotFoundException
+<a name="line1859"></a>     */
+<a name="line1860"></a>    public function select($data = null)
+<a name="line1861"></a>    {
+<a name="line1862"></a>        if ($data instanceof Query) {
+<a name="line1863"></a>            return $data->select();
+<a name="line1864"></a>        } elseif ($data instanceof \Closure) {
+<a name="line1865"></a>            call_user_func_array($data, [ & $this]);
+<a name="line1866"></a>            $data = null;
+<a name="line1867"></a>        }
+<a name="line1868"></a>        // 分析查询表达式
+<a name="line1869"></a>        $options = $this->parseExpress();
+<a name="line1870"></a>
+<a name="line1871"></a>        if (false === $data) {
+<a name="line1872"></a>            // 用于子查询 不查询只返回SQL
+<a name="line1873"></a>            $options['fetch_sql'] = true;
+<a name="line1874"></a>        } elseif (!is_null($data)) {
+<a name="line1875"></a>            // 主键条件分析
+<a name="line1876"></a>            $this->parsePkWhere($data, $options);
+<a name="line1877"></a>        }
+<a name="line1878"></a>
+<a name="line1879"></a>        $resultSet = false;
+<a name="line1880"></a>        if (empty($options['fetch_sql']) && !empty($options['cache'])) {
+<a name="line1881"></a>            // 判断查询缓存
+<a name="line1882"></a>            $cache = $options['cache'];
+<a name="line1883"></a>            unset($options['cache']);
+<a name="line1884"></a>            $key       = is_string($cache['key']) ? $cache['key'] : md5(serialize($options));
+<a name="line1885"></a>            $resultSet = Cache::get($key);
+<a name="line1886"></a>        }
+<a name="line1887"></a>        if (!$resultSet) {
+<a name="line1888"></a>            // 生成查询SQL
+<a name="line1889"></a>            $sql = $this->builder()->select($options);
+<a name="line1890"></a>            // 获取参数绑定
+<a name="line1891"></a>            $bind = $this->getBind();
+<a name="line1892"></a>            if ($options['fetch_sql']) {
+<a name="line1893"></a>                // 获取实际执行的SQL语句
+<a name="line1894"></a>                return $this->connection->getRealSql($sql, $bind);
+<a name="line1895"></a>            }
+<a name="line1896"></a>            // 执行查询操作
+<a name="line1897"></a>            $resultSet = $this->query($sql, $bind, $options['master'], $options['fetch_class']);
+<a name="line1898"></a>
+<a name="line1899"></a>            if ($resultSet instanceof \PDOStatement) {
+<a name="line1900"></a>                // 返回PDOStatement对象
+<a name="line1901"></a>                return $resultSet;
+<a name="line1902"></a>            }
+<a name="line1903"></a>
+<a name="line1904"></a>            if (isset($cache)) {
+<a name="line1905"></a>                // 缓存数据集
+<a name="line1906"></a>                if (isset($cache['tag'])) {
+<a name="line1907"></a>                    Cache::tag($cache['tag'])->set($key, $resultSet, $cache['expire']);
+<a name="line1908"></a>                } else {
+<a name="line1909"></a>                    Cache::set($key, $resultSet, $cache['expire']);
+<a name="line1910"></a>                }
+<a name="line1911"></a>            }
+<a name="line1912"></a>        }
+<a name="line1913"></a>
+<a name="line1914"></a>        // 返回结果处理
+<a name="line1915"></a>        if (count($resultSet) > 0) {
+<a name="line1916"></a>            // 数据列表读取后的处理
+<a name="line1917"></a>            if (!empty($this->model)) {
+<a name="line1918"></a>                // 生成模型对象
+<a name="line1919"></a>                $model = $this->model;
+<a name="line1920"></a>                foreach ($resultSet as $key => $result) {
+<a name="line1921"></a>                    /** @var Model $result */
+<a name="line1922"></a>                    $result = new $model($result);
+<a name="line1923"></a>                    $result->isUpdate(true);
+<a name="line1924"></a>                    // 关联查询
+<a name="line1925"></a>                    if (!empty($options['relation'])) {
+<a name="line1926"></a>                        $result->relationQuery($options['relation']);
+<a name="line1927"></a>                    }
+<a name="line1928"></a>                    $resultSet[$key] = $result;
+<a name="line1929"></a>                }
+<a name="line1930"></a>                if (!empty($options['with']) && $result instanceof Model) {
+<a name="line1931"></a>                    // 预载入
+<a name="line1932"></a>                    $resultSet = $result->eagerlyResultSet($resultSet, $options['with'], is_object($resultSet) ? get_class($resultSet) : '');
+<a name="line1933"></a>                }
+<a name="line1934"></a>            }
+<a name="line1935"></a>        } elseif (!empty($options['fail'])) {
+<a name="line1936"></a>            $this->throwNotFound($options);
+<a name="line1937"></a>        }
+<a name="line1938"></a>        return $resultSet;
+<a name="line1939"></a>    }
+<a name="line1940"></a>
+<a name="line1941"></a>    /**
+<a name="line1942"></a>     * 查找单条记录
+<a name="line1943"></a>     * @access public
+<a name="line1944"></a>     * @param array|string|Query|\Closure $data
+<a name="line1945"></a>     * @return array|false|\PDOStatement|string|Model
+<a name="line1946"></a>     * @throws DbException
+<a name="line1947"></a>     * @throws ModelNotFoundException
+<a name="line1948"></a>     * @throws DataNotFoundException
+<a name="line1949"></a>     */
+<a name="line1950"></a>    public function find($data = null)
+<a name="line1951"></a>    {
+<a name="line1952"></a>        if ($data instanceof Query) {
+<a name="line1953"></a>            return $data->find();
+<a name="line1954"></a>        } elseif ($data instanceof \Closure) {
+<a name="line1955"></a>            call_user_func_array($data, [ & $this]);
+<a name="line1956"></a>            $data = null;
+<a name="line1957"></a>        }
+<a name="line1958"></a>        // 分析查询表达式
+<a name="line1959"></a>        $options = $this->parseExpress();
+<a name="line1960"></a>
+<a name="line1961"></a>        if (!is_null($data)) {
+<a name="line1962"></a>            // AR模式分析主键条件
+<a name="line1963"></a>            $this->parsePkWhere($data, $options);
+<a name="line1964"></a>        }
+<a name="line1965"></a>
+<a name="line1966"></a>        $options['limit'] = 1;
+<a name="line1967"></a>        $result           = false;
+<a name="line1968"></a>        if (empty($options['fetch_sql']) && !empty($options['cache'])) {
+<a name="line1969"></a>            // 判断查询缓存
+<a name="line1970"></a>            $cache = $options['cache'];
+<a name="line1971"></a>            if (true === $cache['key'] && !is_null($data) && !is_array($data)) {
+<a name="line1972"></a>                $key = 'think:' . (is_array($options['table']) ? key($options['table']) : $options['table']) . '|' . $data;
+<a name="line1973"></a>            } else {
+<a name="line1974"></a>                $key = is_string($cache['key']) ? $cache['key'] : md5(serialize($options));
+<a name="line1975"></a>            }
+<a name="line1976"></a>            $result = Cache::get($key);
+<a name="line1977"></a>        }
+<a name="line1978"></a>        if (!$result) {
+<a name="line1979"></a>            // 生成查询SQL
+<a name="line1980"></a>            $sql = $this->builder()->select($options);
+<a name="line1981"></a>            // 获取参数绑定
+<a name="line1982"></a>            $bind = $this->getBind();
+<a name="line1983"></a>            if ($options['fetch_sql']) {
+<a name="line1984"></a>                // 获取实际执行的SQL语句
+<a name="line1985"></a>                return $this->connection->getRealSql($sql, $bind);
+<a name="line1986"></a>            }
+<a name="line1987"></a>            // 执行查询
+<a name="line1988"></a>            $result = $this->query($sql, $bind, $options['master'], $options['fetch_class']);
+<a name="line1989"></a>
+<a name="line1990"></a>            if ($result instanceof \PDOStatement) {
+<a name="line1991"></a>                // 返回PDOStatement对象
+<a name="line1992"></a>                return $result;
+<a name="line1993"></a>            }
+<a name="line1994"></a>
+<a name="line1995"></a>            if (isset($cache)) {
+<a name="line1996"></a>                // 缓存数据
+<a name="line1997"></a>                if (isset($cache['tag'])) {
+<a name="line1998"></a>                    Cache::tag($cache['tag'])->set($key, $result, $cache['expire']);
+<a name="line1999"></a>                } else {
+<a name="line2000"></a>                    Cache::set($key, $result, $cache['expire']);
+<a name="line2001"></a>                }
+<a name="line2002"></a>            }
+<a name="line2003"></a>        }
+<a name="line2004"></a>
+<a name="line2005"></a>        // 数据处理
+<a name="line2006"></a>        if (!empty($result[0])) {
+<a name="line2007"></a>            $data = $result[0];
+<a name="line2008"></a>            if (!empty($this->model)) {
+<a name="line2009"></a>                // 返回模型对象
+<a name="line2010"></a>                $model = $this->model;
+<a name="line2011"></a>                $data  = new $model($data);
+<a name="line2012"></a>                $data->isUpdate(true, isset($options['where']['AND']) ? $options['where']['AND'] : null);
+<a name="line2013"></a>                // 关联查询
+<a name="line2014"></a>                if (!empty($options['relation'])) {
+<a name="line2015"></a>                    $data->relationQuery($options['relation']);
+<a name="line2016"></a>                }
+<a name="line2017"></a>                if (!empty($options['with'])) {
+<a name="line2018"></a>                    // 预载入
+<a name="line2019"></a>                    $data->eagerlyResult($data, $options['with'], is_object($result) ? get_class($result) : '');
+<a name="line2020"></a>                }
+<a name="line2021"></a>            }
+<a name="line2022"></a>        } elseif (!empty($options['fail'])) {
+<a name="line2023"></a>            $this->throwNotFound($options);
+<a name="line2024"></a>        } else {
+<a name="line2025"></a>            $data = null;
+<a name="line2026"></a>        }
+<a name="line2027"></a>        return $data;
+<a name="line2028"></a>    }
+<a name="line2029"></a>
+<a name="line2030"></a>    /**
+<a name="line2031"></a>     * 查询失败 抛出异常
+<a name="line2032"></a>     * @access public
+<a name="line2033"></a>     * @param array $options 查询参数
+<a name="line2034"></a>     * @throws ModelNotFoundException
+<a name="line2035"></a>     * @throws DataNotFoundException
+<a name="line2036"></a>     */
+<a name="line2037"></a>    protected function throwNotFound($options = [])
+<a name="line2038"></a>    {
+<a name="line2039"></a>        if (!empty($this->model)) {
+<a name="line2040"></a>            throw new ModelNotFoundException('model data Not Found:' . $this->model, $this->model, $options);
+<a name="line2041"></a>        } else {
+<a name="line2042"></a>            $table = is_array($options['table']) ? key($options['table']) : $options['table'];
+<a name="line2043"></a>            throw new DataNotFoundException('table data not Found:' . $table, $table, $options);
+<a name="line2044"></a>        }
+<a name="line2045"></a>    }
+<a name="line2046"></a>
+<a name="line2047"></a>    /**
+<a name="line2048"></a>     * 查找多条记录 如果不存在则抛出异常
+<a name="line2049"></a>     * @access public
+<a name="line2050"></a>     * @param array|string|Query|\Closure $data
+<a name="line2051"></a>     * @return array|\PDOStatement|string|Model
+<a name="line2052"></a>     * @throws DbException
+<a name="line2053"></a>     * @throws ModelNotFoundException
+<a name="line2054"></a>     * @throws DataNotFoundException
+<a name="line2055"></a>     */
+<a name="line2056"></a>    public function selectOrFail($data = null)
+<a name="line2057"></a>    {
+<a name="line2058"></a>        return $this->failException(true)->select($data);
+<a name="line2059"></a>    }
+<a name="line2060"></a>
+<a name="line2061"></a>    /**
+<a name="line2062"></a>     * 查找单条记录 如果不存在则抛出异常
+<a name="line2063"></a>     * @access public
+<a name="line2064"></a>     * @param array|string|Query|\Closure $data
+<a name="line2065"></a>     * @return array|\PDOStatement|string|Model
+<a name="line2066"></a>     * @throws DbException
+<a name="line2067"></a>     * @throws ModelNotFoundException
+<a name="line2068"></a>     * @throws DataNotFoundException
+<a name="line2069"></a>     */
+<a name="line2070"></a>    public function findOrFail($data = null)
+<a name="line2071"></a>    {
+<a name="line2072"></a>        return $this->failException(true)->find($data);
+<a name="line2073"></a>    }
+<a name="line2074"></a>
+<a name="line2075"></a>    /**
+<a name="line2076"></a>     * 分批数据返回处理
+<a name="line2077"></a>     * @access public
+<a name="line2078"></a>     * @param integer  $count    每次处理的数据数量
+<a name="line2079"></a>     * @param callable $callback 处理回调方法
+<a name="line2080"></a>     * @param string   $column   分批处理的字段名
+<a name="line2081"></a>     * @return boolean
+<a name="line2082"></a>     */
+<a name="line2083"></a>    public function chunk($count, $callback, $column = null)
+<a name="line2084"></a>    {
+<a name="line2085"></a>        $options = $this->getOptions();
+<a name="line2086"></a>        if (isset($options['table'])) {
+<a name="line2087"></a>            $table = is_array($options['table']) ? key($options['table']) : $options['table'];
+<a name="line2088"></a>        } else {
+<a name="line2089"></a>            $table = '';
+<a name="line2090"></a>        }
+<a name="line2091"></a>        $column    = $column ?: $this->getPk($table);
+<a name="line2092"></a>        $bind      = $this->bind;
+<a name="line2093"></a>        $resultSet = $this->limit($count)->order($column, 'asc')->select();
+<a name="line2094"></a>
+<a name="line2095"></a>        while (!empty($resultSet)) {
+<a name="line2096"></a>            if (false === call_user_func($callback, $resultSet)) {
+<a name="line2097"></a>                return false;
+<a name="line2098"></a>            }
+<a name="line2099"></a>            $end       = end($resultSet);
+<a name="line2100"></a>            $lastId    = is_array($end) ? $end[$column] : $end->$column;
+<a name="line2101"></a>            $resultSet = $this->options($options)
+<a name="line2102"></a>                ->limit($count)
+<a name="line2103"></a>                ->bind($bind)
+<a name="line2104"></a>                ->where($column, '>', $lastId)
+<a name="line2105"></a>                ->order($column, 'asc')
+<a name="line2106"></a>                ->select();
+<a name="line2107"></a>        }
+<a name="line2108"></a>        return true;
+<a name="line2109"></a>    }
+<a name="line2110"></a>
+<a name="line2111"></a>    /**
+<a name="line2112"></a>     * 获取绑定的参数 并清空
+<a name="line2113"></a>     * @access public
+<a name="line2114"></a>     * @return array
+<a name="line2115"></a>     */
+<a name="line2116"></a>    public function getBind()
+<a name="line2117"></a>    {
+<a name="line2118"></a>        $bind       = $this->bind;
+<a name="line2119"></a>        $this->bind = [];
+<a name="line2120"></a>        return $bind;
+<a name="line2121"></a>    }
+<a name="line2122"></a>
+<a name="line2123"></a>    /**
+<a name="line2124"></a>     * 创建子查询SQL
+<a name="line2125"></a>     * @access public
+<a name="line2126"></a>     * @param bool $sub
+<a name="line2127"></a>     * @return string
+<a name="line2128"></a>     * @throws DbException
+<a name="line2129"></a>     */
+<a name="line2130"></a>    public function buildSql($sub = true)
+<a name="line2131"></a>    {
+<a name="line2132"></a>        return $sub ? '( ' . $this->select(false) . ' )' : $this->select(false);
+<a name="line2133"></a>    }
+<a name="line2134"></a>
+<a name="line2135"></a>    /**
+<a name="line2136"></a>     * 删除记录
+<a name="line2137"></a>     * @access public
+<a name="line2138"></a>     * @param mixed $data 表达式 true 表示强制删除
+<a name="line2139"></a>     * @return int
+<a name="line2140"></a>     * @throws Exception
+<a name="line2141"></a>     * @throws PDOException
+<a name="line2142"></a>     */
+<a name="line2143"></a>    public function delete($data = null)
+<a name="line2144"></a>    {
+<a name="line2145"></a>        // 分析查询表达式
+<a name="line2146"></a>        $options = $this->parseExpress();
+<a name="line2147"></a>        if (isset($options['cache']) && is_string($options['cache'])) {
+<a name="line2148"></a>            $key = $options['cache'];
+<a name="line2149"></a>        }
+<a name="line2150"></a>
+<a name="line2151"></a>        if (!is_null($data) && true !== $data) {
+<a name="line2152"></a>            if (!isset($key) && !is_array($data)) {
+<a name="line2153"></a>                // 缓存标识
+<a name="line2154"></a>                $key = 'think:' . $options['table'] . '|' . $data;
+<a name="line2155"></a>            }
+<a name="line2156"></a>            // AR模式分析主键条件
+<a name="line2157"></a>            $this->parsePkWhere($data, $options);
+<a name="line2158"></a>        }
+<a name="line2159"></a>
+<a name="line2160"></a>        if (true !== $data && empty($options['where'])) {
+<a name="line2161"></a>            // 如果条件为空 不进行删除操作 除非设置 1=1
+<a name="line2162"></a>            throw new Exception('delete without condition');
+<a name="line2163"></a>        }
+<a name="line2164"></a>        // 生成删除SQL语句
+<a name="line2165"></a>        $sql = $this->builder()->delete($options);
+<a name="line2166"></a>        // 获取参数绑定
+<a name="line2167"></a>        $bind = $this->getBind();
+<a name="line2168"></a>        if ($options['fetch_sql']) {
+<a name="line2169"></a>            // 获取实际执行的SQL语句
+<a name="line2170"></a>            return $this->connection->getRealSql($sql, $bind);
+<a name="line2171"></a>        }
+<a name="line2172"></a>
+<a name="line2173"></a>        // 检测缓存
+<a name="line2174"></a>        if (isset($key) && Cache::get($key)) {
+<a name="line2175"></a>            // 删除缓存
+<a name="line2176"></a>            Cache::rm($key);
+<a name="line2177"></a>        }
+<a name="line2178"></a>        // 执行操作
+<a name="line2179"></a>        return $this->execute($sql, $bind);
+<a name="line2180"></a>    }
+<a name="line2181"></a>
+<a name="line2182"></a>    /**
+<a name="line2183"></a>     * 分析表达式（可用于查询或者写入操作）
+<a name="line2184"></a>     * @access protected
+<a name="line2185"></a>     * @return array
+<a name="line2186"></a>     */
+<a name="line2187"></a>    protected function parseExpress()
+<a name="line2188"></a>    {
+<a name="line2189"></a>        $options = $this->options;
+<a name="line2190"></a>
+<a name="line2191"></a>        // 获取数据表
+<a name="line2192"></a>        if (empty($options['table'])) {
+<a name="line2193"></a>            $options['table'] = $this->getTable();
+<a name="line2194"></a>        }
+<a name="line2195"></a>
+<a name="line2196"></a>        if (!isset($options['where'])) {
+<a name="line2197"></a>            $options['where'] = [];
+<a name="line2198"></a>        } elseif (isset($options['view'])) {
+<a name="line2199"></a>            // 视图查询条件处理
+<a name="line2200"></a>            foreach (['AND', 'OR'] as $logic) {
+<a name="line2201"></a>                if (isset($options['where'][$logic])) {
+<a name="line2202"></a>                    foreach ($options['where'][$logic] as $key => $val) {
+<a name="line2203"></a>                        if (array_key_exists($key, $options['map'])) {
+<a name="line2204"></a>                            $options['where'][$logic][$options['map'][$key]] = $val;
+<a name="line2205"></a>                            unset($options['where'][$logic][$key]);
+<a name="line2206"></a>                        }
+<a name="line2207"></a>                    }
+<a name="line2208"></a>                }
+<a name="line2209"></a>            }
+<a name="line2210"></a>
+<a name="line2211"></a>            if (isset($options['order'])) {
+<a name="line2212"></a>                // 视图查询排序处理
+<a name="line2213"></a>                if (is_string($options['order'])) {
+<a name="line2214"></a>                    $options['order'] = explode(',', $options['order']);
+<a name="line2215"></a>                }
+<a name="line2216"></a>                foreach ($options['order'] as $key => $val) {
+<a name="line2217"></a>                    if (is_numeric($key)) {
+<a name="line2218"></a>                        if (strpos($val, ' ')) {
+<a name="line2219"></a>                            list($field, $sort) = explode(' ', $val);
+<a name="line2220"></a>                            if (array_key_exists($field, $options['map'])) {
+<a name="line2221"></a>                                $options['order'][$options['map'][$field]] = $sort;
+<a name="line2222"></a>                                unset($options['order'][$key]);
+<a name="line2223"></a>                            }
+<a name="line2224"></a>                        } elseif (array_key_exists($val, $options['map'])) {
+<a name="line2225"></a>                            $options['order'][$options['map'][$val]] = 'asc';
+<a name="line2226"></a>                            unset($options['order'][$key]);
+<a name="line2227"></a>                        }
+<a name="line2228"></a>                    } elseif (array_key_exists($key, $options['map'])) {
+<a name="line2229"></a>                        $options['order'][$options['map'][$key]] = $val;
+<a name="line2230"></a>                        unset($options['order'][$key]);
+<a name="line2231"></a>                    }
+<a name="line2232"></a>                }
+<a name="line2233"></a>            }
+<a name="line2234"></a>        }
+<a name="line2235"></a>
+<a name="line2236"></a>        if (!isset($options['field'])) {
+<a name="line2237"></a>            $options['field'] = '*';
+<a name="line2238"></a>        }
+<a name="line2239"></a>
+<a name="line2240"></a>        if (!isset($options['strict'])) {
+<a name="line2241"></a>            $options['strict'] = $this->getConfig('fields_strict');
+<a name="line2242"></a>        }
+<a name="line2243"></a>
+<a name="line2244"></a>        foreach (['master', 'lock', 'fetch_class', 'fetch_sql', 'distinct'] as $name) {
+<a name="line2245"></a>            if (!isset($options[$name])) {
+<a name="line2246"></a>                $options[$name] = false;
+<a name="line2247"></a>            }
+<a name="line2248"></a>        }
+<a name="line2249"></a>
+<a name="line2250"></a>        foreach (['join', 'union', 'group', 'having', 'limit', 'order', 'force', 'comment'] as $name) {
+<a name="line2251"></a>            if (!isset($options[$name])) {
+<a name="line2252"></a>                $options[$name] = '';
+<a name="line2253"></a>            }
+<a name="line2254"></a>        }
+<a name="line2255"></a>
+<a name="line2256"></a>        if (isset($options['page'])) {
+<a name="line2257"></a>            // 根据页数计算limit
+<a name="line2258"></a>            list($page, $listRows) = $options['page'];
+<a name="line2259"></a>            $page                  = $page > 0 ? $page : 1;
+<a name="line2260"></a>            $listRows              = $listRows > 0 ? $listRows : (is_numeric($options['limit']) ? $options['limit'] : 20);
+<a name="line2261"></a>            $offset                = $listRows * ($page - 1);
+<a name="line2262"></a>            $options['limit']      = $offset . ',' . $listRows;
+<a name="line2263"></a>        }
+<a name="line2264"></a>
+<a name="line2265"></a>        $this->options = [];
+<a name="line2266"></a>        return $options;
+<a name="line2267"></a>    }
+<a name="line2268"></a>
+<a name="line2269"></a>}
+<a name="line2270"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\db\query.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

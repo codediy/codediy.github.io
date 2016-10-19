@@ -1,0 +1,310 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:04 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>App (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\app.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\App</div>
+<a href="../source/library/think/app.php.html#line31" class="location">library\think\App.php at line 31</a>
+
+<h1>Class App</h1>
+
+<pre class="tree"><strong>App</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>App</strong></p>
+
+<div class="comment" id="overview_description"><p>App 应用管理</p></div>
+
+<dl>
+<dt>Author:</dt>
+<dd>liu21st <liu21st@gmail.com></dd>
+</dl>
+<hr>
+
+<table id="summary_field">
+<tr><th colspan="2">Field Summary</th></tr>
+<tr>
+<td class="type">static  bool 应用调试模式</td>
+<td class="description"><p class="name"><a href="#debug">$debug</a></p><p class="description"></p></td>
+</tr>
+<tr>
+<td class="type">static  string 当前模块路径</td>
+<td class="description"><p class="name"><a href="#modulePath">$modulePath</a></p><p class="description"></p></td>
+</tr>
+<tr>
+<td class="type">static  string 应用类库命名空间</td>
+<td class="description"><p class="name"><a href="#namespace">$namespace</a></p><p class="description"></p></td>
+</tr>
+<tr>
+<td class="type">static  bool 应用类库后缀</td>
+<td class="description"><p class="name"><a href="#suffix">$suffix</a></p><p class="description"></p></td>
+</tr>
+</table>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type">static  <a href="../think/response.html">Response</a></td>
+<td class="description"><p class="name"><a href="#run()">run</a>(<a href="../think/request.html">Request</a> request)</p><p class="description">执行应用程序</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#dispatch()">dispatch</a>(array|string dispatch, string type)</p><p class="description">设置当前请求的调度信息</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#invokeFunction()">invokeFunction</a>(string|array|\Closure function, array vars)</p><p class="description">执行函数或者闭包方法 支持参数调用</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#invokeMethod()">invokeMethod</a>(string|array method, array vars)</p><p class="description">调用反射执行类的方法 支持参数绑定</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#invokeClass()">invokeClass</a>(string class, array vars)</p><p class="description">调用反射执行类的实例化 支持依赖注入</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#module()">module</a>(array result, array config, bool convert)</p><p class="description">执行模块</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#initCommon()">initCommon</a>()</p><p class="description">初始化应用</p></td>
+</tr>
+<tr>
+<td class="type">static  array</td>
+<td class="description"><p class="name"><a href="#routeCheck()">routeCheck</a>(\think\Request request, array config)</p><p class="description">URL路由检测（根据PATH_INFO)</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#route()">route</a>(bool route, bool must)</p><p class="description">设置应用的路由检测机制</p></td>
+</tr>
+</table>
+
+<h2 id="detail_field">Field Detail</h2>
+<a href="../source/library/think/app.php.html#line46" class="location">library\think\App.php at line 46</a>
+
+<h3 id="debug">debug</h3>
+<code class="signature">public static  bool 应用调试模式 <strong>$debug</strong> = true</code>
+<div class="details">
+<p></p></div>
+
+<hr>
+
+<a href="../source/library/think/app.php.html#line41" class="location">library\think\App.php at line 41</a>
+
+<h3 id="modulePath">modulePath</h3>
+<code class="signature">public static  string 当前模块路径 <strong>$modulePath</strong></code>
+<div class="details">
+<p></p></div>
+
+<hr>
+
+<a href="../source/library/think/app.php.html#line51" class="location">library\think\App.php at line 51</a>
+
+<h3 id="namespace">namespace</h3>
+<code class="signature">public static  string 应用类库命名空间 <strong>$namespace</strong> = 'app'</code>
+<div class="details">
+<p></p></div>
+
+<hr>
+
+<a href="../source/library/think/app.php.html#line56" class="location">library\think\App.php at line 56</a>
+
+<h3 id="suffix">suffix</h3>
+<code class="signature">public static  bool 应用类库后缀 <strong>$suffix</strong> = false</code>
+<div class="details">
+<p></p></div>
+
+<hr>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../source/library/think/app.php.html#line78" class="location">library\think\App.php at line 78</a>
+
+<h3 id="run()">run</h3>
+<code class="signature">public static  <a href="../think/response.html">Response</a> <strong>run</strong>(<a href="../think/request.html">Request</a> request)</code>
+<div class="details">
+<p>执行应用程序</p><dl>
+<dt>Parameters:</dt>
+<dd>request - Request对象</dd>
+<dt>Throws:</dt>
+<dd><a href="../think/exception.html">Exception</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/app.php.html#line189" class="location">library\think\App.php at line 189</a>
+
+<h3 id="dispatch()">dispatch</h3>
+<code class="signature">public static  void <strong>dispatch</strong>(array|string dispatch, string type)</code>
+<div class="details">
+<p>设置当前请求的调度信息</p><dl>
+<dt>Parameters:</dt>
+<dd>dispatch - 调度信息</dd>
+<dd>type - 调度类型</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/app.php.html#line201" class="location">library\think\App.php at line 201</a>
+
+<h3 id="invokeFunction()">invokeFunction</h3>
+<code class="signature">public static  mixed <strong>invokeFunction</strong>(string|array|\Closure function, array vars)</code>
+<div class="details">
+<p>执行函数或者闭包方法 支持参数调用</p><dl>
+<dt>Parameters:</dt>
+<dd>function - 函数或者闭包</dd>
+<dd>vars - 变量</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/app.php.html#line217" class="location">library\think\App.php at line 217</a>
+
+<h3 id="invokeMethod()">invokeMethod</h3>
+<code class="signature">public static  mixed <strong>invokeMethod</strong>(string|array method, array vars)</code>
+<div class="details">
+<p>调用反射执行类的方法 支持参数绑定</p><dl>
+<dt>Parameters:</dt>
+<dd>method - 方法</dd>
+<dd>vars - 变量</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/app.php.html#line239" class="location">library\think\App.php at line 239</a>
+
+<h3 id="invokeClass()">invokeClass</h3>
+<code class="signature">public static  mixed <strong>invokeClass</strong>(string class, array vars)</code>
+<div class="details">
+<p>调用反射执行类的实例化 支持依赖注入</p><dl>
+<dt>Parameters:</dt>
+<dd>class - 类名</dd>
+<dd>vars - 变量</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/app.php.html#line309" class="location">library\think\App.php at line 309</a>
+
+<h3 id="module()">module</h3>
+<code class="signature">public static  mixed <strong>module</strong>(array result, array config, bool convert)</code>
+<div class="details">
+<p>执行模块</p><dl>
+<dt>Parameters:</dt>
+<dd>result - 模块/控制器/操作</dd>
+<dd>config - 配置参数</dd>
+<dd>convert - 是否自动转换控制器和操作名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/app.php.html#line398" class="location">library\think\App.php at line 398</a>
+
+<h3 id="initCommon()">initCommon</h3>
+<code class="signature">public static  void <strong>initCommon</strong>()</code>
+<div class="details">
+<p>初始化应用</p></div>
+
+<hr>
+
+<a href="../source/library/think/app.php.html#line515" class="location">library\think\App.php at line 515</a>
+
+<h3 id="routeCheck()">routeCheck</h3>
+<code class="signature">public static  array <strong>routeCheck</strong>(\think\Request request, array config)</code>
+<div class="details">
+<p>URL路由检测（根据PATH_INFO)</p><dl>
+<dt>Throws:</dt>
+<dd><a href="../think/exception.html">\think\Exception</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/app.php.html#line565" class="location">library\think\App.php at line 565</a>
+
+<h3 id="route()">route</h3>
+<code class="signature">public static  void <strong>route</strong>(bool route, bool must)</code>
+<div class="details">
+<p>设置应用的路由检测机制</p><dl>
+<dt>Parameters:</dt>
+<dd>route - 是否需要检测路由</dd>
+<dd>must - 是否强制检测路由</dd>
+</dl>
+</div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\app.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

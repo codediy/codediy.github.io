@@ -1,0 +1,262 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>View (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\view.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\View</div>
+<a href="../source/library/think/view.php.html#line14" class="location">library\think\View.php at line 14</a>
+
+<h1>Class View</h1>
+
+<pre class="tree"><strong>View</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>View</strong></p>
+
+<hr>
+
+<table id="summary_field">
+<tr><th colspan="2">Field Summary</th></tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#engine">$engine</a></p></td>
+</tr>
+</table>
+
+<table id="summary_constructor">
+<tr><th colspan="2">Constructor Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#__construct()">__construct</a>(array engine, array replace)</p><p class="description">架构函数</p></td>
+</tr>
+</table>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type">static  object</td>
+<td class="description"><p class="name"><a href="#instance()">instance</a>(array engine, array replace)</p><p class="description">初始化视图</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#assign()">assign</a>(mixed name, mixed value)</p><p class="description">模板变量赋值</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#engine()">engine</a>(array|string options)</p><p class="description">设置当前模板解析的引擎</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#config()">config</a>(string|array name, mixed value)</p><p class="description">配置模板引擎</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#fetch()">fetch</a>(string template, array vars, array replace, array config, bool renderContent)</p><p class="description">解析和获取模板内容 用于输出</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#replace()">replace</a>(string|array content, string replace)</p><p class="description">视图内容替换</p></td>
+</tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#display()">display</a>(string content, array vars, array replace, array config)</p><p class="description">渲染内容输出</p></td>
+</tr>
+</table>
+
+<h2 id="detail_field">Field Detail</h2>
+<a href="../source/library/think/view.php.html#line19" class="location">library\think\View.php at line 19</a>
+
+<h3 id="engine">engine</h3>
+<code class="signature">public  mixed <strong>$engine</strong></code>
+<div class="details">
+</div>
+
+<hr>
+
+<h2 id="detail_method">Constructor Detail</h2>
+<a href="../source/library/think/view.php.html#line31" class="location">library\think\View.php at line 31</a>
+
+<h3 id="__construct()">__construct</h3>
+<code class="signature">public  void <strong>__construct</strong>(array engine, array replace)</code>
+<div class="details">
+<p>架构函数</p><dl>
+<dt>Parameters:</dt>
+<dd>engine - 模板引擎参数</dd>
+<dd>replace - 字符串替换参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../source/library/think/view.php.html#line45" class="location">library\think\View.php at line 45</a>
+
+<h3 id="instance()">instance</h3>
+<code class="signature">public static  object <strong>instance</strong>(array engine, array replace)</code>
+<div class="details">
+<p>初始化视图</p><dl>
+<dt>Parameters:</dt>
+<dd>engine - 模板引擎参数</dd>
+<dd>replace - 字符串替换参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/view.php.html#line60" class="location">library\think\View.php at line 60</a>
+
+<h3 id="assign()">assign</h3>
+<code class="signature">public  $this <strong>assign</strong>(mixed name, mixed value)</code>
+<div class="details">
+<p>模板变量赋值</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 变量名</dd>
+<dd>value - 变量值</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/view.php.html#line76" class="location">library\think\View.php at line 76</a>
+
+<h3 id="engine()">engine</h3>
+<code class="signature">public  $this <strong>engine</strong>(array|string options)</code>
+<div class="details">
+<p>设置当前模板解析的引擎</p><dl>
+<dt>Parameters:</dt>
+<dd>options - 引擎参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/view.php.html#line100" class="location">library\think\View.php at line 100</a>
+
+<h3 id="config()">config</h3>
+<code class="signature">public  void <strong>config</strong>(string|array name, mixed value)</code>
+<div class="details">
+<p>配置模板引擎</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 参数名</dd>
+<dd>value - 参数值</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/view.php.html#line116" class="location">library\think\View.php at line 116</a>
+
+<h3 id="fetch()">fetch</h3>
+<code class="signature">public  string <strong>fetch</strong>(string template, array vars, array replace, array config, bool renderContent)</code>
+<div class="details">
+<p>解析和获取模板内容 用于输出</p><dl>
+<dt>Parameters:</dt>
+<dd>template - 模板文件名或者内容</dd>
+<dd>vars - 模板输出变量</dd>
+<dd>replace - 替换内容</dd>
+<dd>config - 模板参数</dd>
+<dd>renderContent - 是否渲染内容</dd>
+<dt>Throws:</dt>
+<dd><a href="../think/exception.html">Exception</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/view.php.html#line148" class="location">library\think\View.php at line 148</a>
+
+<h3 id="replace()">replace</h3>
+<code class="signature">public  $this <strong>replace</strong>(string|array content, string replace)</code>
+<div class="details">
+<p>视图内容替换</p><dl>
+<dt>Parameters:</dt>
+<dd>content - 被替换内容（支持批量替换）</dd>
+<dd>replace - 替换内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/view.php.html#line167" class="location">library\think\View.php at line 167</a>
+
+<h3 id="display()">display</h3>
+<code class="signature">public  mixed <strong>display</strong>(string content, array vars, array replace, array config)</code>
+<div class="details">
+<p>渲染内容输出</p><dl>
+<dt>Parameters:</dt>
+<dd>content - 内容</dd>
+<dd>vars - 模板输出变量</dd>
+<dd>replace - 替换内容</dd>
+<dd>config - 模板参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\view.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

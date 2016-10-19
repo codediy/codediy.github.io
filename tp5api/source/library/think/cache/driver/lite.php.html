@@ -1,0 +1,246 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\cache\driver\Lite.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\cache\driver\lite.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\cache\driver\Lite.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think\cache\driver;
+<a name="line13"></a>
+<a name="line14"></a>use think\cache\Driver;
+<a name="line15"></a>
+<a name="line16"></a>/**
+<a name="line17"></a> * 文件类型缓存类
+<a name="line18"></a> * @author    liu21st <liu21st@gmail.com>
+<a name="line19"></a> */
+<a name="line20"></a>class Lite extends Driver
+<a name="line21"></a>{
+<a name="line22"></a>    protected $options = [
+<a name="line23"></a>        'prefix' => '',
+<a name="line24"></a>        'path'   => '',
+<a name="line25"></a>        'expire' => 0, // 等于 10*365*24*3600（10年）
+<a name="line26"></a>    ];
+<a name="line27"></a>
+<a name="line28"></a>    /**
+<a name="line29"></a>     * 架构函数
+<a name="line30"></a>     * @access public
+<a name="line31"></a>     *
+<a name="line32"></a>     * @param array $options
+<a name="line33"></a>     */
+<a name="line34"></a>    public function __construct($options = [])
+<a name="line35"></a>    {
+<a name="line36"></a>        if (!empty($options)) {
+<a name="line37"></a>            $this->options = array_merge($this->options, $options);
+<a name="line38"></a>        }
+<a name="line39"></a>        if (substr($this->options['path'], -1) != DS) {
+<a name="line40"></a>            $this->options['path'] .= DS;
+<a name="line41"></a>        }
+<a name="line42"></a>
+<a name="line43"></a>    }
+<a name="line44"></a>
+<a name="line45"></a>    /**
+<a name="line46"></a>     * 取得变量的存储文件名
+<a name="line47"></a>     * @access protected
+<a name="line48"></a>     * @param string $name 缓存变量名
+<a name="line49"></a>     * @return string
+<a name="line50"></a>     */
+<a name="line51"></a>    protected function getCacheKey($name)
+<a name="line52"></a>    {
+<a name="line53"></a>        return $this->options['path'] . $this->options['prefix'] . md5($name) . '.php';
+<a name="line54"></a>    }
+<a name="line55"></a>
+<a name="line56"></a>    /**
+<a name="line57"></a>     * 判断缓存是否存在
+<a name="line58"></a>     * @access public
+<a name="line59"></a>     * @param string $name 缓存变量名
+<a name="line60"></a>     * @return mixed
+<a name="line61"></a>     */
+<a name="line62"></a>    public function has($name)
+<a name="line63"></a>    {
+<a name="line64"></a>        return $this->get($name) ? true : false;
+<a name="line65"></a>    }
+<a name="line66"></a>
+<a name="line67"></a>    /**
+<a name="line68"></a>     * 读取缓存
+<a name="line69"></a>     * @access public
+<a name="line70"></a>     * @param string $name 缓存变量名
+<a name="line71"></a>     * @param mixed  $default 默认值
+<a name="line72"></a>     * @return mixed
+<a name="line73"></a>     */
+<a name="line74"></a>    public function get($name, $default = false)
+<a name="line75"></a>    {
+<a name="line76"></a>        $filename = $this->getCacheKey($name);
+<a name="line77"></a>        if (is_file($filename)) {
+<a name="line78"></a>            // 判断是否过期
+<a name="line79"></a>            $mtime = filemtime($filename);
+<a name="line80"></a>            if ($mtime < $_SERVER['REQUEST_TIME']) {
+<a name="line81"></a>                // 清除已经过期的文件
+<a name="line82"></a>                unlink($filename);
+<a name="line83"></a>                return $default;
+<a name="line84"></a>            }
+<a name="line85"></a>            return include $filename;
+<a name="line86"></a>        } else {
+<a name="line87"></a>            return $default;
+<a name="line88"></a>        }
+<a name="line89"></a>    }
+<a name="line90"></a>
+<a name="line91"></a>    /**
+<a name="line92"></a>     * 写入缓存
+<a name="line93"></a>     * @access   public
+<a name="line94"></a>     * @param string    $name  缓存变量名
+<a name="line95"></a>     * @param mixed     $value 存储数据
+<a name="line96"></a>     * @param int       $expire 有效时间 0为永久
+<a name="line97"></a>     * @return bool
+<a name="line98"></a>     */
+<a name="line99"></a>    public function set($name, $value, $expire = null)
+<a name="line100"></a>    {
+<a name="line101"></a>        if (is_null($expire)) {
+<a name="line102"></a>            $expire = $this->options['expire'];
+<a name="line103"></a>        }
+<a name="line104"></a>        // 模拟永久
+<a name="line105"></a>        if (0 === $expire) {
+<a name="line106"></a>            $expire = 10 * 365 * 24 * 3600;
+<a name="line107"></a>        }
+<a name="line108"></a>        $filename = $this->getCacheKey($name);
+<a name="line109"></a>        if ($this->tag && !is_file($filename)) {
+<a name="line110"></a>            $first = true;
+<a name="line111"></a>        }
+<a name="line112"></a>        $ret = file_put_contents($filename, ("<?php return " . var_export($value, true) . ";"));
+<a name="line113"></a>        // 通过设置修改时间实现有效期
+<a name="line114"></a>        if ($ret) {
+<a name="line115"></a>            isset($first) && $this->setTagItem($filename);
+<a name="line116"></a>            touch($filename, $_SERVER['REQUEST_TIME'] + $expire);
+<a name="line117"></a>        }
+<a name="line118"></a>        return $ret;
+<a name="line119"></a>    }
+<a name="line120"></a>
+<a name="line121"></a>    /**
+<a name="line122"></a>     * 自增缓存（针对数值缓存）
+<a name="line123"></a>     * @access public
+<a name="line124"></a>     * @param string    $name 缓存变量名
+<a name="line125"></a>     * @param int       $step 步长
+<a name="line126"></a>     * @return false|int
+<a name="line127"></a>     */
+<a name="line128"></a>    public function inc($name, $step = 1)
+<a name="line129"></a>    {
+<a name="line130"></a>        if ($this->has($name)) {
+<a name="line131"></a>            $value = $this->get($name) + $step;
+<a name="line132"></a>        } else {
+<a name="line133"></a>            $value = $step;
+<a name="line134"></a>        }
+<a name="line135"></a>        return $this->set($name, $value, 0) ? $value : false;
+<a name="line136"></a>    }
+<a name="line137"></a>
+<a name="line138"></a>    /**
+<a name="line139"></a>     * 自减缓存（针对数值缓存）
+<a name="line140"></a>     * @access public
+<a name="line141"></a>     * @param string    $name 缓存变量名
+<a name="line142"></a>     * @param int       $step 步长
+<a name="line143"></a>     * @return false|int
+<a name="line144"></a>     */
+<a name="line145"></a>    public function dec($name, $step = 1)
+<a name="line146"></a>    {
+<a name="line147"></a>        if ($this->has($name)) {
+<a name="line148"></a>            $value = $this->get($name) - $step;
+<a name="line149"></a>        } else {
+<a name="line150"></a>            $value = $step;
+<a name="line151"></a>        }
+<a name="line152"></a>        return $this->set($name, $value, 0) ? $value : false;
+<a name="line153"></a>    }
+<a name="line154"></a>
+<a name="line155"></a>    /**
+<a name="line156"></a>     * 删除缓存
+<a name="line157"></a>     * @access public
+<a name="line158"></a>     * @param string $name 缓存变量名
+<a name="line159"></a>     * @return boolean
+<a name="line160"></a>     */
+<a name="line161"></a>    public function rm($name)
+<a name="line162"></a>    {
+<a name="line163"></a>        return unlink($this->getCacheKey($name));
+<a name="line164"></a>    }
+<a name="line165"></a>
+<a name="line166"></a>    /**
+<a name="line167"></a>     * 清除缓存
+<a name="line168"></a>     * @access   public
+<a name="line169"></a>     * @param string $tag 标签名
+<a name="line170"></a>     * @return bool
+<a name="line171"></a>     */
+<a name="line172"></a>    public function clear($tag = null)
+<a name="line173"></a>    {
+<a name="line174"></a>        if ($tag) {
+<a name="line175"></a>            // 指定标签清除
+<a name="line176"></a>            $keys = $this->getTagItem($tag);
+<a name="line177"></a>            foreach ($keys as $key) {
+<a name="line178"></a>                unlink($key);
+<a name="line179"></a>            }
+<a name="line180"></a>            $this->rm('tag_' . md5($tag));
+<a name="line181"></a>            return true;
+<a name="line182"></a>        }
+<a name="line183"></a>        array_map("unlink", glob($this->options['path'] . ($this->options['prefix'] ? $this->options['prefix'] . DS : '') . '*.php'));
+<a name="line184"></a>    }
+<a name="line185"></a>}
+<a name="line186"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\cache\driver\lite.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

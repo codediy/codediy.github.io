@@ -1,0 +1,400 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\console\output\Ask.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\console\output\ask.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\console\output\Ask.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK IT ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006-2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: yunwuxin <448901948@qq.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think\console\output;
+<a name="line13"></a>
+<a name="line14"></a>use think\console\Input;
+<a name="line15"></a>use think\console\Output;
+<a name="line16"></a>use think\console\output\question\Choice;
+<a name="line17"></a>use think\console\output\question\Confirmation;
+<a name="line18"></a>
+<a name="line19"></a>class Ask
+<a name="line20"></a>{
+<a name="line21"></a>    private static $stty;
+<a name="line22"></a>
+<a name="line23"></a>    private static $shell;
+<a name="line24"></a>
+<a name="line25"></a>    /** @var  Input */
+<a name="line26"></a>    protected $input;
+<a name="line27"></a>
+<a name="line28"></a>    /** @var  Output */
+<a name="line29"></a>    protected $output;
+<a name="line30"></a>
+<a name="line31"></a>    /** @var  Question */
+<a name="line32"></a>    protected $question;
+<a name="line33"></a>
+<a name="line34"></a>    public function __construct(Input $input, Output $output, Question $question)
+<a name="line35"></a>    {
+<a name="line36"></a>        $this->input    = $input;
+<a name="line37"></a>        $this->output   = $output;
+<a name="line38"></a>        $this->question = $question;
+<a name="line39"></a>    }
+<a name="line40"></a>
+<a name="line41"></a>    public function run()
+<a name="line42"></a>    {
+<a name="line43"></a>        if (!$this->input->isInteractive()) {
+<a name="line44"></a>            return $this->question->getDefault();
+<a name="line45"></a>        }
+<a name="line46"></a>
+<a name="line47"></a>        if (!$this->question->getValidator()) {
+<a name="line48"></a>            return $this->doAsk();
+<a name="line49"></a>        }
+<a name="line50"></a>
+<a name="line51"></a>        $that = $this;
+<a name="line52"></a>
+<a name="line53"></a>        $interviewer = function () use ($that) {
+<a name="line54"></a>            return $that->doAsk();
+<a name="line55"></a>        };
+<a name="line56"></a>
+<a name="line57"></a>        return $this->validateAttempts($interviewer);
+<a name="line58"></a>    }
+<a name="line59"></a>
+<a name="line60"></a>    protected function doAsk()
+<a name="line61"></a>    {
+<a name="line62"></a>        $this->writePrompt();
+<a name="line63"></a>
+<a name="line64"></a>        $inputStream  = STDIN;
+<a name="line65"></a>        $autocomplete = $this->question->getAutocompleterValues();
+<a name="line66"></a>
+<a name="line67"></a>        if (null === $autocomplete || !$this->hasSttyAvailable()) {
+<a name="line68"></a>            $ret = false;
+<a name="line69"></a>            if ($this->question->isHidden()) {
+<a name="line70"></a>                try {
+<a name="line71"></a>                    $ret = trim($this->getHiddenResponse($inputStream));
+<a name="line72"></a>                } catch (\RuntimeException $e) {
+<a name="line73"></a>                    if (!$this->question->isHiddenFallback()) {
+<a name="line74"></a>                        throw $e;
+<a name="line75"></a>                    }
+<a name="line76"></a>                }
+<a name="line77"></a>            }
+<a name="line78"></a>
+<a name="line79"></a>            if (false === $ret) {
+<a name="line80"></a>                $ret = fgets($inputStream, 4096);
+<a name="line81"></a>                if (false === $ret) {
+<a name="line82"></a>                    throw new \RuntimeException('Aborted');
+<a name="line83"></a>                }
+<a name="line84"></a>                $ret = trim($ret);
+<a name="line85"></a>            }
+<a name="line86"></a>        } else {
+<a name="line87"></a>            $ret = trim($this->autocomplete($inputStream));
+<a name="line88"></a>        }
+<a name="line89"></a>
+<a name="line90"></a>        $ret = strlen($ret) > 0 ? $ret : $this->question->getDefault();
+<a name="line91"></a>
+<a name="line92"></a>        if ($normalizer = $this->question->getNormalizer()) {
+<a name="line93"></a>            return $normalizer($ret);
+<a name="line94"></a>        }
+<a name="line95"></a>
+<a name="line96"></a>        return $ret;
+<a name="line97"></a>    }
+<a name="line98"></a>
+<a name="line99"></a>    private function autocomplete($inputStream)
+<a name="line100"></a>    {
+<a name="line101"></a>        $autocomplete = $this->question->getAutocompleterValues();
+<a name="line102"></a>        $ret          = '';
+<a name="line103"></a>
+<a name="line104"></a>        $i          = 0;
+<a name="line105"></a>        $ofs        = -1;
+<a name="line106"></a>        $matches    = $autocomplete;
+<a name="line107"></a>        $numMatches = count($matches);
+<a name="line108"></a>
+<a name="line109"></a>        $sttyMode = shell_exec('stty -g');
+<a name="line110"></a>
+<a name="line111"></a>        shell_exec('stty -icanon -echo');
+<a name="line112"></a>
+<a name="line113"></a>        while (!feof($inputStream)) {
+<a name="line114"></a>            $c = fread($inputStream, 1);
+<a name="line115"></a>
+<a name="line116"></a>            if ("\177" === $c) {
+<a name="line117"></a>                if (0 === $numMatches && 0 !== $i) {
+<a name="line118"></a>                    --$i;
+<a name="line119"></a>                    $this->output->write("\033[1D");
+<a name="line120"></a>                }
+<a name="line121"></a>
+<a name="line122"></a>                if ($i === 0) {
+<a name="line123"></a>                    $ofs        = -1;
+<a name="line124"></a>                    $matches    = $autocomplete;
+<a name="line125"></a>                    $numMatches = count($matches);
+<a name="line126"></a>                } else {
+<a name="line127"></a>                    $numMatches = 0;
+<a name="line128"></a>                }
+<a name="line129"></a>
+<a name="line130"></a>                $ret = substr($ret, 0, $i);
+<a name="line131"></a>            } elseif ("\033" === $c) {
+<a name="line132"></a>                $c .= fread($inputStream, 2);
+<a name="line133"></a>
+<a name="line134"></a>                if (isset($c[2]) && ('A' === $c[2] || 'B' === $c[2])) {
+<a name="line135"></a>                    if ('A' === $c[2] && -1 === $ofs) {
+<a name="line136"></a>                        $ofs = 0;
+<a name="line137"></a>                    }
+<a name="line138"></a>
+<a name="line139"></a>                    if (0 === $numMatches) {
+<a name="line140"></a>                        continue;
+<a name="line141"></a>                    }
+<a name="line142"></a>
+<a name="line143"></a>                    $ofs += ('A' === $c[2]) ? -1 : 1;
+<a name="line144"></a>                    $ofs = ($numMatches + $ofs) % $numMatches;
+<a name="line145"></a>                }
+<a name="line146"></a>            } elseif (ord($c) < 32) {
+<a name="line147"></a>                if ("\t" === $c || "\n" === $c) {
+<a name="line148"></a>                    if ($numMatches > 0 && -1 !== $ofs) {
+<a name="line149"></a>                        $ret = $matches[$ofs];
+<a name="line150"></a>                        $this->output->write(substr($ret, $i));
+<a name="line151"></a>                        $i = strlen($ret);
+<a name="line152"></a>                    }
+<a name="line153"></a>
+<a name="line154"></a>                    if ("\n" === $c) {
+<a name="line155"></a>                        $this->output->write($c);
+<a name="line156"></a>                        break;
+<a name="line157"></a>                    }
+<a name="line158"></a>
+<a name="line159"></a>                    $numMatches = 0;
+<a name="line160"></a>                }
+<a name="line161"></a>
+<a name="line162"></a>                continue;
+<a name="line163"></a>            } else {
+<a name="line164"></a>                $this->output->write($c);
+<a name="line165"></a>                $ret .= $c;
+<a name="line166"></a>                ++$i;
+<a name="line167"></a>
+<a name="line168"></a>                $numMatches = 0;
+<a name="line169"></a>                $ofs        = 0;
+<a name="line170"></a>
+<a name="line171"></a>                foreach ($autocomplete as $value) {
+<a name="line172"></a>                    if (0 === strpos($value, $ret) && $i !== strlen($value)) {
+<a name="line173"></a>                        $matches[$numMatches++] = $value;
+<a name="line174"></a>                    }
+<a name="line175"></a>                }
+<a name="line176"></a>            }
+<a name="line177"></a>
+<a name="line178"></a>            $this->output->write("\033[K");
+<a name="line179"></a>
+<a name="line180"></a>            if ($numMatches > 0 && -1 !== $ofs) {
+<a name="line181"></a>                $this->output->write("\0337");
+<a name="line182"></a>                $this->output->highlight(substr($matches[$ofs], $i));
+<a name="line183"></a>                $this->output->write("\0338");
+<a name="line184"></a>            }
+<a name="line185"></a>        }
+<a name="line186"></a>
+<a name="line187"></a>        shell_exec(sprintf('stty %s', $sttyMode));
+<a name="line188"></a>
+<a name="line189"></a>        return $ret;
+<a name="line190"></a>    }
+<a name="line191"></a>
+<a name="line192"></a>    protected function getHiddenResponse($inputStream)
+<a name="line193"></a>    {
+<a name="line194"></a>        if ('\\' === DIRECTORY_SEPARATOR) {
+<a name="line195"></a>            $exe = __DIR__ . '/../bin/hiddeninput.exe';
+<a name="line196"></a>
+<a name="line197"></a>            $value = rtrim(shell_exec($exe));
+<a name="line198"></a>            $this->output->writeln('');
+<a name="line199"></a>
+<a name="line200"></a>            if (isset($tmpExe)) {
+<a name="line201"></a>                unlink($tmpExe);
+<a name="line202"></a>            }
+<a name="line203"></a>
+<a name="line204"></a>            return $value;
+<a name="line205"></a>        }
+<a name="line206"></a>
+<a name="line207"></a>        if ($this->hasSttyAvailable()) {
+<a name="line208"></a>            $sttyMode = shell_exec('stty -g');
+<a name="line209"></a>
+<a name="line210"></a>            shell_exec('stty -echo');
+<a name="line211"></a>            $value = fgets($inputStream, 4096);
+<a name="line212"></a>            shell_exec(sprintf('stty %s', $sttyMode));
+<a name="line213"></a>
+<a name="line214"></a>            if (false === $value) {
+<a name="line215"></a>                throw new \RuntimeException('Aborted');
+<a name="line216"></a>            }
+<a name="line217"></a>
+<a name="line218"></a>            $value = trim($value);
+<a name="line219"></a>            $this->output->writeln('');
+<a name="line220"></a>
+<a name="line221"></a>            return $value;
+<a name="line222"></a>        }
+<a name="line223"></a>
+<a name="line224"></a>        if (false !== $shell = $this->getShell()) {
+<a name="line225"></a>            $readCmd = $shell === 'csh' ? 'set mypassword = $<' : 'read -r mypassword';
+<a name="line226"></a>            $command = sprintf("/usr/bin/env %s -c 'stty -echo; %s; stty echo; echo \$mypassword'", $shell, $readCmd);
+<a name="line227"></a>            $value   = rtrim(shell_exec($command));
+<a name="line228"></a>            $this->output->writeln('');
+<a name="line229"></a>
+<a name="line230"></a>            return $value;
+<a name="line231"></a>        }
+<a name="line232"></a>
+<a name="line233"></a>        throw new \RuntimeException('Unable to hide the response.');
+<a name="line234"></a>    }
+<a name="line235"></a>
+<a name="line236"></a>    protected function validateAttempts($interviewer)
+<a name="line237"></a>    {
+<a name="line238"></a>        /** @var \Exception $error */
+<a name="line239"></a>        $error    = null;
+<a name="line240"></a>        $attempts = $this->question->getMaxAttempts();
+<a name="line241"></a>        while (null === $attempts || $attempts--) {
+<a name="line242"></a>            if (null !== $error) {
+<a name="line243"></a>                $this->output->error($error->getMessage());
+<a name="line244"></a>            }
+<a name="line245"></a>
+<a name="line246"></a>            try {
+<a name="line247"></a>                return call_user_func($this->question->getValidator(), $interviewer());
+<a name="line248"></a>            } catch (\Exception $error) {
+<a name="line249"></a>            }
+<a name="line250"></a>        }
+<a name="line251"></a>
+<a name="line252"></a>        throw $error;
+<a name="line253"></a>    }
+<a name="line254"></a>
+<a name="line255"></a>    /**
+<a name="line256"></a>     * 显示问题的提示信息
+<a name="line257"></a>     */
+<a name="line258"></a>    protected function writePrompt()
+<a name="line259"></a>    {
+<a name="line260"></a>        $text    = $this->question->getQuestion();
+<a name="line261"></a>        $default = $this->question->getDefault();
+<a name="line262"></a>
+<a name="line263"></a>        switch (true) {
+<a name="line264"></a>            case null === $default:
+<a name="line265"></a>                $text = sprintf(' <info>%s</info>:', $text);
+<a name="line266"></a>
+<a name="line267"></a>                break;
+<a name="line268"></a>
+<a name="line269"></a>            case $this->question instanceof Confirmation:
+<a name="line270"></a>                $text = sprintf(' <info>%s (yes/no)</info> [<comment>%s</comment>]:', $text, $default ? 'yes' : 'no');
+<a name="line271"></a>
+<a name="line272"></a>                break;
+<a name="line273"></a>
+<a name="line274"></a>            case $this->question instanceof Choice && $this->question->isMultiselect():
+<a name="line275"></a>                $choices = $this->question->getChoices();
+<a name="line276"></a>                $default = explode(',', $default);
+<a name="line277"></a>
+<a name="line278"></a>                foreach ($default as $key => $value) {
+<a name="line279"></a>                    $default[$key] = $choices[trim($value)];
+<a name="line280"></a>                }
+<a name="line281"></a>
+<a name="line282"></a>                $text = sprintf(' <info>%s</info> [<comment>%s</comment>]:', $text, implode(', ', $default));
+<a name="line283"></a>
+<a name="line284"></a>                break;
+<a name="line285"></a>
+<a name="line286"></a>            case $this->question instanceof Choice:
+<a name="line287"></a>                $choices = $this->question->getChoices();
+<a name="line288"></a>                $text    = sprintf(' <info>%s</info> [<comment>%s</comment>]:', $text, $choices[$default]);
+<a name="line289"></a>
+<a name="line290"></a>                break;
+<a name="line291"></a>
+<a name="line292"></a>            default:
+<a name="line293"></a>                $text = sprintf(' <info>%s</info> [<comment>%s</comment>]:', $text, $default);
+<a name="line294"></a>        }
+<a name="line295"></a>
+<a name="line296"></a>        $this->output->writeln($text);
+<a name="line297"></a>
+<a name="line298"></a>        if ($this->question instanceof Choice) {
+<a name="line299"></a>            $width = max(array_map('strlen', array_keys($this->question->getChoices())));
+<a name="line300"></a>
+<a name="line301"></a>            foreach ($this->question->getChoices() as $key => $value) {
+<a name="line302"></a>                $this->output->writeln(sprintf("  [<comment>%-${width}s</comment>] %s", $key, $value));
+<a name="line303"></a>            }
+<a name="line304"></a>        }
+<a name="line305"></a>
+<a name="line306"></a>        $this->output->write(' > ');
+<a name="line307"></a>    }
+<a name="line308"></a>
+<a name="line309"></a>    private function getShell()
+<a name="line310"></a>    {
+<a name="line311"></a>        if (null !== self::$shell) {
+<a name="line312"></a>            return self::$shell;
+<a name="line313"></a>        }
+<a name="line314"></a>
+<a name="line315"></a>        self::$shell = false;
+<a name="line316"></a>
+<a name="line317"></a>        if (file_exists('/usr/bin/env')) {
+<a name="line318"></a>            $test = "/usr/bin/env %s -c 'echo OK' 2> /dev/null";
+<a name="line319"></a>            foreach (['bash', 'zsh', 'ksh', 'csh'] as $sh) {
+<a name="line320"></a>                if ('OK' === rtrim(shell_exec(sprintf($test, $sh)))) {
+<a name="line321"></a>                    self::$shell = $sh;
+<a name="line322"></a>                    break;
+<a name="line323"></a>                }
+<a name="line324"></a>            }
+<a name="line325"></a>        }
+<a name="line326"></a>
+<a name="line327"></a>        return self::$shell;
+<a name="line328"></a>    }
+<a name="line329"></a>
+<a name="line330"></a>    private function hasSttyAvailable()
+<a name="line331"></a>    {
+<a name="line332"></a>        if (null !== self::$stty) {
+<a name="line333"></a>            return self::$stty;
+<a name="line334"></a>        }
+<a name="line335"></a>
+<a name="line336"></a>        exec('stty 2>&1', $output, $exitcode);
+<a name="line337"></a>
+<a name="line338"></a>        return self::$stty = $exitcode === 0;
+<a name="line339"></a>    }
+<a name="line340"></a>}</pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\console\output\ask.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

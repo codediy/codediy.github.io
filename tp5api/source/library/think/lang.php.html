@@ -1,0 +1,282 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\Lang.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\lang.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\Lang.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think;
+<a name="line13"></a>
+<a name="line14"></a>use think\App;
+<a name="line15"></a>use think\Cookie;
+<a name="line16"></a>use think\Log;
+<a name="line17"></a>
+<a name="line18"></a>class Lang
+<a name="line19"></a>{
+<a name="line20"></a>    // 语言数据
+<a name="line21"></a>    private static $lang = [];
+<a name="line22"></a>    // 语言作用域
+<a name="line23"></a>    private static $range = 'zh-cn';
+<a name="line24"></a>    // 语言自动侦测的变量
+<a name="line25"></a>    protected static $langDetectVar = 'lang';
+<a name="line26"></a>    // 语言Cookie变量
+<a name="line27"></a>    protected static $langCookieVar = 'think_var';
+<a name="line28"></a>    // 语言Cookie的过期时间
+<a name="line29"></a>    protected static $langCookieExpire = 3600;
+<a name="line30"></a>    // 允许语言列表
+<a name="line31"></a>    protected static $allowLangList = [];
+<a name="line32"></a>
+<a name="line33"></a>    // 设定当前的语言
+<a name="line34"></a>    public static function range($range = '')
+<a name="line35"></a>    {
+<a name="line36"></a>        if ('' == $range) {
+<a name="line37"></a>            return self::$range;
+<a name="line38"></a>        } else {
+<a name="line39"></a>            self::$range = $range;
+<a name="line40"></a>        }
+<a name="line41"></a>    }
+<a name="line42"></a>
+<a name="line43"></a>    /**
+<a name="line44"></a>     * 设置语言定义(不区分大小写)
+<a name="line45"></a>     * @param string|array  $name 语言变量
+<a name="line46"></a>     * @param string        $value 语言值
+<a name="line47"></a>     * @param string        $range 语言作用域
+<a name="line48"></a>     * @return mixed
+<a name="line49"></a>     */
+<a name="line50"></a>    public static function set($name, $value = null, $range = '')
+<a name="line51"></a>    {
+<a name="line52"></a>        $range = $range ?: self::$range;
+<a name="line53"></a>        // 批量定义
+<a name="line54"></a>        if (!isset(self::$lang[$range])) {
+<a name="line55"></a>            self::$lang[$range] = [];
+<a name="line56"></a>        }
+<a name="line57"></a>        if (is_array($name)) {
+<a name="line58"></a>            return self::$lang[$range] = array_change_key_case($name) + self::$lang[$range];
+<a name="line59"></a>        } else {
+<a name="line60"></a>            return self::$lang[$range][strtolower($name)] = $value;
+<a name="line61"></a>        }
+<a name="line62"></a>    }
+<a name="line63"></a>
+<a name="line64"></a>    /**
+<a name="line65"></a>     * 加载语言定义(不区分大小写)
+<a name="line66"></a>     * @param string $file 语言文件
+<a name="line67"></a>     * @param string $range 语言作用域
+<a name="line68"></a>     * @return mixed
+<a name="line69"></a>     */
+<a name="line70"></a>    public static function load($file, $range = '')
+<a name="line71"></a>    {
+<a name="line72"></a>        $range = $range ?: self::$range;
+<a name="line73"></a>        if (!isset(self::$lang[$range])) {
+<a name="line74"></a>            self::$lang[$range] = [];
+<a name="line75"></a>        }
+<a name="line76"></a>        // 批量定义
+<a name="line77"></a>        if (is_string($file)) {
+<a name="line78"></a>            $file = [$file];
+<a name="line79"></a>        }
+<a name="line80"></a>        $lang = [];
+<a name="line81"></a>        foreach ($file as $_file) {
+<a name="line82"></a>            if (is_file($_file)) {
+<a name="line83"></a>                // 记录加载信息
+<a name="line84"></a>                App::$debug && Log::record('[ LANG ] ' . $_file, 'info');
+<a name="line85"></a>                $_lang = include $_file;
+<a name="line86"></a>                if (is_array($_lang)) {
+<a name="line87"></a>                    $lang = array_change_key_case($_lang) + $lang;
+<a name="line88"></a>                }
+<a name="line89"></a>            }
+<a name="line90"></a>        }
+<a name="line91"></a>        if (!empty($lang)) {
+<a name="line92"></a>            self::$lang[$range] = $lang + self::$lang[$range];
+<a name="line93"></a>        }
+<a name="line94"></a>        return self::$lang[$range];
+<a name="line95"></a>    }
+<a name="line96"></a>
+<a name="line97"></a>    /**
+<a name="line98"></a>     * 获取语言定义(不区分大小写)
+<a name="line99"></a>     * @param string|null   $name 语言变量
+<a name="line100"></a>     * @param array         $vars 变量替换
+<a name="line101"></a>     * @param string        $range 语言作用域
+<a name="line102"></a>     * @return mixed
+<a name="line103"></a>     */
+<a name="line104"></a>    public static function has($name, $range = '')
+<a name="line105"></a>    {
+<a name="line106"></a>        $range = $range ?: self::$range;
+<a name="line107"></a>        return isset(self::$lang[$range][strtolower($name)]);
+<a name="line108"></a>    }
+<a name="line109"></a>
+<a name="line110"></a>    /**
+<a name="line111"></a>     * 获取语言定义(不区分大小写)
+<a name="line112"></a>     * @param string|null   $name 语言变量
+<a name="line113"></a>     * @param array         $vars 变量替换
+<a name="line114"></a>     * @param string        $range 语言作用域
+<a name="line115"></a>     * @return mixed
+<a name="line116"></a>     */
+<a name="line117"></a>    public static function get($name = null, $vars = [], $range = '')
+<a name="line118"></a>    {
+<a name="line119"></a>        $range = $range ?: self::$range;
+<a name="line120"></a>        // 空参数返回所有定义
+<a name="line121"></a>        if (empty($name)) {
+<a name="line122"></a>            return self::$lang[$range];
+<a name="line123"></a>        }
+<a name="line124"></a>        $key   = strtolower($name);
+<a name="line125"></a>        $value = isset(self::$lang[$range][$key]) ? self::$lang[$range][$key] : $name;
+<a name="line126"></a>
+<a name="line127"></a>        // 变量解析
+<a name="line128"></a>        if (!empty($vars) && is_array($vars)) {
+<a name="line129"></a>            /**
+<a name="line130"></a>             * Notes:
+<a name="line131"></a>             * 为了检测的方便，数字索引的判断仅仅是参数数组的第一个元素的key为数字0
+<a name="line132"></a>             * 数字索引采用的是系统的 sprintf 函数替换，用法请参考 sprintf 函数
+<a name="line133"></a>             */
+<a name="line134"></a>            if (key($vars) === 0) {
+<a name="line135"></a>                // 数字索引解析
+<a name="line136"></a>                array_unshift($vars, $value);
+<a name="line137"></a>                $value = call_user_func_array('sprintf', $vars);
+<a name="line138"></a>            } else {
+<a name="line139"></a>                // 关联索引解析
+<a name="line140"></a>                $replace = array_keys($vars);
+<a name="line141"></a>                foreach ($replace as &$v) {
+<a name="line142"></a>                    $v = "{:{$v}}";
+<a name="line143"></a>                }
+<a name="line144"></a>                $value = str_replace($replace, $vars, $value);
+<a name="line145"></a>            }
+<a name="line146"></a>
+<a name="line147"></a>        }
+<a name="line148"></a>        return $value;
+<a name="line149"></a>    }
+<a name="line150"></a>
+<a name="line151"></a>    /**
+<a name="line152"></a>     * 自动侦测设置获取语言选择
+<a name="line153"></a>     * @return string
+<a name="line154"></a>     */
+<a name="line155"></a>    public static function detect()
+<a name="line156"></a>    {
+<a name="line157"></a>        // 自动侦测设置获取语言选择
+<a name="line158"></a>        $langSet = '';
+<a name="line159"></a>        if (isset($_GET[self::$langDetectVar])) {
+<a name="line160"></a>            // url中设置了语言变量
+<a name="line161"></a>            $langSet = strtolower($_GET[self::$langDetectVar]);
+<a name="line162"></a>            Cookie::set(self::$langCookieVar, $langSet, self::$langCookieExpire);
+<a name="line163"></a>        } elseif (Cookie::get(self::$langCookieVar)) {
+<a name="line164"></a>            // 获取上次用户的选择
+<a name="line165"></a>            $langSet = strtolower(Cookie::get(self::$langCookieVar));
+<a name="line166"></a>        } elseif (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
+<a name="line167"></a>            // 自动侦测浏览器语言
+<a name="line168"></a>            preg_match('/^([a-z\d\-]+)/i', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $matches);
+<a name="line169"></a>            $langSet = strtolower($matches[1]);
+<a name="line170"></a>            Cookie::set(self::$langCookieVar, $langSet, self::$langCookieExpire);
+<a name="line171"></a>        }
+<a name="line172"></a>        if (empty(self::$allowLangList) || in_array($langSet, self::$allowLangList)) {
+<a name="line173"></a>            // 合法的语言
+<a name="line174"></a>            self::$range = $langSet ?: self::$range;
+<a name="line175"></a>        }
+<a name="line176"></a>        if ('zh-hans-cn' == self::$range) {
+<a name="line177"></a>            self::$range = 'zh-cn';
+<a name="line178"></a>        }
+<a name="line179"></a>        return self::$range;
+<a name="line180"></a>    }
+<a name="line181"></a>
+<a name="line182"></a>    /**
+<a name="line183"></a>     * 设置语言自动侦测的变量
+<a name="line184"></a>     * @param string $var 变量名称
+<a name="line185"></a>     * @return void
+<a name="line186"></a>     */
+<a name="line187"></a>    public static function setLangDetectVar($var)
+<a name="line188"></a>    {
+<a name="line189"></a>        self::$langDetectVar = $var;
+<a name="line190"></a>    }
+<a name="line191"></a>
+<a name="line192"></a>    /**
+<a name="line193"></a>     * 设置语言的cookie保存变量
+<a name="line194"></a>     * @param string $var 变量名称
+<a name="line195"></a>     * @return void
+<a name="line196"></a>     */
+<a name="line197"></a>    public static function setLangCookieVar($var)
+<a name="line198"></a>    {
+<a name="line199"></a>        self::$langCookieVar = $var;
+<a name="line200"></a>    }
+<a name="line201"></a>
+<a name="line202"></a>    /**
+<a name="line203"></a>     * 设置语言的cookie的过期时间
+<a name="line204"></a>     * @param string $expire 过期时间
+<a name="line205"></a>     * @return void
+<a name="line206"></a>     */
+<a name="line207"></a>    public static function setLangCookieExpire($expire)
+<a name="line208"></a>    {
+<a name="line209"></a>        self::$langCookieExpire = $expire;
+<a name="line210"></a>    }
+<a name="line211"></a>
+<a name="line212"></a>    /**
+<a name="line213"></a>     * 设置允许的语言列表
+<a name="line214"></a>     * @param array $list 语言列表
+<a name="line215"></a>     * @return void
+<a name="line216"></a>     */
+<a name="line217"></a>    public static function setAllowLangList($list)
+<a name="line218"></a>    {
+<a name="line219"></a>        self::$allowLangList = $list;
+<a name="line220"></a>    }
+<a name="line221"></a>}
+<a name="line222"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\lang.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

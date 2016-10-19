@@ -1,0 +1,1017 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>Validate (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\validate.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\Validate</div>
+<a href="../source/library/think/validate.php.html#line19" class="location">library\think\Validate.php at line 19</a>
+
+<h1>Class Validate</h1>
+
+<pre class="tree"><strong>Validate</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>Validate</strong></p>
+
+<hr>
+
+<table id="summary_constructor">
+<tr><th colspan="2">Constructor Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#__construct()">__construct</a>(array rules, array message)</p><p class="description">架构函数</p></td>
+</tr>
+</table>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type">static  <a href="../think/validate.html">Validate</a></td>
+<td class="description"><p class="name"><a href="#make()">make</a>(array rules, array message)</p><p class="description">实例化验证</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/validate.html">Validate</a></td>
+<td class="description"><p class="name"><a href="#rule()">rule</a>(string|array name, mixed rule)</p><p class="description">添加字段验证规则</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#extend()">extend</a>(string type, mixed callback)</p><p class="description">注册验证（类型）规则</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#setTypeMsg()">setTypeMsg</a>(string|array type, string msg)</p><p class="description">获取验证规则的默认提示信息</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/validate.html">Validate</a></td>
+<td class="description"><p class="name"><a href="#message()">message</a>(string|array name, string message)</p><p class="description">设置提示信息</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/validate.html">Validate</a></td>
+<td class="description"><p class="name"><a href="#scene()">scene</a>(string|array name, mixed fields)</p><p class="description">设置验证场景</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/validate.html">Validate</a></td>
+<td class="description"><p class="name"><a href="#batch()">batch</a>(bool batch)</p><p class="description">设置批量验证</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#check()">check</a>(array data, mixed rules, string scene)</p><p class="description">数据自动验证</p></td>
+</tr>
+<tr>
+<td class="type">protected  mixed</td>
+<td class="description"><p class="name"><a href="#checkItem()">checkItem</a>(string field, mixed value, mixed rules, array data, string title, array msg)</p><p class="description">验证单个字段规则</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#confirm()">confirm</a>(mixed value, mixed rule, array data)</p><p class="description">验证是否和某个字段的值一致</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#different()">different</a>(mixed value, mixed rule, array data)</p><p class="description">验证是否和某个字段的值是否不同</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#egt()">egt</a>(mixed value, mixed rule)</p><p class="description">验证是否大于等于某个值</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#gt()">gt</a>(mixed value, mixed rule)</p><p class="description">验证是否大于某个值</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#elt()">elt</a>(mixed value, mixed rule)</p><p class="description">验证是否小于等于某个值</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#lt()">lt</a>(mixed value, mixed rule)</p><p class="description">验证是否小于某个值</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#eq()">eq</a>(mixed value, mixed rule)</p><p class="description">验证是否等于某个值</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#is()">is</a>(mixed value, string rule, array data)</p><p class="description">验证字段值是否为有效格式</p></td>
+</tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#getImageType()">getImageType</a>(mixed image)</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#activeUrl()">activeUrl</a>(mixed value, mixed rule)</p><p class="description">验证是否为合格的域名或者IP 支持A，MX，NS，SOA，PTR，CNAME，AAAA，A6， SRV，NAPTR，TXT 或者 ANY类型</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#ip()">ip</a>(mixed value, mixed rule)</p><p class="description">验证是否有效IP</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#fileExt()">fileExt</a>(mixed file, mixed rule)</p><p class="description">验证上传文件后缀</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#fileMime()">fileMime</a>(mixed file, mixed rule)</p><p class="description">验证上传文件类型</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#fileSize()">fileSize</a>(mixed file, mixed rule)</p><p class="description">验证上传文件大小</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#image()">image</a>(mixed file, mixed rule)</p><p class="description">验证图片的宽高及类型</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#method()">method</a>(mixed value, mixed rule)</p><p class="description">验证请求类型</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#dateFormat()">dateFormat</a>(mixed value, mixed rule)</p><p class="description">验证时间和日期是否符合指定格式</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#unique()">unique</a>(mixed value, mixed rule, array data, string field)</p><p class="description">验证是否唯一</p></td>
+</tr>
+<tr>
+<td class="type">protected  mixed</td>
+<td class="description"><p class="name"><a href="#behavior()">behavior</a>(mixed value, mixed rule, array data)</p><p class="description">使用行为类验证</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#filter()">filter</a>(mixed value, mixed rule)</p><p class="description">使用filter_var方式验证</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#requireIf()">requireIf</a>(mixed value, mixed rule, array data)</p><p class="description">验证某个字段等于某个值的时候必须</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#requireCallback()">requireCallback</a>(mixed value, mixed rule, array data)</p><p class="description">通过回调方法验证某个字段是否必须</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#requireWith()">requireWith</a>(mixed value, mixed rule, array data)</p><p class="description">验证某个字段有值的情况下必须</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#in()">in</a>(mixed value, mixed rule)</p><p class="description">验证是否在范围内</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#notIn()">notIn</a>(mixed value, mixed rule)</p><p class="description">验证是否不在某个范围</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#between()">between</a>(mixed value, mixed rule)</p><p class="description">between验证数据</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#notBetween()">notBetween</a>(mixed value, mixed rule)</p><p class="description">使用notbetween验证数据</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#length()">length</a>(mixed value, mixed rule)</p><p class="description">验证数据长度</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#max()">max</a>(mixed value, mixed rule)</p><p class="description">验证数据最大长度</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#min()">min</a>(mixed value, mixed rule)</p><p class="description">验证数据最小长度</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#after()">after</a>(mixed value, mixed rule)</p><p class="description">验证日期</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#before()">before</a>(mixed value, mixed rule)</p><p class="description">验证日期</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#expire()">expire</a>(mixed value, mixed rule)</p><p class="description">验证有效期</p></td>
+</tr>
+<tr>
+<td class="type">protected  mixed</td>
+<td class="description"><p class="name"><a href="#allowIp()">allowIp</a>(string value, mixed rule)</p><p class="description">验证IP许可</p></td>
+</tr>
+<tr>
+<td class="type">protected  mixed</td>
+<td class="description"><p class="name"><a href="#denyIp()">denyIp</a>(string value, mixed rule)</p><p class="description">验证IP禁用</p></td>
+</tr>
+<tr>
+<td class="type">protected  mixed</td>
+<td class="description"><p class="name"><a href="#regex()">regex</a>(mixed value, mixed rule)</p><p class="description">使用正则验证数据</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#token()">token</a>(mixed value, mixed rule, array data)</p><p class="description">验证表单令牌</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#getError()">getError</a>()</p></td>
+</tr>
+<tr>
+<td class="type">protected  mixed</td>
+<td class="description"><p class="name"><a href="#getDataValue()">getDataValue</a>(array data, string key)</p><p class="description">获取数据值</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#getRuleMsg()">getRuleMsg</a>(string attribute, string title, string type, mixed rule)</p><p class="description">获取验证规则的错误提示信息</p></td>
+</tr>
+<tr>
+<td class="type">protected  array</td>
+<td class="description"><p class="name"><a href="#getScene()">getScene</a>(string scene)</p><p class="description">获取数据验证的场景</p></td>
+</tr>
+</table>
+
+<h2 id="detail_method">Constructor Detail</h2>
+<a href="../source/library/think/validate.php.html#line60" class="location">library\think\Validate.php at line 60</a>
+
+<h3 id="__construct()">__construct</h3>
+<code class="signature">public  void <strong>__construct</strong>(array rules, array message)</code>
+<div class="details">
+<p>架构函数</p><dl>
+<dt>Parameters:</dt>
+<dd>rules - 验证规则</dd>
+<dd>message - 验证提示信息</dd>
+</dl>
+</div>
+
+<hr>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../source/library/think/validate.php.html#line73" class="location">library\think\Validate.php at line 73</a>
+
+<h3 id="make()">make</h3>
+<code class="signature">public static  <a href="../think/validate.html">Validate</a> <strong>make</strong>(array rules, array message)</code>
+<div class="details">
+<p>实例化验证</p><dl>
+<dt>Parameters:</dt>
+<dd>rules - 验证规则</dd>
+<dd>message - 验证提示信息</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line88" class="location">library\think\Validate.php at line 88</a>
+
+<h3 id="rule()">rule</h3>
+<code class="signature">public  <a href="../think/validate.html">Validate</a> <strong>rule</strong>(string|array name, mixed rule)</code>
+<div class="details">
+<p>添加字段验证规则</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 字段名称或者规则数组</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line105" class="location">library\think\Validate.php at line 105</a>
+
+<h3 id="extend()">extend</h3>
+<code class="signature">public static  void <strong>extend</strong>(string type, mixed callback)</code>
+<div class="details">
+<p>注册验证（类型）规则</p><dl>
+<dt>Parameters:</dt>
+<dd>type - 验证规则类型</dd>
+<dd>callback - callback方法(或闭包)</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line121" class="location">library\think\Validate.php at line 121</a>
+
+<h3 id="setTypeMsg()">setTypeMsg</h3>
+<code class="signature">public static  void <strong>setTypeMsg</strong>(string|array type, string msg)</code>
+<div class="details">
+<p>获取验证规则的默认提示信息</p><dl>
+<dt>Parameters:</dt>
+<dd>type - 验证规则类型名称或者数组</dd>
+<dd>msg - 验证提示信息</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line137" class="location">library\think\Validate.php at line 137</a>
+
+<h3 id="message()">message</h3>
+<code class="signature">public  <a href="../think/validate.html">Validate</a> <strong>message</strong>(string|array name, string message)</code>
+<div class="details">
+<p>设置提示信息</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 字段名称</dd>
+<dd>message - 提示信息</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line154" class="location">library\think\Validate.php at line 154</a>
+
+<h3 id="scene()">scene</h3>
+<code class="signature">public  <a href="../think/validate.html">Validate</a> <strong>scene</strong>(string|array name, mixed fields)</code>
+<div class="details">
+<p>设置验证场景</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 场景名或者场景设置数组</dd>
+<dd>fields - 要验证的字段</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line174" class="location">library\think\Validate.php at line 174</a>
+
+<h3 id="batch()">batch</h3>
+<code class="signature">public  <a href="../think/validate.html">Validate</a> <strong>batch</strong>(bool batch)</code>
+<div class="details">
+<p>设置批量验证</p><dl>
+<dt>Parameters:</dt>
+<dd>batch - 是否批量验证</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line188" class="location">library\think\Validate.php at line 188</a>
+
+<h3 id="check()">check</h3>
+<code class="signature">public  bool <strong>check</strong>(array data, mixed rules, string scene)</code>
+<div class="details">
+<p>数据自动验证</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 数据</dd>
+<dd>rules - 验证规则</dd>
+<dd>scene - 验证场景</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line284" class="location">library\think\Validate.php at line 284</a>
+
+<h3 id="checkItem()">checkItem</h3>
+<code class="signature">protected  mixed <strong>checkItem</strong>(string field, mixed value, mixed rules, array data, string title, array msg)</code>
+<div class="details">
+<p>验证单个字段规则</p><dl>
+<dt>Parameters:</dt>
+<dd>field - 字段名</dd>
+<dd>value - 字段值</dd>
+<dd>rules - 验证规则</dd>
+<dd>data - 数据</dd>
+<dd>title - 字段描述</dd>
+<dd>msg - 提示信息</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line354" class="location">library\think\Validate.php at line 354</a>
+
+<h3 id="confirm()">confirm</h3>
+<code class="signature">protected  bool <strong>confirm</strong>(mixed value, mixed rule, array data)</code>
+<div class="details">
+<p>验证是否和某个字段的值一致</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+<dd>data - 数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line367" class="location">library\think\Validate.php at line 367</a>
+
+<h3 id="different()">different</h3>
+<code class="signature">protected  bool <strong>different</strong>(mixed value, mixed rule, array data)</code>
+<div class="details">
+<p>验证是否和某个字段的值是否不同</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+<dd>data - 数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line379" class="location">library\think\Validate.php at line 379</a>
+
+<h3 id="egt()">egt</h3>
+<code class="signature">protected  bool <strong>egt</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>验证是否大于等于某个值</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line391" class="location">library\think\Validate.php at line 391</a>
+
+<h3 id="gt()">gt</h3>
+<code class="signature">protected  bool <strong>gt</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>验证是否大于某个值</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line403" class="location">library\think\Validate.php at line 403</a>
+
+<h3 id="elt()">elt</h3>
+<code class="signature">protected  bool <strong>elt</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>验证是否小于等于某个值</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line415" class="location">library\think\Validate.php at line 415</a>
+
+<h3 id="lt()">lt</h3>
+<code class="signature">protected  bool <strong>lt</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>验证是否小于某个值</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line427" class="location">library\think\Validate.php at line 427</a>
+
+<h3 id="eq()">eq</h3>
+<code class="signature">protected  bool <strong>eq</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>验证是否等于某个值</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line440" class="location">library\think\Validate.php at line 440</a>
+
+<h3 id="is()">is</h3>
+<code class="signature">protected  bool <strong>is</strong>(mixed value, string rule, array data)</code>
+<div class="details">
+<p>验证字段值是否为有效格式</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+<dd>data - 验证数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line540" class="location">library\think\Validate.php at line 540</a>
+
+<h3 id="getImageType()">getImageType</h3>
+<code class="signature">protected  void <strong>getImageType</strong>(mixed image)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line557" class="location">library\think\Validate.php at line 557</a>
+
+<h3 id="activeUrl()">activeUrl</h3>
+<code class="signature">protected  bool <strong>activeUrl</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>验证是否为合格的域名或者IP 支持A，MX，NS，SOA，PTR，CNAME，AAAA，A6， SRV，NAPTR，TXT 或者 ANY类型</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line569" class="location">library\think\Validate.php at line 569</a>
+
+<h3 id="ip()">ip</h3>
+<code class="signature">protected  bool <strong>ip</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>验证是否有效IP</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则 ipv4 ipv6</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line584" class="location">library\think\Validate.php at line 584</a>
+
+<h3 id="fileExt()">fileExt</h3>
+<code class="signature">protected  bool <strong>fileExt</strong>(mixed file, mixed rule)</code>
+<div class="details">
+<p>验证上传文件后缀</p><dl>
+<dt>Parameters:</dt>
+<dd>file - 上传文件</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line611" class="location">library\think\Validate.php at line 611</a>
+
+<h3 id="fileMime()">fileMime</h3>
+<code class="signature">protected  bool <strong>fileMime</strong>(mixed file, mixed rule)</code>
+<div class="details">
+<p>验证上传文件类型</p><dl>
+<dt>Parameters:</dt>
+<dd>file - 上传文件</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line638" class="location">library\think\Validate.php at line 638</a>
+
+<h3 id="fileSize()">fileSize</h3>
+<code class="signature">protected  bool <strong>fileSize</strong>(mixed file, mixed rule)</code>
+<div class="details">
+<p>验证上传文件大小</p><dl>
+<dt>Parameters:</dt>
+<dd>file - 上传文件</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line662" class="location">library\think\Validate.php at line 662</a>
+
+<h3 id="image()">image</h3>
+<code class="signature">protected  bool <strong>image</strong>(mixed file, mixed rule)</code>
+<div class="details">
+<p>验证图片的宽高及类型</p><dl>
+<dt>Parameters:</dt>
+<dd>file - 上传文件</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line689" class="location">library\think\Validate.php at line 689</a>
+
+<h3 id="method()">method</h3>
+<code class="signature">protected  bool <strong>method</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>验证请求类型</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line702" class="location">library\think\Validate.php at line 702</a>
+
+<h3 id="dateFormat()">dateFormat</h3>
+<code class="signature">protected  bool <strong>dateFormat</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>验证时间和日期是否符合指定格式</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line717" class="location">library\think\Validate.php at line 717</a>
+
+<h3 id="unique()">unique</h3>
+<code class="signature">protected  bool <strong>unique</strong>(mixed value, mixed rule, array data, string field)</code>
+<div class="details">
+<p>验证是否唯一</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则 格式：数据表,字段名,排除ID,主键名</dd>
+<dd>data - 数据</dd>
+<dd>field - 验证字段名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line758" class="location">library\think\Validate.php at line 758</a>
+
+<h3 id="behavior()">behavior</h3>
+<code class="signature">protected  mixed <strong>behavior</strong>(mixed value, mixed rule, array data)</code>
+<div class="details">
+<p>使用行为类验证</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+<dd>data - 数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line770" class="location">library\think\Validate.php at line 770</a>
+
+<h3 id="filter()">filter</h3>
+<code class="signature">protected  bool <strong>filter</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>使用filter_var方式验证</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line790" class="location">library\think\Validate.php at line 790</a>
+
+<h3 id="requireIf()">requireIf</h3>
+<code class="signature">protected  bool <strong>requireIf</strong>(mixed value, mixed rule, array data)</code>
+<div class="details">
+<p>验证某个字段等于某个值的时候必须</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+<dd>data - 数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line808" class="location">library\think\Validate.php at line 808</a>
+
+<h3 id="requireCallback()">requireCallback</h3>
+<code class="signature">protected  bool <strong>requireCallback</strong>(mixed value, mixed rule, array data)</code>
+<div class="details">
+<p>通过回调方法验证某个字段是否必须</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+<dd>data - 数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line826" class="location">library\think\Validate.php at line 826</a>
+
+<h3 id="requireWith()">requireWith</h3>
+<code class="signature">protected  bool <strong>requireWith</strong>(mixed value, mixed rule, array data)</code>
+<div class="details">
+<p>验证某个字段有值的情况下必须</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+<dd>data - 数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line843" class="location">library\think\Validate.php at line 843</a>
+
+<h3 id="in()">in</h3>
+<code class="signature">protected  bool <strong>in</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>验证是否在范围内</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line855" class="location">library\think\Validate.php at line 855</a>
+
+<h3 id="notIn()">notIn</h3>
+<code class="signature">protected  bool <strong>notIn</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>验证是否不在某个范围</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line867" class="location">library\think\Validate.php at line 867</a>
+
+<h3 id="between()">between</h3>
+<code class="signature">protected  bool <strong>between</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>between验证数据</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line883" class="location">library\think\Validate.php at line 883</a>
+
+<h3 id="notBetween()">notBetween</h3>
+<code class="signature">protected  bool <strong>notBetween</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>使用notbetween验证数据</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line899" class="location">library\think\Validate.php at line 899</a>
+
+<h3 id="length()">length</h3>
+<code class="signature">protected  bool <strong>length</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>验证数据长度</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line926" class="location">library\think\Validate.php at line 926</a>
+
+<h3 id="max()">max</h3>
+<code class="signature">protected  bool <strong>max</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>验证数据最大长度</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line945" class="location">library\think\Validate.php at line 945</a>
+
+<h3 id="min()">min</h3>
+<code class="signature">protected  bool <strong>min</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>验证数据最小长度</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line964" class="location">library\think\Validate.php at line 964</a>
+
+<h3 id="after()">after</h3>
+<code class="signature">protected  bool <strong>after</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>验证日期</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line976" class="location">library\think\Validate.php at line 976</a>
+
+<h3 id="before()">before</h3>
+<code class="signature">protected  bool <strong>before</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>验证日期</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line988" class="location">library\think\Validate.php at line 988</a>
+
+<h3 id="expire()">expire</h3>
+<code class="signature">protected  bool <strong>expire</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>验证有效期</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line1011" class="location">library\think\Validate.php at line 1011</a>
+
+<h3 id="allowIp()">allowIp</h3>
+<code class="signature">protected  mixed <strong>allowIp</strong>(string value, mixed rule)</code>
+<div class="details">
+<p>验证IP许可</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line1023" class="location">library\think\Validate.php at line 1023</a>
+
+<h3 id="denyIp()">denyIp</h3>
+<code class="signature">protected  mixed <strong>denyIp</strong>(string value, mixed rule)</code>
+<div class="details">
+<p>验证IP禁用</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line1035" class="location">library\think\Validate.php at line 1035</a>
+
+<h3 id="regex()">regex</h3>
+<code class="signature">protected  mixed <strong>regex</strong>(mixed value, mixed rule)</code>
+<div class="details">
+<p>使用正则验证数据</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则 正则规则或者预定义正则名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line1055" class="location">library\think\Validate.php at line 1055</a>
+
+<h3 id="token()">token</h3>
+<code class="signature">protected  bool <strong>token</strong>(mixed value, mixed rule, array data)</code>
+<div class="details">
+<p>验证表单令牌</p><dl>
+<dt>Parameters:</dt>
+<dd>value - 字段值</dd>
+<dd>rule - 验证规则</dd>
+<dd>data - 数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line1075" class="location">library\think\Validate.php at line 1075</a>
+
+<h3 id="getError()">getError</h3>
+<code class="signature">public  void <strong>getError</strong>()</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line1087" class="location">library\think\Validate.php at line 1087</a>
+
+<h3 id="getDataValue()">getDataValue</h3>
+<code class="signature">protected  mixed <strong>getDataValue</strong>(array data, string key)</code>
+<div class="details">
+<p>获取数据值</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 数据</dd>
+<dd>key - 数据标识 支持二维</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line1108" class="location">library\think\Validate.php at line 1108</a>
+
+<h3 id="getRuleMsg()">getRuleMsg</h3>
+<code class="signature">protected  string <strong>getRuleMsg</strong>(string attribute, string title, string type, mixed rule)</code>
+<div class="details">
+<p>获取验证规则的错误提示信息</p><dl>
+<dt>Parameters:</dt>
+<dd>attribute - 字段英文名</dd>
+<dd>title - 字段描述名</dd>
+<dd>type - 验证规则名称</dd>
+<dd>rule - 验证规则数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/validate.php.html#line1145" class="location">library\think\Validate.php at line 1145</a>
+
+<h3 id="getScene()">getScene</h3>
+<code class="signature">protected  array <strong>getScene</strong>(string scene)</code>
+<div class="details">
+<p>获取数据验证的场景</p><dl>
+<dt>Parameters:</dt>
+<dd>scene - 验证场景</dd>
+</dl>
+</div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\validate.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

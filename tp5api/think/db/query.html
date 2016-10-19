@@ -1,0 +1,1682 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../../stylesheet.css">
+<link rel="start" href="../../overview-summary.html">
+
+<title>Query (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../../overview-summary.html">Overview</a></li>
+<li><a href="../../think/db/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../../think/db/package-tree.html">Tree</a></li>
+<li><a href="../../overview-files.html">Files</a></li>
+<li><a href="../../deprecated-list.html">Deprecated</a></li>
+<li><a href="../../todo-list.html">Todo</a></li>
+<li><a href="../../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../../index.html" target="_top">Frames</a>
+<a href="../../think\db\query.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\db\Query</div>
+<a href="../../source/library/think/db/query.php.html#line32" class="location">library\think\db\Query.php at line 32</a>
+
+<h1>Class Query</h1>
+
+<pre class="tree"><strong>Query</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>Query</strong></p>
+
+<hr>
+
+<table id="summary_constructor">
+<tr><th colspan="2">Constructor Summary</th></tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#__construct()">__construct</a>(string sql, array bind, boolean master, bool|string class)</p><p class="description">执行查询 返回数据集</p></td>
+</tr>
+</table>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type"> <a href="../../think/connection.html">Connection</a></td>
+<td class="description"><p class="name"><a href="#getConnection()">getConnection</a>()</p><p class="description">获取当前的数据库Connection对象</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#connect()">connect</a>(mixed config)</p><p class="description">切换当前的数据库连接</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#name()">name</a>(string name)</p><p class="description">指定默认的数据表名（不含前缀）</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#setTable()">setTable</a>(string table)</p><p class="description">指定默认数据表名（含前缀）</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getTable()">getTable</a>(string name)</p><p class="description">得到当前或者指定名称的数据表</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#parseSqlTable()">parseSqlTable</a>(string sql)</p><p class="description">将SQL语句中的__TABLE_NAME__字符串替换成带前缀的表名（小写）</p></td>
+</tr>
+<tr>
+<td class="type"> int</td>
+<td class="description"><p class="name"><a href="#execute()">execute</a>(string sql, array bind)</p><p class="description">执行语句</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getLastInsID()">getLastInsID</a>(string sequence)</p><p class="description">获取最近插入的ID</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getLastSql()">getLastSql</a>()</p><p class="description">获取最近一次查询的sql语句</p></td>
+</tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#transaction()">transaction</a>(callable callback)</p><p class="description">执行数据库事务</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#startTrans()">startTrans</a>()</p><p class="description">启动事务</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#commit()">commit</a>()</p><p class="description">用于非自动提交状态下面的查询提交</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#rollback()">rollback</a>()</p><p class="description">事务回滚</p></td>
+</tr>
+<tr>
+<td class="type"> boolean</td>
+<td class="description"><p class="name"><a href="#batchQuery()">batchQuery</a>(array sql)</p><p class="description">批处理执行SQL语句
+批处理的指令都认为是execute操作</p></td>
+</tr>
+<tr>
+<td class="type"> boolean</td>
+<td class="description"><p class="name"><a href="#getConfig()">getConfig</a>(string name)</p><p class="description">获取数据库的配置参数</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getPartitionTableName()">getPartitionTableName</a>(array data, string field, array rule)</p><p class="description">得到分表的的数据表名</p></td>
+</tr>
+<tr>
+<td class="type">protected  <a href="../../think/db/builder.html">Builder</a></td>
+<td class="description"><p class="name"><a href="#builder()">builder</a>()</p><p class="description">获取当前的builder实例对象</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#value()">value</a>(string field, mixed default)</p><p class="description">得到某个字段的值</p></td>
+</tr>
+<tr>
+<td class="type"> array</td>
+<td class="description"><p class="name"><a href="#column()">column</a>(string field, string key)</p><p class="description">得到某个列的数组</p></td>
+</tr>
+<tr>
+<td class="type"> integer</td>
+<td class="description"><p class="name"><a href="#count()">count</a>(string field)</p><p class="description">COUNT查询</p></td>
+</tr>
+<tr>
+<td class="type"> float|int</td>
+<td class="description"><p class="name"><a href="#sum()">sum</a>(string field)</p><p class="description">SUM查询</p></td>
+</tr>
+<tr>
+<td class="type"> float|int</td>
+<td class="description"><p class="name"><a href="#min()">min</a>(string field)</p><p class="description">MIN查询</p></td>
+</tr>
+<tr>
+<td class="type"> float|int</td>
+<td class="description"><p class="name"><a href="#max()">max</a>(string field)</p><p class="description">MAX查询</p></td>
+</tr>
+<tr>
+<td class="type"> float|int</td>
+<td class="description"><p class="name"><a href="#avg()">avg</a>(string field)</p><p class="description">AVG查询</p></td>
+</tr>
+<tr>
+<td class="type"> integer</td>
+<td class="description"><p class="name"><a href="#setField()">setField</a>(string|array field, mixed value)</p><p class="description">设置记录的某个字段值
+支持使用数据库字段和方法</p></td>
+</tr>
+<tr>
+<td class="type"> integer|true</td>
+<td class="description"><p class="name"><a href="#setInc()">setInc</a>(string field, integer step, integer lazyTime)</p><p class="description">字段值(延迟)增长</p></td>
+</tr>
+<tr>
+<td class="type"> integer|true</td>
+<td class="description"><p class="name"><a href="#setDec()">setDec</a>(string field, integer step, integer lazyTime)</p><p class="description">字段值（延迟）减少</p></td>
+</tr>
+<tr>
+<td class="type">protected  false|integer</td>
+<td class="description"><p class="name"><a href="#lazyWrite()">lazyWrite</a>(string type, string guid, integer step, integer lazyTime)</p><p class="description">延时更新检查 返回false表示需要延时
+否则返回实际写入的数值</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#join()">join</a>(mixed join, mixed condition, string type)</p><p class="description">查询SQL组装 join</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#union()">union</a>(mixed union, boolean all)</p><p class="description">查询SQL组装 union</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#field()">field</a>(mixed field, boolean except, string tableName, string prefix, string alias)</p><p class="description">指定查询字段 支持字段排除和指定数据表</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#view()">view</a>(string|array table, string|array field, string|array on, string type, mixed join)</p><p class="description">指定JOIN查询字段</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#partition()">partition</a>(array data, string field, array rule)</p><p class="description">设置分表规则</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#where()">where</a>(mixed field, mixed op, mixed condition)</p><p class="description">指定AND查询条件</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#whereOr()">whereOr</a>(mixed field, mixed op, mixed condition)</p><p class="description">指定OR查询条件</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#whereXor()">whereXor</a>(mixed field, mixed op, mixed condition)</p><p class="description">指定XOR查询条件</p></td>
+</tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#parseWhereExp()">parseWhereExp</a>(string logic, string|array|\Closure field, mixed op, mixed condition, array param)</p><p class="description">分析查询表达式</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#limit()">limit</a>(mixed offset, mixed length)</p><p class="description">指定查询数量</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#page()">page</a>(mixed page, mixed listRows)</p><p class="description">指定分页</p></td>
+</tr>
+<tr>
+<td class="type"> \think\paginator\Collection</td>
+<td class="description"><p class="name"><a href="#paginate()">paginate</a>(int|null listRows, int|bool simple, array config)</p><p class="description">分页查询</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#table()">table</a>(mixed table)</p><p class="description">指定当前操作的数据表</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#using()">using</a>(mixed using)</p><p class="description">USING支持 用于多表删除</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#order()">order</a>(string|array field, string order)</p><p class="description">指定排序 order('id','desc') 或者 order(['id'=>'desc','create_time'=>'desc'])</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#cache()">cache</a>(mixed key, integer expire, string tag)</p><p class="description">查询缓存</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#group()">group</a>(string group)</p><p class="description">指定group查询</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#having()">having</a>(string having)</p><p class="description">指定having查询</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#lock()">lock</a>(boolean lock)</p><p class="description">指定查询lock</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#distinct()">distinct</a>(string distinct)</p><p class="description">指定distinct查询</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#alias()">alias</a>(mixed alias)</p><p class="description">指定数据表别名</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#force()">force</a>(string force)</p><p class="description">指定强制索引</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#comment()">comment</a>(string comment)</p><p class="description">查询注释</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#fetchSql()">fetchSql</a>(boolean fetch)</p><p class="description">获取执行的SQL语句</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#fetchPdo()">fetchPdo</a>(bool pdo)</p><p class="description">不主动获取数据集</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#fetchClass()">fetchClass</a>(string class)</p><p class="description">指定数据集返回对象</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#master()">master</a>()</p><p class="description">设置从主服务器读取数据</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#strict()">strict</a>(bool strict)</p><p class="description">设置是否严格检查字段名</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#failException()">failException</a>(bool fail)</p><p class="description">设置查询数据不存在是否抛出异常</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#sequence()">sequence</a>(string sequence)</p><p class="description">设置自增序列名</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#pk()">pk</a>(string pk)</p><p class="description">指定数据表主键</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#whereTime()">whereTime</a>(string field, string op, string|array range)</p><p class="description">查询日期或者时间</p></td>
+</tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#getTableInfo()">getTableInfo</a>(mixed tableName, string fetch)</p><p class="description">获取数据表信息</p></td>
+</tr>
+<tr>
+<td class="type"> string|array</td>
+<td class="description"><p class="name"><a href="#getPk()">getPk</a>(string|array options)</p><p class="description">获取当前数据表的主键</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#getTableFields()">getTableFields</a>(mixed options)</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#getFieldsType()">getFieldsType</a>(mixed options)</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#getFieldsBind()">getFieldsBind</a>(mixed options)</p></td>
+</tr>
+<tr>
+<td class="type">protected  integer</td>
+<td class="description"><p class="name"><a href="#getFieldBindType()">getFieldBindType</a>(string type)</p><p class="description">获取字段绑定类型</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#bind()">bind</a>(mixed key, mixed value, integer type)</p><p class="description">参数绑定</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#isBind()">isBind</a>(string key)</p><p class="description">检测参数是否已经绑定</p></td>
+</tr>
+<tr>
+<td class="type">protected  $this</td>
+<td class="description"><p class="name"><a href="#options()">options</a>(array options)</p><p class="description">查询参数赋值</p></td>
+</tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#getOptions()">getOptions</a>(string name)</p><p class="description">获取当前的查询参数</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#with()">with</a>(string|array with)</p><p class="description">设置关联查询JOIN预查询</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#withField()">withField</a>(string |, mixed field)</p><p class="description">关联预加载中 获取关联指定字段值
+example:
+Model::with(['relation' => function($query){
+$query->withField("id,name");
+}])</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#via()">via</a>(string via)</p><p class="description">设置当前字段添加的表别名</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#relation()">relation</a>(string relation)</p><p class="description">设置关联查询</p></td>
+</tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#parsePkWhere()">parsePkWhere</a>(array|string data, mixed options)</p><p class="description">把主键值转换为查询条件 支持复合主键</p></td>
+</tr>
+<tr>
+<td class="type"> integer|string</td>
+<td class="description"><p class="name"><a href="#insert()">insert</a>(mixed data, boolean replace, boolean getLastInsID, string sequence)</p><p class="description">插入记录</p></td>
+</tr>
+<tr>
+<td class="type"> integer|string</td>
+<td class="description"><p class="name"><a href="#insertGetId()">insertGetId</a>(mixed data, boolean replace, string sequence)</p><p class="description">插入记录并获取自增ID</p></td>
+</tr>
+<tr>
+<td class="type"> integer|string</td>
+<td class="description"><p class="name"><a href="#insertAll()">insertAll</a>(mixed dataSet)</p><p class="description">批量插入记录</p></td>
+</tr>
+<tr>
+<td class="type"> integer|string</td>
+<td class="description"><p class="name"><a href="#selectInsert()">selectInsert</a>(string fields, string table)</p><p class="description">通过Select方式插入记录</p></td>
+</tr>
+<tr>
+<td class="type"> integer|string</td>
+<td class="description"><p class="name"><a href="#update()">update</a>(mixed data)</p><p class="description">更新记录</p></td>
+</tr>
+<tr>
+<td class="type"> Collection|false|\PDOStatement|string</td>
+<td class="description"><p class="name"><a href="#select()">select</a>(array|string|Query|\Closure data)</p><p class="description">查找记录</p></td>
+</tr>
+<tr>
+<td class="type"> array|false|\PDOStatement|string|Model</td>
+<td class="description"><p class="name"><a href="#find()">find</a>(array|string|Query|\Closure data)</p><p class="description">查找单条记录</p></td>
+</tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#throwNotFound()">throwNotFound</a>(array options)</p><p class="description">查询失败 抛出异常</p></td>
+</tr>
+<tr>
+<td class="type"> array|\PDOStatement|string|Model</td>
+<td class="description"><p class="name"><a href="#selectOrFail()">selectOrFail</a>(array|string|Query|\Closure data)</p><p class="description">查找多条记录 如果不存在则抛出异常</p></td>
+</tr>
+<tr>
+<td class="type"> array|\PDOStatement|string|Model</td>
+<td class="description"><p class="name"><a href="#findOrFail()">findOrFail</a>(array|string|Query|\Closure data)</p><p class="description">查找单条记录 如果不存在则抛出异常</p></td>
+</tr>
+<tr>
+<td class="type"> boolean</td>
+<td class="description"><p class="name"><a href="#chunk()">chunk</a>(integer count, callable callback, string column)</p><p class="description">分批数据返回处理</p></td>
+</tr>
+<tr>
+<td class="type"> array</td>
+<td class="description"><p class="name"><a href="#getBind()">getBind</a>()</p><p class="description">获取绑定的参数 并清空</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#buildSql()">buildSql</a>(bool sub)</p><p class="description">创建子查询SQL</p></td>
+</tr>
+<tr>
+<td class="type"> int</td>
+<td class="description"><p class="name"><a href="#delete()">delete</a>(mixed data)</p><p class="description">删除记录</p></td>
+</tr>
+<tr>
+<td class="type">protected  array</td>
+<td class="description"><p class="name"><a href="#parseExpress()">parseExpress</a>()</p><p class="description">分析表达式（可用于查询或者写入操作）</p></td>
+</tr>
+</table>
+
+<h2 id="detail_method">Constructor Detail</h2>
+<a href="../../source/library/think/db/query.php.html#line189" class="location">library\think\db\Query.php at line 189</a>
+
+<h3 id="__construct()">__construct</h3>
+<code class="signature">public  mixed <strong>__construct</strong>(string sql, array bind, boolean master, bool|string class)</code>
+<div class="details">
+<p>执行查询 返回数据集</p><dl>
+<dt>Parameters:</dt>
+<dd>sql - sql指令</dd>
+<dd>bind - 参数绑定</dd>
+<dd>master - 是否在主服务器读操作</dd>
+<dd>class - 指定返回的数据集对象</dd>
+<dt>Throws:</dt>
+<dd><a href="../../think/db/exception/bindparamexception.html">BindParamException</a></dd>
+<dd><a href="../../think/exception/pdoexception.html">PDOException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../../source/library/think/db/query.php.html#line100" class="location">library\think\db\Query.php at line 100</a>
+
+<h3 id="getConnection()">getConnection</h3>
+<code class="signature">public  <a href="../../think/connection.html">Connection</a> <strong>getConnection</strong>()</code>
+<div class="details">
+<p>获取当前的数据库Connection对象</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line111" class="location">library\think\db\Query.php at line 111</a>
+
+<h3 id="connect()">connect</h3>
+<code class="signature">public  $this <strong>connect</strong>(mixed config)</code>
+<div class="details">
+<p>切换当前的数据库连接</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line123" class="location">library\think\db\Query.php at line 123</a>
+
+<h3 id="name()">name</h3>
+<code class="signature">public  $this <strong>name</strong>(string name)</code>
+<div class="details">
+<p>指定默认的数据表名（不含前缀）</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line135" class="location">library\think\db\Query.php at line 135</a>
+
+<h3 id="setTable()">setTable</h3>
+<code class="signature">public  $this <strong>setTable</strong>(string table)</code>
+<div class="details">
+<p>指定默认数据表名（含前缀）</p><dl>
+<dt>Parameters:</dt>
+<dd>table - 表名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line147" class="location">library\think\db\Query.php at line 147</a>
+
+<h3 id="getTable()">getTable</h3>
+<code class="signature">public  string <strong>getTable</strong>(string name)</code>
+<div class="details">
+<p>得到当前或者指定名称的数据表</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line167" class="location">library\think\db\Query.php at line 167</a>
+
+<h3 id="parseSqlTable()">parseSqlTable</h3>
+<code class="signature">public  string <strong>parseSqlTable</strong>(string sql)</code>
+<div class="details">
+<p>将SQL语句中的__TABLE_NAME__字符串替换成带前缀的表名（小写）</p><dl>
+<dt>Parameters:</dt>
+<dd>sql - sql语句</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line203" class="location">library\think\db\Query.php at line 203</a>
+
+<h3 id="execute()">execute</h3>
+<code class="signature">public  int <strong>execute</strong>(string sql, array bind)</code>
+<div class="details">
+<p>执行语句</p><dl>
+<dt>Parameters:</dt>
+<dd>sql - sql指令</dd>
+<dd>bind - 参数绑定</dd>
+<dt>Throws:</dt>
+<dd><a href="../../think/db/exception/bindparamexception.html">BindParamException</a></dd>
+<dd><a href="../../think/exception/pdoexception.html">PDOException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line214" class="location">library\think\db\Query.php at line 214</a>
+
+<h3 id="getLastInsID()">getLastInsID</h3>
+<code class="signature">public  string <strong>getLastInsID</strong>(string sequence)</code>
+<div class="details">
+<p>获取最近插入的ID</p><dl>
+<dt>Parameters:</dt>
+<dd>sequence - 自增序列名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line224" class="location">library\think\db\Query.php at line 224</a>
+
+<h3 id="getLastSql()">getLastSql</h3>
+<code class="signature">public  string <strong>getLastSql</strong>()</code>
+<div class="details">
+<p>获取最近一次查询的sql语句</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line235" class="location">library\think\db\Query.php at line 235</a>
+
+<h3 id="transaction()">transaction</h3>
+<code class="signature">public  mixed <strong>transaction</strong>(callable callback)</code>
+<div class="details">
+<p>执行数据库事务</p><dl>
+<dt>Parameters:</dt>
+<dd>callback - 数据操作方法回调</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line245" class="location">library\think\db\Query.php at line 245</a>
+
+<h3 id="startTrans()">startTrans</h3>
+<code class="signature">public  void <strong>startTrans</strong>()</code>
+<div class="details">
+<p>启动事务</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line256" class="location">library\think\db\Query.php at line 256</a>
+
+<h3 id="commit()">commit</h3>
+<code class="signature">public  void <strong>commit</strong>()</code>
+<div class="details">
+<p>用于非自动提交状态下面的查询提交</p><dl>
+<dt>Throws:</dt>
+<dd><a href="../../think/exception/pdoexception.html">PDOException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line267" class="location">library\think\db\Query.php at line 267</a>
+
+<h3 id="rollback()">rollback</h3>
+<code class="signature">public  void <strong>rollback</strong>()</code>
+<div class="details">
+<p>事务回滚</p><dl>
+<dt>Throws:</dt>
+<dd><a href="../../think/exception/pdoexception.html">PDOException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line279" class="location">library\think\db\Query.php at line 279</a>
+
+<h3 id="batchQuery()">batchQuery</h3>
+<code class="signature">public  boolean <strong>batchQuery</strong>(array sql)</code>
+<div class="details">
+<p>批处理执行SQL语句
+批处理的指令都认为是execute操作</p><dl>
+<dt>Parameters:</dt>
+<dd>sql - SQL批处理指令</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line290" class="location">library\think\db\Query.php at line 290</a>
+
+<h3 id="getConfig()">getConfig</h3>
+<code class="signature">public  boolean <strong>getConfig</strong>(string name)</code>
+<div class="details">
+<p>获取数据库的配置参数</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 参数名称</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line303" class="location">library\think\db\Query.php at line 303</a>
+
+<h3 id="getPartitionTableName()">getPartitionTableName</h3>
+<code class="signature">public  string <strong>getPartitionTableName</strong>(array data, string field, array rule)</code>
+<div class="details">
+<p>得到分表的的数据表名</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 操作的数据</dd>
+<dd>field - 分表依据的字段</dd>
+<dd>rule - 分表规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line358" class="location">library\think\db\Query.php at line 358</a>
+
+<h3 id="builder()">builder</h3>
+<code class="signature">protected  <a href="../../think/db/builder.html">Builder</a> <strong>builder</strong>()</code>
+<div class="details">
+<p>获取当前的builder实例对象</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line378" class="location">library\think\db\Query.php at line 378</a>
+
+<h3 id="value()">value</h3>
+<code class="signature">public static  mixed <strong>value</strong>(string field, mixed default)</code>
+<div class="details">
+<p>得到某个字段的值</p><dl>
+<dt>Parameters:</dt>
+<dd>field - 字段名</dd>
+<dd>default - 默认值</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line422" class="location">library\think\db\Query.php at line 422</a>
+
+<h3 id="column()">column</h3>
+<code class="signature">public  array <strong>column</strong>(string field, string key)</code>
+<div class="details">
+<p>得到某个列的数组</p><dl>
+<dt>Parameters:</dt>
+<dd>field - 字段名 多个字段用逗号分隔</dd>
+<dd>key - 索引</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line490" class="location">library\think\db\Query.php at line 490</a>
+
+<h3 id="count()">count</h3>
+<code class="signature">public  integer <strong>count</strong>(string field)</code>
+<div class="details">
+<p>COUNT查询</p><dl>
+<dt>Parameters:</dt>
+<dd>field - 字段名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line501" class="location">library\think\db\Query.php at line 501</a>
+
+<h3 id="sum()">sum</h3>
+<code class="signature">public  float|int <strong>sum</strong>(string field)</code>
+<div class="details">
+<p>SUM查询</p><dl>
+<dt>Parameters:</dt>
+<dd>field - 字段名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line512" class="location">library\think\db\Query.php at line 512</a>
+
+<h3 id="min()">min</h3>
+<code class="signature">public  float|int <strong>min</strong>(string field)</code>
+<div class="details">
+<p>MIN查询</p><dl>
+<dt>Parameters:</dt>
+<dd>field - 字段名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line523" class="location">library\think\db\Query.php at line 523</a>
+
+<h3 id="max()">max</h3>
+<code class="signature">public  float|int <strong>max</strong>(string field)</code>
+<div class="details">
+<p>MAX查询</p><dl>
+<dt>Parameters:</dt>
+<dd>field - 字段名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line534" class="location">library\think\db\Query.php at line 534</a>
+
+<h3 id="avg()">avg</h3>
+<code class="signature">public  float|int <strong>avg</strong>(string field)</code>
+<div class="details">
+<p>AVG查询</p><dl>
+<dt>Parameters:</dt>
+<dd>field - 字段名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line547" class="location">library\think\db\Query.php at line 547</a>
+
+<h3 id="setField()">setField</h3>
+<code class="signature">public  integer <strong>setField</strong>(string|array field, mixed value)</code>
+<div class="details">
+<p>设置记录的某个字段值
+支持使用数据库字段和方法</p><dl>
+<dt>Parameters:</dt>
+<dd>field - 字段名</dd>
+<dd>value - 字段值</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line566" class="location">library\think\db\Query.php at line 566</a>
+
+<h3 id="setInc()">setInc</h3>
+<code class="signature">public  integer|true <strong>setInc</strong>(string field, integer step, integer lazyTime)</code>
+<div class="details">
+<p>字段值(延迟)增长</p><dl>
+<dt>Parameters:</dt>
+<dd>field - 字段名</dd>
+<dd>step - 增长值</dd>
+<dd>lazyTime - 延时时间(s)</dd>
+<dt>Throws:</dt>
+<dd><a href="../../think/exception.html">Exception</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line595" class="location">library\think\db\Query.php at line 595</a>
+
+<h3 id="setDec()">setDec</h3>
+<code class="signature">public  integer|true <strong>setDec</strong>(string field, integer step, integer lazyTime)</code>
+<div class="details">
+<p>字段值（延迟）减少</p><dl>
+<dt>Parameters:</dt>
+<dd>field - 字段名</dd>
+<dd>step - 减少值</dd>
+<dd>lazyTime - 延时时间(s)</dd>
+<dt>Throws:</dt>
+<dd><a href="../../think/exception.html">Exception</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line625" class="location">library\think\db\Query.php at line 625</a>
+
+<h3 id="lazyWrite()">lazyWrite</h3>
+<code class="signature">protected  false|integer <strong>lazyWrite</strong>(string type, string guid, integer step, integer lazyTime)</code>
+<div class="details">
+<p>延时更新检查 返回false表示需要延时
+否则返回实际写入的数值</p><dl>
+<dt>Parameters:</dt>
+<dd>type - 自增或者自减</dd>
+<dd>guid - 写入标识</dd>
+<dd>step - 写入步进值</dd>
+<dd>lazyTime - 延时时间(s)</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line652" class="location">library\think\db\Query.php at line 652</a>
+
+<h3 id="join()">join</h3>
+<code class="signature">public  $this <strong>join</strong>(mixed join, mixed condition, string type)</code>
+<div class="details">
+<p>查询SQL组装 join</p><dl>
+<dt>Parameters:</dt>
+<dd>join - 关联的表名</dd>
+<dd>condition - 条件</dd>
+<dd>type - JOIN类型</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line691" class="location">library\think\db\Query.php at line 691</a>
+
+<h3 id="union()">union</h3>
+<code class="signature">public  $this <strong>union</strong>(mixed union, boolean all)</code>
+<div class="details">
+<p>查询SQL组装 union</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line713" class="location">library\think\db\Query.php at line 713</a>
+
+<h3 id="field()">field</h3>
+<code class="signature">public  $this <strong>field</strong>(mixed field, boolean except, string tableName, string prefix, string alias)</code>
+<div class="details">
+<p>指定查询字段 支持字段排除和指定数据表</p><dl>
+<dt>Parameters:</dt>
+<dd></dd>
+<dd>except - 是否排除</dd>
+<dd>tableName - 数据表名</dd>
+<dd>prefix - 字段前缀</dd>
+<dd>alias - 别名前缀</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line757" class="location">library\think\db\Query.php at line 757</a>
+
+<h3 id="view()">view</h3>
+<code class="signature">public  $this <strong>view</strong>(string|array table, string|array field, string|array on, string type, mixed join)</code>
+<div class="details">
+<p>指定JOIN查询字段</p><dl>
+<dt>Parameters:</dt>
+<dd>table - 数据表</dd>
+<dd>field - 查询字段</dd>
+<dd>on - JOIN条件</dd>
+<dd>type - JOIN类型</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line812" class="location">library\think\db\Query.php at line 812</a>
+
+<h3 id="partition()">partition</h3>
+<code class="signature">public  $this <strong>partition</strong>(array data, string field, array rule)</code>
+<div class="details">
+<p>设置分表规则</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 操作的数据</dd>
+<dd>field - 分表依据的字段</dd>
+<dd>rule - 分表规则</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line826" class="location">library\think\db\Query.php at line 826</a>
+
+<h3 id="where()">where</h3>
+<code class="signature">public  $this <strong>where</strong>(mixed field, mixed op, mixed condition)</code>
+<div class="details">
+<p>指定AND查询条件</p><dl>
+<dt>Parameters:</dt>
+<dd>field - 查询字段</dd>
+<dd>op - 查询表达式</dd>
+<dd>condition - 查询条件</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line842" class="location">library\think\db\Query.php at line 842</a>
+
+<h3 id="whereOr()">whereOr</h3>
+<code class="signature">public  $this <strong>whereOr</strong>(mixed field, mixed op, mixed condition)</code>
+<div class="details">
+<p>指定OR查询条件</p><dl>
+<dt>Parameters:</dt>
+<dd>field - 查询字段</dd>
+<dd>op - 查询表达式</dd>
+<dd>condition - 查询条件</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line858" class="location">library\think\db\Query.php at line 858</a>
+
+<h3 id="whereXor()">whereXor</h3>
+<code class="signature">public  $this <strong>whereXor</strong>(mixed field, mixed op, mixed condition)</code>
+<div class="details">
+<p>指定XOR查询条件</p><dl>
+<dt>Parameters:</dt>
+<dd>field - 查询字段</dd>
+<dd>op - 查询表达式</dd>
+<dd>condition - 查询条件</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line876" class="location">library\think\db\Query.php at line 876</a>
+
+<h3 id="parseWhereExp()">parseWhereExp</h3>
+<code class="signature">protected  void <strong>parseWhereExp</strong>(string logic, string|array|\Closure field, mixed op, mixed condition, array param)</code>
+<div class="details">
+<p>分析查询表达式</p><dl>
+<dt>Parameters:</dt>
+<dd>logic - 查询逻辑 and or xor</dd>
+<dd>field - 查询字段</dd>
+<dd>op - 查询表达式</dd>
+<dd>condition - 查询条件</dd>
+<dd>param - 查询参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line930" class="location">library\think\db\Query.php at line 930</a>
+
+<h3 id="limit()">limit</h3>
+<code class="signature">public  $this <strong>limit</strong>(mixed offset, mixed length)</code>
+<div class="details">
+<p>指定查询数量</p><dl>
+<dt>Parameters:</dt>
+<dd>offset - 起始位置</dd>
+<dd>length - 查询数量</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line946" class="location">library\think\db\Query.php at line 946</a>
+
+<h3 id="page()">page</h3>
+<code class="signature">public  $this <strong>page</strong>(mixed page, mixed listRows)</code>
+<div class="details">
+<p>指定分页</p><dl>
+<dt>Parameters:</dt>
+<dd>page - 页数</dd>
+<dd>listRows - 每页数量</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line970" class="location">library\think\db\Query.php at line 970</a>
+
+<h3 id="paginate()">paginate</h3>
+<code class="signature">public  \think\paginator\Collection <strong>paginate</strong>(int|null listRows, int|bool simple, array config)</code>
+<div class="details">
+<p>分页查询</p><dl>
+<dt>Parameters:</dt>
+<dd>listRows - 每页数量</dd>
+<dd>simple - 简洁模式或者总记录数</dd>
+<dd>config - 配置参数 page:当前页, path:url路径, query:url额外参数, fragment:url锚点, var_page:分页变量, list_rows:每页数量 type:分页类名</dd>
+<dt>Throws:</dt>
+<dd><a href="../../think/exception/dbexception.html">DbException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1010" class="location">library\think\db\Query.php at line 1010</a>
+
+<h3 id="table()">table</h3>
+<code class="signature">public  $this <strong>table</strong>(mixed table)</code>
+<div class="details">
+<p>指定当前操作的数据表</p><dl>
+<dt>Parameters:</dt>
+<dd>table - 表名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1052" class="location">library\think\db\Query.php at line 1052</a>
+
+<h3 id="using()">using</h3>
+<code class="signature">public  $this <strong>using</strong>(mixed using)</code>
+<div class="details">
+<p>USING支持 用于多表删除</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1065" class="location">library\think\db\Query.php at line 1065</a>
+
+<h3 id="order()">order</h3>
+<code class="signature">public  $this <strong>order</strong>(string|array field, string order)</code>
+<div class="details">
+<p>指定排序 order('id','desc') 或者 order(['id'=>'desc','create_time'=>'desc'])</p><dl>
+<dt>Parameters:</dt>
+<dd>field - 排序字段</dd>
+<dd>order - 排序</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1096" class="location">library\think\db\Query.php at line 1096</a>
+
+<h3 id="cache()">cache</h3>
+<code class="signature">public  $this <strong>cache</strong>(mixed key, integer expire, string tag)</code>
+<div class="details">
+<p>查询缓存</p><dl>
+<dt>Parameters:</dt>
+<dd>key - 缓存key</dd>
+<dd>expire - 缓存有效期</dd>
+<dd>tag - 缓存标签</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1115" class="location">library\think\db\Query.php at line 1115</a>
+
+<h3 id="group()">group</h3>
+<code class="signature">public  $this <strong>group</strong>(string group)</code>
+<div class="details">
+<p>指定group查询</p><dl>
+<dt>Parameters:</dt>
+<dd>group - GROUP</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1127" class="location">library\think\db\Query.php at line 1127</a>
+
+<h3 id="having()">having</h3>
+<code class="signature">public  $this <strong>having</strong>(string having)</code>
+<div class="details">
+<p>指定having查询</p><dl>
+<dt>Parameters:</dt>
+<dd>having - having</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1139" class="location">library\think\db\Query.php at line 1139</a>
+
+<h3 id="lock()">lock</h3>
+<code class="signature">public  $this <strong>lock</strong>(boolean lock)</code>
+<div class="details">
+<p>指定查询lock</p><dl>
+<dt>Parameters:</dt>
+<dd>lock - 是否lock</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1152" class="location">library\think\db\Query.php at line 1152</a>
+
+<h3 id="distinct()">distinct</h3>
+<code class="signature">public  $this <strong>distinct</strong>(string distinct)</code>
+<div class="details">
+<p>指定distinct查询</p><dl>
+<dt>Parameters:</dt>
+<dd>distinct - 是否唯一</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1164" class="location">library\think\db\Query.php at line 1164</a>
+
+<h3 id="alias()">alias</h3>
+<code class="signature">public  $this <strong>alias</strong>(mixed alias)</code>
+<div class="details">
+<p>指定数据表别名</p><dl>
+<dt>Parameters:</dt>
+<dd>alias - 数据表别名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1188" class="location">library\think\db\Query.php at line 1188</a>
+
+<h3 id="force()">force</h3>
+<code class="signature">public  $this <strong>force</strong>(string force)</code>
+<div class="details">
+<p>指定强制索引</p><dl>
+<dt>Parameters:</dt>
+<dd>force - 索引名称</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1200" class="location">library\think\db\Query.php at line 1200</a>
+
+<h3 id="comment()">comment</h3>
+<code class="signature">public  $this <strong>comment</strong>(string comment)</code>
+<div class="details">
+<p>查询注释</p><dl>
+<dt>Parameters:</dt>
+<dd>comment - 注释</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1212" class="location">library\think\db\Query.php at line 1212</a>
+
+<h3 id="fetchSql()">fetchSql</h3>
+<code class="signature">public  $this <strong>fetchSql</strong>(boolean fetch)</code>
+<div class="details">
+<p>获取执行的SQL语句</p><dl>
+<dt>Parameters:</dt>
+<dd>fetch - 是否返回sql</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1224" class="location">library\think\db\Query.php at line 1224</a>
+
+<h3 id="fetchPdo()">fetchPdo</h3>
+<code class="signature">public  $this <strong>fetchPdo</strong>(bool pdo)</code>
+<div class="details">
+<p>不主动获取数据集</p><dl>
+<dt>Parameters:</dt>
+<dd>pdo - 是否返回 PDOStatement 对象</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1236" class="location">library\think\db\Query.php at line 1236</a>
+
+<h3 id="fetchClass()">fetchClass</h3>
+<code class="signature">public  $this <strong>fetchClass</strong>(string class)</code>
+<div class="details">
+<p>指定数据集返回对象</p><dl>
+<dt>Parameters:</dt>
+<dd>class - 指定返回的数据集对象类名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1247" class="location">library\think\db\Query.php at line 1247</a>
+
+<h3 id="master()">master</h3>
+<code class="signature">public  $this <strong>master</strong>()</code>
+<div class="details">
+<p>设置从主服务器读取数据</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1259" class="location">library\think\db\Query.php at line 1259</a>
+
+<h3 id="strict()">strict</h3>
+<code class="signature">public  $this <strong>strict</strong>(bool strict)</code>
+<div class="details">
+<p>设置是否严格检查字段名</p><dl>
+<dt>Parameters:</dt>
+<dd>strict - 是否严格检查字段</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1271" class="location">library\think\db\Query.php at line 1271</a>
+
+<h3 id="failException()">failException</h3>
+<code class="signature">public  $this <strong>failException</strong>(bool fail)</code>
+<div class="details">
+<p>设置查询数据不存在是否抛出异常</p><dl>
+<dt>Parameters:</dt>
+<dd>fail - 数据不存在是否抛出异常</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1283" class="location">library\think\db\Query.php at line 1283</a>
+
+<h3 id="sequence()">sequence</h3>
+<code class="signature">public  $this <strong>sequence</strong>(string sequence)</code>
+<div class="details">
+<p>设置自增序列名</p><dl>
+<dt>Parameters:</dt>
+<dd>sequence - 自增序列名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1295" class="location">library\think\db\Query.php at line 1295</a>
+
+<h3 id="pk()">pk</h3>
+<code class="signature">public  $this <strong>pk</strong>(string pk)</code>
+<div class="details">
+<p>指定数据表主键</p><dl>
+<dt>Parameters:</dt>
+<dd>pk - 主键</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1309" class="location">library\think\db\Query.php at line 1309</a>
+
+<h3 id="whereTime()">whereTime</h3>
+<code class="signature">public  $this <strong>whereTime</strong>(string field, string op, string|array range)</code>
+<div class="details">
+<p>查询日期或者时间</p><dl>
+<dt>Parameters:</dt>
+<dd>field - 日期字段名</dd>
+<dd>op - 比较运算符或者表达式</dd>
+<dd>range - 比较范围</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1357" class="location">library\think\db\Query.php at line 1357</a>
+
+<h3 id="getTableInfo()">getTableInfo</h3>
+<code class="signature">public  mixed <strong>getTableInfo</strong>(mixed tableName, string fetch)</code>
+<div class="details">
+<p>获取数据表信息</p><dl>
+<dt>Parameters:</dt>
+<dd>tableName - 数据表名 留空自动获取</dd>
+<dd>fetch - 获取信息类型 包括 fields type bind pk</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1413" class="location">library\think\db\Query.php at line 1413</a>
+
+<h3 id="getPk()">getPk</h3>
+<code class="signature">public  string|array <strong>getPk</strong>(string|array options)</code>
+<div class="details">
+<p>获取当前数据表的主键</p><dl>
+<dt>Parameters:</dt>
+<dd>options - 数据表名或者查询参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1424" class="location">library\think\db\Query.php at line 1424</a>
+
+<h3 id="getTableFields()">getTableFields</h3>
+<code class="signature">public  void <strong>getTableFields</strong>(mixed options)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1430" class="location">library\think\db\Query.php at line 1430</a>
+
+<h3 id="getFieldsType()">getFieldsType</h3>
+<code class="signature">public  void <strong>getFieldsType</strong>(mixed options)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1436" class="location">library\think\db\Query.php at line 1436</a>
+
+<h3 id="getFieldsBind()">getFieldsBind</h3>
+<code class="signature">public  void <strong>getFieldsBind</strong>(mixed options)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1454" class="location">library\think\db\Query.php at line 1454</a>
+
+<h3 id="getFieldBindType()">getFieldBindType</h3>
+<code class="signature">protected  integer <strong>getFieldBindType</strong>(string type)</code>
+<div class="details">
+<p>获取字段绑定类型</p><dl>
+<dt>Parameters:</dt>
+<dd>type - 字段类型</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1474" class="location">library\think\db\Query.php at line 1474</a>
+
+<h3 id="bind()">bind</h3>
+<code class="signature">public  $this <strong>bind</strong>(mixed key, mixed value, integer type)</code>
+<div class="details">
+<p>参数绑定</p><dl>
+<dt>Parameters:</dt>
+<dd>key - 参数名</dd>
+<dd>value - 绑定变量值</dd>
+<dd>type - 绑定类型</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1490" class="location">library\think\db\Query.php at line 1490</a>
+
+<h3 id="isBind()">isBind</h3>
+<code class="signature">public  bool <strong>isBind</strong>(string key)</code>
+<div class="details">
+<p>检测参数是否已经绑定</p><dl>
+<dt>Parameters:</dt>
+<dd>key - 参数名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1501" class="location">library\think\db\Query.php at line 1501</a>
+
+<h3 id="options()">options</h3>
+<code class="signature">protected  $this <strong>options</strong>(array options)</code>
+<div class="details">
+<p>查询参数赋值</p><dl>
+<dt>Parameters:</dt>
+<dd>options - 表达式参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1513" class="location">library\think\db\Query.php at line 1513</a>
+
+<h3 id="getOptions()">getOptions</h3>
+<code class="signature">public  mixed <strong>getOptions</strong>(string name)</code>
+<div class="details">
+<p>获取当前的查询参数</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 参数名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1528" class="location">library\think\db\Query.php at line 1528</a>
+
+<h3 id="with()">with</h3>
+<code class="signature">public  $this <strong>with</strong>(string|array with)</code>
+<div class="details">
+<p>设置关联查询JOIN预查询</p><dl>
+<dt>Parameters:</dt>
+<dd>with - 关联方法名称</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1616" class="location">library\think\db\Query.php at line 1616</a>
+
+<h3 id="withField()">withField</h3>
+<code class="signature">public  $this <strong>withField</strong>(string |, mixed field)</code>
+<div class="details">
+<p>关联预加载中 获取关联指定字段值
+example:
+Model::with(['relation' => function($query){
+$query->withField("id,name");
+}])</p><dl>
+<dt>Parameters:</dt>
+<dd>| - array $field 指定获取的字段</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1628" class="location">library\think\db\Query.php at line 1628</a>
+
+<h3 id="via()">via</h3>
+<code class="signature">public  $this <strong>via</strong>(string via)</code>
+<div class="details">
+<p>设置当前字段添加的表别名</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1640" class="location">library\think\db\Query.php at line 1640</a>
+
+<h3 id="relation()">relation</h3>
+<code class="signature">public  $this <strong>relation</strong>(string relation)</code>
+<div class="details">
+<p>设置关联查询</p><dl>
+<dt>Parameters:</dt>
+<dd>relation - 关联名称</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1654" class="location">library\think\db\Query.php at line 1654</a>
+
+<h3 id="parsePkWhere()">parsePkWhere</h3>
+<code class="signature">protected  void <strong>parsePkWhere</strong>(array|string data, mixed options)</code>
+<div class="details">
+<p>把主键值转换为查询条件 支持复合主键</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 主键数据</dd>
+<dd>options - 表达式参数</dd>
+<dt>Throws:</dt>
+<dd><a href="../../think/exception.html">Exception</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1701" class="location">library\think\db\Query.php at line 1701</a>
+
+<h3 id="insert()">insert</h3>
+<code class="signature">public  integer|string <strong>insert</strong>(mixed data, boolean replace, boolean getLastInsID, string sequence)</code>
+<div class="details">
+<p>插入记录</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 数据</dd>
+<dd>replace - 是否replace</dd>
+<dd>getLastInsID - 返回自增主键</dd>
+<dd>sequence - 自增序列名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1731" class="location">library\think\db\Query.php at line 1731</a>
+
+<h3 id="insertGetId()">insertGetId</h3>
+<code class="signature">public  integer|string <strong>insertGetId</strong>(mixed data, boolean replace, string sequence)</code>
+<div class="details">
+<p>插入记录并获取自增ID</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 数据</dd>
+<dd>replace - 是否replace</dd>
+<dd>sequence - 自增序列名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1742" class="location">library\think\db\Query.php at line 1742</a>
+
+<h3 id="insertAll()">insertAll</h3>
+<code class="signature">public  integer|string <strong>insertAll</strong>(mixed dataSet)</code>
+<div class="details">
+<p>批量插入记录</p><dl>
+<dt>Parameters:</dt>
+<dd>dataSet - 数据集</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1770" class="location">library\think\db\Query.php at line 1770</a>
+
+<h3 id="selectInsert()">selectInsert</h3>
+<code class="signature">public  integer|string <strong>selectInsert</strong>(string fields, string table)</code>
+<div class="details">
+<p>通过Select方式插入记录</p><dl>
+<dt>Parameters:</dt>
+<dd>fields - 要插入的数据表字段名</dd>
+<dd>table - 要插入的数据表名</dd>
+<dt>Throws:</dt>
+<dd><a href="../../think/exception/pdoexception.html">PDOException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1796" class="location">library\think\db\Query.php at line 1796</a>
+
+<h3 id="update()">update</h3>
+<code class="signature">public  integer|string <strong>update</strong>(mixed data)</code>
+<div class="details">
+<p>更新记录</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 数据</dd>
+<dt>Throws:</dt>
+<dd><a href="../../think/exception.html">Exception</a></dd>
+<dd><a href="../../think/exception/pdoexception.html">PDOException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1860" class="location">library\think\db\Query.php at line 1860</a>
+
+<h3 id="select()">select</h3>
+<code class="signature">public  Collection|false|\PDOStatement|string <strong>select</strong>(array|string|Query|\Closure data)</code>
+<div class="details">
+<p>查找记录</p><dl>
+<dt>Throws:</dt>
+<dd><a href="../../think/exception/dbexception.html">DbException</a></dd>
+<dd><a href="../../think/db/exception/modelnotfoundexception.html">ModelNotFoundException</a></dd>
+<dd><a href="../../think/db/exception/datanotfoundexception.html">DataNotFoundException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line1950" class="location">library\think\db\Query.php at line 1950</a>
+
+<h3 id="find()">find</h3>
+<code class="signature">public  array|false|\PDOStatement|string|Model <strong>find</strong>(array|string|Query|\Closure data)</code>
+<div class="details">
+<p>查找单条记录</p><dl>
+<dt>Throws:</dt>
+<dd><a href="../../think/exception/dbexception.html">DbException</a></dd>
+<dd><a href="../../think/db/exception/modelnotfoundexception.html">ModelNotFoundException</a></dd>
+<dd><a href="../../think/db/exception/datanotfoundexception.html">DataNotFoundException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line2037" class="location">library\think\db\Query.php at line 2037</a>
+
+<h3 id="throwNotFound()">throwNotFound</h3>
+<code class="signature">protected  void <strong>throwNotFound</strong>(array options)</code>
+<div class="details">
+<p>查询失败 抛出异常</p><dl>
+<dt>Parameters:</dt>
+<dd>options - 查询参数</dd>
+<dt>Throws:</dt>
+<dd><a href="../../think/db/exception/modelnotfoundexception.html">ModelNotFoundException</a></dd>
+<dd><a href="../../think/db/exception/datanotfoundexception.html">DataNotFoundException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line2056" class="location">library\think\db\Query.php at line 2056</a>
+
+<h3 id="selectOrFail()">selectOrFail</h3>
+<code class="signature">public  array|\PDOStatement|string|Model <strong>selectOrFail</strong>(array|string|Query|\Closure data)</code>
+<div class="details">
+<p>查找多条记录 如果不存在则抛出异常</p><dl>
+<dt>Throws:</dt>
+<dd><a href="../../think/exception/dbexception.html">DbException</a></dd>
+<dd><a href="../../think/db/exception/modelnotfoundexception.html">ModelNotFoundException</a></dd>
+<dd><a href="../../think/db/exception/datanotfoundexception.html">DataNotFoundException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line2070" class="location">library\think\db\Query.php at line 2070</a>
+
+<h3 id="findOrFail()">findOrFail</h3>
+<code class="signature">public  array|\PDOStatement|string|Model <strong>findOrFail</strong>(array|string|Query|\Closure data)</code>
+<div class="details">
+<p>查找单条记录 如果不存在则抛出异常</p><dl>
+<dt>Throws:</dt>
+<dd><a href="../../think/exception/dbexception.html">DbException</a></dd>
+<dd><a href="../../think/db/exception/modelnotfoundexception.html">ModelNotFoundException</a></dd>
+<dd><a href="../../think/db/exception/datanotfoundexception.html">DataNotFoundException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line2083" class="location">library\think\db\Query.php at line 2083</a>
+
+<h3 id="chunk()">chunk</h3>
+<code class="signature">public  boolean <strong>chunk</strong>(integer count, callable callback, string column)</code>
+<div class="details">
+<p>分批数据返回处理</p><dl>
+<dt>Parameters:</dt>
+<dd>count - 每次处理的数据数量</dd>
+<dd>callback - 处理回调方法</dd>
+<dd>column - 分批处理的字段名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line2116" class="location">library\think\db\Query.php at line 2116</a>
+
+<h3 id="getBind()">getBind</h3>
+<code class="signature">public  array <strong>getBind</strong>()</code>
+<div class="details">
+<p>获取绑定的参数 并清空</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line2130" class="location">library\think\db\Query.php at line 2130</a>
+
+<h3 id="buildSql()">buildSql</h3>
+<code class="signature">public  string <strong>buildSql</strong>(bool sub)</code>
+<div class="details">
+<p>创建子查询SQL</p><dl>
+<dt>Throws:</dt>
+<dd><a href="../../think/exception/dbexception.html">DbException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line2143" class="location">library\think\db\Query.php at line 2143</a>
+
+<h3 id="delete()">delete</h3>
+<code class="signature">public  int <strong>delete</strong>(mixed data)</code>
+<div class="details">
+<p>删除记录</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 表达式 true 表示强制删除</dd>
+<dt>Throws:</dt>
+<dd><a href="../../think/exception.html">Exception</a></dd>
+<dd><a href="../../think/exception/pdoexception.html">PDOException</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/query.php.html#line2187" class="location">library\think\db\Query.php at line 2187</a>
+
+<h3 id="parseExpress()">parseExpress</h3>
+<code class="signature">protected  array <strong>parseExpress</strong>()</code>
+<div class="details">
+<p>分析表达式（可用于查询或者写入操作）</p></div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../../overview-summary.html">Overview</a></li>
+<li><a href="../../think/db/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../../think/db/package-tree.html">Tree</a></li>
+<li><a href="../../overview-files.html">Files</a></li>
+<li><a href="../../deprecated-list.html">Deprecated</a></li>
+<li><a href="../../todo-list.html">Todo</a></li>
+<li><a href="../../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../../index.html" target="_top">Frames</a>
+<a href="../../think\db\query.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

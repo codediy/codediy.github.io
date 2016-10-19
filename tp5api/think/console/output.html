@@ -1,0 +1,453 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../../stylesheet.css">
+<link rel="start" href="../../overview-summary.html">
+
+<title>Output (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../../overview-summary.html">Overview</a></li>
+<li><a href="../../think/console/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../../think/console/package-tree.html">Tree</a></li>
+<li><a href="../../overview-files.html">Files</a></li>
+<li><a href="../../deprecated-list.html">Deprecated</a></li>
+<li><a href="../../todo-list.html">Todo</a></li>
+<li><a href="../../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../../index.html" target="_top">Frames</a>
+<a href="../../think\console\output.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\console\Output</div>
+<a href="../../source/library/think/console/output.php.html#line41" class="location">library\think\console\Output.php at line 41</a>
+
+<h1>Class Output</h1>
+
+<pre class="tree"><strong>Output</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>Output</strong></p>
+
+<div class="comment" id="overview_description"><p>Class Output</p></div>
+
+<dl>
+<dt>See Also:</dt>
+<dd><a href="../../think/console/output/driver/console.html#setDecorated()">\think\console\output\driver\Console::setDecorated</a></dd>
+<dd><a href="../../think/console/output/driver/buffer.html#fetch()">\think\console\output\driver\Buffer::fetch</a></dd>
+<dt>Method:</dt>
+<dd>void setDecorated($decorated)</dd>
+<dd>string fetch()</dd>
+<dd>void info($message)</dd>
+<dd>void error($message)</dd>
+<dd>void comment($message)</dd>
+<dd>void warning($message)</dd>
+<dd>void highlight($message)</dd>
+<dd>void question($message)</dd>
+</dl>
+<hr>
+
+<table id="summary_field">
+<tr><th colspan="2">Constant Summary</th></tr>
+<tr>
+<td class="type">final static  int</td>
+<td class="description"><p class="name"><a href="#OUTPUT_NORMAL">OUTPUT_NORMAL</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  int</td>
+<td class="description"><p class="name"><a href="#OUTPUT_PLAIN">OUTPUT_PLAIN</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  int</td>
+<td class="description"><p class="name"><a href="#OUTPUT_RAW">OUTPUT_RAW</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  int</td>
+<td class="description"><p class="name"><a href="#VERBOSITY_DEBUG">VERBOSITY_DEBUG</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  int</td>
+<td class="description"><p class="name"><a href="#VERBOSITY_NORMAL">VERBOSITY_NORMAL</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  int</td>
+<td class="description"><p class="name"><a href="#VERBOSITY_QUIET">VERBOSITY_QUIET</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  int</td>
+<td class="description"><p class="name"><a href="#VERBOSITY_VERBOSE">VERBOSITY_VERBOSE</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  int</td>
+<td class="description"><p class="name"><a href="#VERBOSITY_VERY_VERBOSE">VERBOSITY_VERY_VERBOSE</a></p></td>
+</tr>
+</table>
+
+<table id="summary_constructor">
+<tr><th colspan="2">Constructor Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#__construct()">__construct</a>(str driver)</p></td>
+</tr>
+</table>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#ask()">ask</a>(<a href="../../think/console/input.html">Input</a> input, mixed question, mixed default, mixed validator)</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#askHidden()">askHidden</a>(<a href="../../think/console/input.html">Input</a> input, mixed question, mixed validator)</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#confirm()">confirm</a>(<a href="../../think/console/input.html">Input</a> input, mixed question, bool default)</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#choice()">choice</a>(<a href="../../think/console/input.html">Input</a> input, mixed question, mixed choices, mixed default)</p><p class="description"></p></td>
+</tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#askQuestion()">askQuestion</a>(<a href="../../think/console/input.html">Input</a> input, <a href="../../think/console/output/question.html">Question</a> question)</p></td>
+</tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#block()">block</a>(mixed style, mixed message)</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#newLine()">newLine</a>(int count)</p><p class="description">输出空行</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#writeln()">writeln</a>(string messages, int type)</p><p class="description">输出信息并换行</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#write()">write</a>(string messages, bool newline, int type)</p><p class="description">输出信息</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#renderException()">renderException</a>(<a href="../../think/exception.html">Exception</a> e)</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#setVerbosity()">setVerbosity</a>(mixed level)</p><p class="description"></p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#getVerbosity()">getVerbosity</a>()</p><p class="description"></p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#isQuiet()">isQuiet</a>()</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#isVerbose()">isVerbose</a>()</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#isVeryVerbose()">isVeryVerbose</a>()</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#isDebug()">isDebug</a>()</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#describe()">describe</a>(mixed object, mixed options)</p></td>
+</tr>
+</table>
+
+<h2 id="detail_field">Constant Detail</h2>
+<a href="../../source/library/think/console/output.php.html#line49" class="location">library\think\console\Output.php at line 49</a>
+
+<h3 id="OUTPUT_NORMAL">OUTPUT_NORMAL</h3>
+<code class="signature">public final static  int <strong>OUTPUT_NORMAL</strong> = 0</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line51" class="location">library\think\console\Output.php at line 51</a>
+
+<h3 id="OUTPUT_PLAIN">OUTPUT_PLAIN</h3>
+<code class="signature">public final static  int <strong>OUTPUT_PLAIN</strong> = 2</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line50" class="location">library\think\console\Output.php at line 50</a>
+
+<h3 id="OUTPUT_RAW">OUTPUT_RAW</h3>
+<code class="signature">public final static  int <strong>OUTPUT_RAW</strong> = 1</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line47" class="location">library\think\console\Output.php at line 47</a>
+
+<h3 id="VERBOSITY_DEBUG">VERBOSITY_DEBUG</h3>
+<code class="signature">public final static  int <strong>VERBOSITY_DEBUG</strong> = 4</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line44" class="location">library\think\console\Output.php at line 44</a>
+
+<h3 id="VERBOSITY_NORMAL">VERBOSITY_NORMAL</h3>
+<code class="signature">public final static  int <strong>VERBOSITY_NORMAL</strong> = 1</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line43" class="location">library\think\console\Output.php at line 43</a>
+
+<h3 id="VERBOSITY_QUIET">VERBOSITY_QUIET</h3>
+<code class="signature">public final static  int <strong>VERBOSITY_QUIET</strong> = 0</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line45" class="location">library\think\console\Output.php at line 45</a>
+
+<h3 id="VERBOSITY_VERBOSE">VERBOSITY_VERBOSE</h3>
+<code class="signature">public final static  int <strong>VERBOSITY_VERBOSE</strong> = 2</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line46" class="location">library\think\console\Output.php at line 46</a>
+
+<h3 id="VERBOSITY_VERY_VERBOSE">VERBOSITY_VERY_VERBOSE</h3>
+<code class="signature">public final static  int <strong>VERBOSITY_VERY_VERBOSE</strong> = 3</code>
+<div class="details">
+</div>
+
+<hr>
+
+<h2 id="detail_method">Constructor Detail</h2>
+<a href="../../source/library/think/console/output.php.html#line60" class="location">library\think\console\Output.php at line 60</a>
+
+<h3 id="__construct()">__construct</h3>
+<code class="signature">public  void <strong>__construct</strong>(str driver)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../../source/library/think/console/output.php.html#line67" class="location">library\think\console\Output.php at line 67</a>
+
+<h3 id="ask()">ask</h3>
+<code class="signature">public  void <strong>ask</strong>(<a href="../../think/console/input.html">Input</a> input, mixed question, mixed default, mixed validator)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line75" class="location">library\think\console\Output.php at line 75</a>
+
+<h3 id="askHidden()">askHidden</h3>
+<code class="signature">public  void <strong>askHidden</strong>(<a href="../../think/console/input.html">Input</a> input, mixed question, mixed validator)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line85" class="location">library\think\console\Output.php at line 85</a>
+
+<h3 id="confirm()">confirm</h3>
+<code class="signature">public  void <strong>confirm</strong>(<a href="../../think/console/input.html">Input</a> input, mixed question, bool default)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line93" class="location">library\think\console\Output.php at line 93</a>
+
+<h3 id="choice()">choice</h3>
+<code class="signature">public  void <strong>choice</strong>(<a href="../../think/console/input.html">Input</a> input, mixed question, mixed choices, mixed default)</code>
+<div class="details">
+<p></p></div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line103" class="location">library\think\console\Output.php at line 103</a>
+
+<h3 id="askQuestion()">askQuestion</h3>
+<code class="signature">protected  void <strong>askQuestion</strong>(<a href="../../think/console/input.html">Input</a> input, <a href="../../think/console/output/question.html">Question</a> question)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line115" class="location">library\think\console\Output.php at line 115</a>
+
+<h3 id="block()">block</h3>
+<code class="signature">protected  void <strong>block</strong>(mixed style, mixed message)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line124" class="location">library\think\console\Output.php at line 124</a>
+
+<h3 id="newLine()">newLine</h3>
+<code class="signature">public  void <strong>newLine</strong>(int count)</code>
+<div class="details">
+<p>输出空行</p></div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line134" class="location">library\think\console\Output.php at line 134</a>
+
+<h3 id="writeln()">writeln</h3>
+<code class="signature">public  void <strong>writeln</strong>(string messages, int type)</code>
+<div class="details">
+<p>输出信息并换行</p></div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line145" class="location">library\think\console\Output.php at line 145</a>
+
+<h3 id="write()">write</h3>
+<code class="signature">public  void <strong>write</strong>(string messages, bool newline, int type)</code>
+<div class="details">
+<p>输出信息</p></div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line150" class="location">library\think\console\Output.php at line 150</a>
+
+<h3 id="renderException()">renderException</h3>
+<code class="signature">public  void <strong>renderException</strong>(<a href="../../think/exception.html">Exception</a> e)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line158" class="location">library\think\console\Output.php at line 158</a>
+
+<h3 id="setVerbosity()">setVerbosity</h3>
+<code class="signature">public  void <strong>setVerbosity</strong>(mixed level)</code>
+<div class="details">
+<p></p></div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line166" class="location">library\think\console\Output.php at line 166</a>
+
+<h3 id="getVerbosity()">getVerbosity</h3>
+<code class="signature">public  void <strong>getVerbosity</strong>()</code>
+<div class="details">
+<p></p></div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line171" class="location">library\think\console\Output.php at line 171</a>
+
+<h3 id="isQuiet()">isQuiet</h3>
+<code class="signature">public  void <strong>isQuiet</strong>()</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line176" class="location">library\think\console\Output.php at line 176</a>
+
+<h3 id="isVerbose()">isVerbose</h3>
+<code class="signature">public  void <strong>isVerbose</strong>()</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line181" class="location">library\think\console\Output.php at line 181</a>
+
+<h3 id="isVeryVerbose()">isVeryVerbose</h3>
+<code class="signature">public  void <strong>isVeryVerbose</strong>()</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line186" class="location">library\think\console\Output.php at line 186</a>
+
+<h3 id="isDebug()">isDebug</h3>
+<code class="signature">public  void <strong>isDebug</strong>()</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/output.php.html#line191" class="location">library\think\console\Output.php at line 191</a>
+
+<h3 id="describe()">describe</h3>
+<code class="signature">public  void <strong>describe</strong>(mixed object, mixed options)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../../overview-summary.html">Overview</a></li>
+<li><a href="../../think/console/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../../think/console/package-tree.html">Tree</a></li>
+<li><a href="../../overview-files.html">Files</a></li>
+<li><a href="../../deprecated-list.html">Deprecated</a></li>
+<li><a href="../../todo-list.html">Todo</a></li>
+<li><a href="../../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../../index.html" target="_top">Frames</a>
+<a href="../../think\console\output.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

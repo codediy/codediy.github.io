@@ -1,0 +1,626 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:04 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>Cx (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\cx.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">Think\Cx</div>
+<a href="../source/library/think/template/taglib/cx.php.html#line23" class="location">library\think\template\taglib\Cx.php at line 23</a>
+
+<h1>Class Cx</h1>
+
+<pre class="tree">Taglib<br> └─<strong>Cx</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>Cx</strong><br>extends Taglib
+
+</p>
+
+<div class="comment" id="overview_description"><p>CX标签库解析类</p></div>
+
+<dl>
+<dt>Category:</dt>
+<dd>Think</dd>
+<dt>Subpackage:</dt>
+<dd>Driver.Taglib</dd>
+<dt>Author:</dt>
+<dd>liu21st <liu21st@gmail.com></dd>
+</dl>
+<hr>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagPhp()">tagPhp</a>(array tag, string content)</p><p class="description">php标签解析
+格式：
+{php}echo $name{/php}</p></td>
+</tr>
+<tr>
+<td class="type"> string|void</td>
+<td class="description"><p class="name"><a href="#tagVolist()">tagVolist</a>(array tag, string content)</p><p class="description">volist标签解析 循环输出数据集
+格式：
+{volist name="userList" id="user" empty=""}
+{user.username}
+{user.email}
+{/volist}</p></td>
+</tr>
+<tr>
+<td class="type"> string|void</td>
+<td class="description"><p class="name"><a href="#tagForeach()">tagForeach</a>(array tag, string content)</p><p class="description">foreach标签解析 循环输出数据集
+格式：
+{foreach name="userList" id="user" key="key" index="i" mod="2" offset="3" length="5" empty=""}
+{user.username}
+{/foreach}</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagIf()">tagIf</a>(array tag, string content)</p><p class="description">if标签解析
+格式：
+{if condition=" $a eq 1"}
+{elseif condition="$a eq 2" /}
+{else /}
+{/if}
+表达式支持 eq neq gt egt lt elt == > >= < </p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagElseif()">tagElseif</a>(array tag, string content)</p><p class="description">elseif标签解析
+格式：见if标签</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagElse()">tagElse</a>(array tag)</p><p class="description">else标签解析
+格式：见if标签</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagSwitch()">tagSwitch</a>(array tag, string content)</p><p class="description">switch标签解析
+格式：
+{switch name="a.name"}
+{case value="1" break="false"}1{/case}
+{case value="2" }2{/case}
+{default /}other
+{/switch}</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagCase()">tagCase</a>(array tag, string content)</p><p class="description">case标签解析 需要配合switch才有效</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagDefault()">tagDefault</a>(array tag, string content)</p><p class="description">default标签解析 需要配合switch才有效
+使用： {default /}ddfdf</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagCompare()">tagCompare</a>(array tag, string content)</p><p class="description">compare标签解析
+用于值的比较 支持 eq neq gt lt egt elt heq nheq 默认是eq
+格式： {compare name="" type="eq" value="" }content{/compare}</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagRange()">tagRange</a>(array tag, string content)</p><p class="description">range标签解析
+如果某个变量存在于某个范围 则输出内容 type= in 表示在范围内 否则表示在范围外
+格式： {range name="var|function"  value="val" type='in|notin' }content{/range}
+example: {range name="a"  value="1,2,3" type='in' }content{/range}</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagPresent()">tagPresent</a>(array tag, string content)</p><p class="description">present标签解析
+如果某个变量已经设置 则输出内容
+格式： {present name="" }content{/present}</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagNotpresent()">tagNotpresent</a>(array tag, string content)</p><p class="description">notpresent标签解析
+如果某个变量没有设置，则输出内容
+格式： {notpresent name="" }content{/notpresent}</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagEmpty()">tagEmpty</a>(array tag, string content)</p><p class="description">empty标签解析
+如果某个变量为empty 则输出内容
+格式： {empty name="" }content{/empty}</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagNotempty()">tagNotempty</a>(array tag, string content)</p><p class="description">notempty标签解析
+如果某个变量不为empty 则输出内容
+格式： {notempty name="" }content{/notempty}</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagDefined()">tagDefined</a>(array tag, string content)</p><p class="description">判断是否已经定义了该常量
+{defined name='TXT'}已定义{/defined}</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagNotdefined()">tagNotdefined</a>(array tag, string content)</p><p class="description">判断是否没有定义了该常量
+{notdefined name='TXT'}已定义{/notdefined}</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagLoad()">tagLoad</a>(array tag, string content)</p><p class="description">load 标签解析 {load file="/static/js/base.js" /}
+格式：{load file="/static/css/base.css" /}</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagAssign()">tagAssign</a>(array tag, string content)</p><p class="description">assign标签解析
+在模板中给某个变量赋值 支持变量赋值
+格式： {assign name="" value="" /}</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagDefine()">tagDefine</a>(array tag, string content)</p><p class="description">define标签解析
+在模板中定义常量 支持变量赋值
+格式： {define name="" value="" /}</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagFor()">tagFor</a>(array tag, string content)</p><p class="description">for标签解析
+格式：
+{for start="" end="" comparison="" step="" name=""}
+content
+{/for}</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagUrl()">tagUrl</a>(array tag, string content)</p><p class="description">U函数的tag标签
+格式：{url link="模块/控制器/方法" vars="参数" suffix="true或者false 是否带有后缀" domain="true或者false 是否携带域名" /}</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#tagFunction()">tagFunction</a>(array tag, string content)</p><p class="description">function标签解析 匿名函数，可实现递归
+使用：
+{function name="func" vars="$data" call="$list" use="&$a,&$b"}
+{if is_array($data)}
+{foreach $data as $val}
+{~func($val) /}
+{/foreach}
+{else /}
+{$data}
+{/if}
+{/function}</p></td>
+</tr>
+</table>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../source/library/think/template/taglib/cx.php.html#line38" class="location">library\think\template\taglib\Cx.php at line 38</a>
+
+<h3 id="tagPhp()">tagPhp</h3>
+<code class="signature">public  string <strong>tagPhp</strong>(array tag, string content)</code>
+<div class="details">
+<p>php标签解析
+格式：
+{php}echo $name{/php}</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line56" class="location">library\think\template\taglib\Cx.php at line 56</a>
+
+<h3 id="tagVolist()">tagVolist</h3>
+<code class="signature">public  string|void <strong>tagVolist</strong>(array tag, string content)</code>
+<div class="details">
+<p>volist标签解析 循环输出数据集
+格式：
+{volist name="userList" id="user" empty=""}
+{user.username}
+{user.email}
+{/volist}</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line108" class="location">library\think\template\taglib\Cx.php at line 108</a>
+
+<h3 id="tagForeach()">tagForeach</h3>
+<code class="signature">public  string|void <strong>tagForeach</strong>(array tag, string content)</code>
+<div class="details">
+<p>foreach标签解析 循环输出数据集
+格式：
+{foreach name="userList" id="user" key="key" index="i" mod="2" offset="3" length="5" empty=""}
+{user.username}
+{/foreach}</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line189" class="location">library\think\template\taglib\Cx.php at line 189</a>
+
+<h3 id="tagIf()">tagIf</h3>
+<code class="signature">public  string <strong>tagIf</strong>(array tag, string content)</code>
+<div class="details">
+<p>if标签解析
+格式：
+{if condition=" $a eq 1"}
+{elseif condition="$a eq 2" /}
+{else /}
+{/if}
+表达式支持 eq neq gt egt lt elt == > >= < <= or and || &&</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line205" class="location">library\think\template\taglib\Cx.php at line 205</a>
+
+<h3 id="tagElseif()">tagElseif</h3>
+<code class="signature">public  string <strong>tagElseif</strong>(array tag, string content)</code>
+<div class="details">
+<p>elseif标签解析
+格式：见if标签</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line220" class="location">library\think\template\taglib\Cx.php at line 220</a>
+
+<h3 id="tagElse()">tagElse</h3>
+<code class="signature">public  string <strong>tagElse</strong>(array tag)</code>
+<div class="details">
+<p>else标签解析
+格式：见if标签</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line239" class="location">library\think\template\taglib\Cx.php at line 239</a>
+
+<h3 id="tagSwitch()">tagSwitch</h3>
+<code class="signature">public  string <strong>tagSwitch</strong>(array tag, string content)</code>
+<div class="details">
+<p>switch标签解析
+格式：
+{switch name="a.name"}
+{case value="1" break="false"}1{/case}
+{case value="2" }2{/case}
+{default /}other
+{/switch}</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line254" class="location">library\think\template\taglib\Cx.php at line 254</a>
+
+<h3 id="tagCase()">tagCase</h3>
+<code class="signature">public  string <strong>tagCase</strong>(array tag, string content)</code>
+<div class="details">
+<p>case标签解析 需要配合switch才有效</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line286" class="location">library\think\template\taglib\Cx.php at line 286</a>
+
+<h3 id="tagDefault()">tagDefault</h3>
+<code class="signature">public  string <strong>tagDefault</strong>(array tag, string content)</code>
+<div class="details">
+<p>default标签解析 需要配合switch才有效
+使用： {default /}ddfdf</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line301" class="location">library\think\template\taglib\Cx.php at line 301</a>
+
+<h3 id="tagCompare()">tagCompare</h3>
+<code class="signature">public  string <strong>tagCompare</strong>(array tag, string content)</code>
+<div class="details">
+<p>compare标签解析
+用于值的比较 支持 eq neq gt lt egt elt heq nheq 默认是eq
+格式： {compare name="" type="eq" value="" }content{/compare}</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line336" class="location">library\think\template\taglib\Cx.php at line 336</a>
+
+<h3 id="tagRange()">tagRange</h3>
+<code class="signature">public  string <strong>tagRange</strong>(array tag, string content)</code>
+<div class="details">
+<p>range标签解析
+如果某个变量存在于某个范围 则输出内容 type= in 表示在范围内 否则表示在范围外
+格式： {range name="var|function"  value="val" type='in|notin' }content{/range}
+example: {range name="a"  value="1,2,3" type='in' }content{/range}</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line371" class="location">library\think\template\taglib\Cx.php at line 371</a>
+
+<h3 id="tagPresent()">tagPresent</h3>
+<code class="signature">public  string <strong>tagPresent</strong>(array tag, string content)</code>
+<div class="details">
+<p>present标签解析
+如果某个变量已经设置 则输出内容
+格式： {present name="" }content{/present}</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line388" class="location">library\think\template\taglib\Cx.php at line 388</a>
+
+<h3 id="tagNotpresent()">tagNotpresent</h3>
+<code class="signature">public  string <strong>tagNotpresent</strong>(array tag, string content)</code>
+<div class="details">
+<p>notpresent标签解析
+如果某个变量没有设置，则输出内容
+格式： {notpresent name="" }content{/notpresent}</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line405" class="location">library\think\template\taglib\Cx.php at line 405</a>
+
+<h3 id="tagEmpty()">tagEmpty</h3>
+<code class="signature">public  string <strong>tagEmpty</strong>(array tag, string content)</code>
+<div class="details">
+<p>empty标签解析
+如果某个变量为empty 则输出内容
+格式： {empty name="" }content{/empty}</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line422" class="location">library\think\template\taglib\Cx.php at line 422</a>
+
+<h3 id="tagNotempty()">tagNotempty</h3>
+<code class="signature">public  string <strong>tagNotempty</strong>(array tag, string content)</code>
+<div class="details">
+<p>notempty标签解析
+如果某个变量不为empty 则输出内容
+格式： {notempty name="" }content{/notempty}</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line437" class="location">library\think\template\taglib\Cx.php at line 437</a>
+
+<h3 id="tagDefined()">tagDefined</h3>
+<code class="signature">public  string <strong>tagDefined</strong>(array tag, string content)</code>
+<div class="details">
+<p>判断是否已经定义了该常量
+{defined name='TXT'}已定义{/defined}</p></div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line451" class="location">library\think\template\taglib\Cx.php at line 451</a>
+
+<h3 id="tagNotdefined()">tagNotdefined</h3>
+<code class="signature">public  string <strong>tagNotdefined</strong>(array tag, string content)</code>
+<div class="details">
+<p>判断是否没有定义了该常量
+{notdefined name='TXT'}已定义{/notdefined}</p></div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line466" class="location">library\think\template\taglib\Cx.php at line 466</a>
+
+<h3 id="tagLoad()">tagLoad</h3>
+<code class="signature">public  string <strong>tagLoad</strong>(array tag, string content)</code>
+<div class="details">
+<p>load 标签解析 {load file="/static/js/base.js" /}
+格式：{load file="/static/css/base.css" /}</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line509" class="location">library\think\template\taglib\Cx.php at line 509</a>
+
+<h3 id="tagAssign()">tagAssign</h3>
+<code class="signature">public  string <strong>tagAssign</strong>(array tag, string content)</code>
+<div class="details">
+<p>assign标签解析
+在模板中给某个变量赋值 支持变量赋值
+格式： {assign name="" value="" /}</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line531" class="location">library\think\template\taglib\Cx.php at line 531</a>
+
+<h3 id="tagDefine()">tagDefine</h3>
+<code class="signature">public  string <strong>tagDefine</strong>(array tag, string content)</code>
+<div class="details">
+<p>define标签解析
+在模板中定义常量 支持变量赋值
+格式： {define name="" value="" /}</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line555" class="location">library\think\template\taglib\Cx.php at line 555</a>
+
+<h3 id="tagFor()">tagFor</h3>
+<code class="signature">public  string <strong>tagFor</strong>(array tag, string content)</code>
+<div class="details">
+<p>for标签解析
+格式：
+{for start="" end="" comparison="" step="" name=""}
+content
+{/for}</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line606" class="location">library\think\template\taglib\Cx.php at line 606</a>
+
+<h3 id="tagUrl()">tagUrl</h3>
+<code class="signature">public  string <strong>tagUrl</strong>(array tag, string content)</code>
+<div class="details">
+<p>U函数的tag标签
+格式：{url link="模块/控制器/方法" vars="参数" suffix="true或者false 是否带有后缀" domain="true或者false 是否携带域名" /}</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template/taglib/cx.php.html#line632" class="location">library\think\template\taglib\Cx.php at line 632</a>
+
+<h3 id="tagFunction()">tagFunction</h3>
+<code class="signature">public  string <strong>tagFunction</strong>(array tag, string content)</code>
+<div class="details">
+<p>function标签解析 匿名函数，可实现递归
+使用：
+{function name="func" vars="$data" call="$list" use="&$a,&$b"}
+{if is_array($data)}
+{foreach $data as $val}
+{~func($val) /}
+{/foreach}
+{else /}
+{$data}
+{/if}
+{/function}</p><dl>
+<dt>Parameters:</dt>
+<dd>tag - 标签属性</dd>
+<dd>content - 标签内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\cx.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

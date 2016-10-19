@@ -1,0 +1,538 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../../stylesheet.css">
+<link rel="start" href="../../overview-summary.html">
+
+<title>Builder (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../../overview-summary.html">Overview</a></li>
+<li><a href="../../think/db/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../../think/db/package-tree.html">Tree</a></li>
+<li><a href="../../overview-files.html">Files</a></li>
+<li><a href="../../deprecated-list.html">Deprecated</a></li>
+<li><a href="../../todo-list.html">Todo</a></li>
+<li><a href="../../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../../index.html" target="_top">Frames</a>
+<a href="../../think\db\builder.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\db\Builder</div>
+<a href="../../source/library/think/db/builder.php.html#line20" class="location">library\think\db\Builder.php at line 20</a>
+
+<h1>Class Builder</h1>
+
+<pre class="tree"><strong>Builder</strong><br /></pre>
+
+<dl>
+<dt>All Known Subclasses:</dt>
+<dd><a href="../../think/db/builder/mysql.html">think\db\builder\Mysql</a> <a href="../../think/db/builder/pgsql.html">think\db\builder\Pgsql</a> <a href="../../think/db/builder/sqlite.html">think\db\builder\Sqlite</a> <a href="../../think/db/builder/sqlsrv.html">think\db\builder\Sqlsrv</a> </dd>
+</dl>
+
+<hr>
+
+<p class="signature">public abstract  class <strong>Builder</strong></p>
+
+<hr>
+
+<table id="summary_constructor">
+<tr><th colspan="2">Constructor Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#__construct()">__construct</a>(<a href="../../think/connection.html">Connection</a> connection)</p><p class="description">架构函数</p></td>
+</tr>
+</table>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#setQuery()">setQuery</a>(<a href="../../think/db/query.html">Query</a> query)</p><p class="description">设置当前的Query对象实例</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#parseSqlTable()">parseSqlTable</a>(string sql)</p><p class="description">将SQL语句中的__TABLE_NAME__字符串替换成带前缀的表名（小写）</p></td>
+</tr>
+<tr>
+<td class="type">protected  array</td>
+<td class="description"><p class="name"><a href="#parseData()">parseData</a>(array data, array options)</p><p class="description">数据分析</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#parseKey()">parseKey</a>(string key, array options)</p><p class="description">字段名分析</p></td>
+</tr>
+<tr>
+<td class="type">protected  string|array</td>
+<td class="description"><p class="name"><a href="#parseValue()">parseValue</a>(mixed value, string field)</p><p class="description">value分析</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#parseField()">parseField</a>(mixed fields, array options)</p><p class="description">field分析</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#parseTable()">parseTable</a>(mixed tables, array options)</p><p class="description">table分析</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#parseWhere()">parseWhere</a>(mixed where, array options)</p><p class="description">where分析</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#buildWhere()">buildWhere</a>(mixed where, array options)</p><p class="description">生成查询条件SQL</p></td>
+</tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#parseWhereItem()">parseWhereItem</a>(mixed field, mixed val, str rule, mixed options, mixed binds, mixed bindName)</p></td>
+</tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#parseClosure()">parseClosure</a>(mixed call, bool show)</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#parseDateTime()">parseDateTime</a>(string value, string key, array options, string bindName, integer bindType)</p><p class="description">日期时间条件解析</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#parseLimit()">parseLimit</a>(mixed lmit, mixed limit)</p><p class="description">limit分析</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#parseJoin()">parseJoin</a>(array join, array options)</p><p class="description">join分析</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#parseOrder()">parseOrder</a>(mixed order, array options)</p><p class="description">order分析</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#parseGroup()">parseGroup</a>(mixed group)</p><p class="description">group分析</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#parseHaving()">parseHaving</a>(string having)</p><p class="description">having分析</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#parseComment()">parseComment</a>(string comment)</p><p class="description">comment分析</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#parseDistinct()">parseDistinct</a>(mixed distinct)</p><p class="description">distinct分析</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#parseUnion()">parseUnion</a>(mixed union)</p><p class="description">union分析</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#parseForce()">parseForce</a>(mixed index)</p><p class="description">index分析，可在操作链中指定需要强制使用的索引</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#parseLock()">parseLock</a>(bool locl, bool lock)</p><p class="description">设置锁机制</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#select()">select</a>(array options)</p><p class="description">生成查询SQL</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#insert()">insert</a>(array data, array options, bool replace)</p><p class="description">生成insert SQL</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#insertAll()">insertAll</a>(array dataSet, array options)</p><p class="description">生成insertall SQL</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#selectInsert()">selectInsert</a>(array fields, string table, array options)</p><p class="description">生成slectinsert SQL</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#update()">update</a>(array fields, array options, mixed data)</p><p class="description">生成update SQL</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#delete()">delete</a>(array options)</p><p class="description">生成delete SQL</p></td>
+</tr>
+</table>
+
+<h2 id="detail_method">Constructor Detail</h2>
+<a href="../../source/library/think/db/builder.php.html#line42" class="location">library\think\db\Builder.php at line 42</a>
+
+<h3 id="__construct()">__construct</h3>
+<code class="signature">public  void <strong>__construct</strong>(<a href="../../think/connection.html">Connection</a> connection)</code>
+<div class="details">
+<p>架构函数</p><dl>
+<dt>Parameters:</dt>
+<dd>connection - 数据库连接对象实例</dd>
+</dl>
+</div>
+
+<hr>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../../source/library/think/db/builder.php.html#line53" class="location">library\think\db\Builder.php at line 53</a>
+
+<h3 id="setQuery()">setQuery</h3>
+<code class="signature">public  void <strong>setQuery</strong>(<a href="../../think/db/query.html">Query</a> query)</code>
+<div class="details">
+<p>设置当前的Query对象实例</p><dl>
+<dt>Parameters:</dt>
+<dd>query - 当前查询对象实例</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line64" class="location">library\think\db\Builder.php at line 64</a>
+
+<h3 id="parseSqlTable()">parseSqlTable</h3>
+<code class="signature">protected  string <strong>parseSqlTable</strong>(string sql)</code>
+<div class="details">
+<p>将SQL语句中的__TABLE_NAME__字符串替换成带前缀的表名（小写）</p><dl>
+<dt>Parameters:</dt>
+<dd>sql - sql语句</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line76" class="location">library\think\db\Builder.php at line 76</a>
+
+<h3 id="parseData()">parseData</h3>
+<code class="signature">protected  array <strong>parseData</strong>(array data, array options)</code>
+<div class="details">
+<p>数据分析</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 数据</dd>
+<dd>options - 查询参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line121" class="location">library\think\db\Builder.php at line 121</a>
+
+<h3 id="parseKey()">parseKey</h3>
+<code class="signature">protected  string <strong>parseKey</strong>(string key, array options)</code>
+<div class="details">
+<p>字段名分析</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line133" class="location">library\think\db\Builder.php at line 133</a>
+
+<h3 id="parseValue()">parseValue</h3>
+<code class="signature">protected  string|array <strong>parseValue</strong>(mixed value, string field)</code>
+<div class="details">
+<p>value分析</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line154" class="location">library\think\db\Builder.php at line 154</a>
+
+<h3 id="parseField()">parseField</h3>
+<code class="signature">protected  string <strong>parseField</strong>(mixed fields, array options)</code>
+<div class="details">
+<p>field分析</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line180" class="location">library\think\db\Builder.php at line 180</a>
+
+<h3 id="parseTable()">parseTable</h3>
+<code class="signature">protected  string <strong>parseTable</strong>(mixed tables, array options)</code>
+<div class="details">
+<p>table分析</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line206" class="location">library\think\db\Builder.php at line 206</a>
+
+<h3 id="parseWhere()">parseWhere</h3>
+<code class="signature">protected  string <strong>parseWhere</strong>(mixed where, array options)</code>
+<div class="details">
+<p>where分析</p><dl>
+<dt>Parameters:</dt>
+<dd>where - 查询条件</dd>
+<dd>options - 查询参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line219" class="location">library\think\db\Builder.php at line 219</a>
+
+<h3 id="buildWhere()">buildWhere</h3>
+<code class="signature">public  string <strong>buildWhere</strong>(mixed where, array options)</code>
+<div class="details">
+<p>生成查询条件SQL</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line268" class="location">library\think\db\Builder.php at line 268</a>
+
+<h3 id="parseWhereItem()">parseWhereItem</h3>
+<code class="signature">protected  void <strong>parseWhereItem</strong>(mixed field, mixed val, str rule, mixed options, mixed binds, mixed bindName)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line380" class="location">library\think\db\Builder.php at line 380</a>
+
+<h3 id="parseClosure()">parseClosure</h3>
+<code class="signature">protected  void <strong>parseClosure</strong>(mixed call, bool show)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line397" class="location">library\think\db\Builder.php at line 397</a>
+
+<h3 id="parseDateTime()">parseDateTime</h3>
+<code class="signature">protected  string <strong>parseDateTime</strong>(string value, string key, array options, string bindName, integer bindType)</code>
+<div class="details">
+<p>日期时间条件解析</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line425" class="location">library\think\db\Builder.php at line 425</a>
+
+<h3 id="parseLimit()">parseLimit</h3>
+<code class="signature">protected  string <strong>parseLimit</strong>(mixed lmit, mixed limit)</code>
+<div class="details">
+<p>limit分析</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line437" class="location">library\think\db\Builder.php at line 437</a>
+
+<h3 id="parseJoin()">parseJoin</h3>
+<code class="signature">protected  string <strong>parseJoin</strong>(array join, array options)</code>
+<div class="details">
+<p>join分析</p><dl>
+<dt>Parameters:</dt>
+<dd></dd>
+<dd>options - 查询条件</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line467" class="location">library\think\db\Builder.php at line 467</a>
+
+<h3 id="parseOrder()">parseOrder</h3>
+<code class="signature">protected  string <strong>parseOrder</strong>(mixed order, array options)</code>
+<div class="details">
+<p>order分析</p><dl>
+<dt>Parameters:</dt>
+<dd></dd>
+<dd>options - 查询条件</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line494" class="location">library\think\db\Builder.php at line 494</a>
+
+<h3 id="parseGroup()">parseGroup</h3>
+<code class="signature">protected  string <strong>parseGroup</strong>(mixed group)</code>
+<div class="details">
+<p>group分析</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line505" class="location">library\think\db\Builder.php at line 505</a>
+
+<h3 id="parseHaving()">parseHaving</h3>
+<code class="signature">protected  string <strong>parseHaving</strong>(string having)</code>
+<div class="details">
+<p>having分析</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line516" class="location">library\think\db\Builder.php at line 516</a>
+
+<h3 id="parseComment()">parseComment</h3>
+<code class="signature">protected  string <strong>parseComment</strong>(string comment)</code>
+<div class="details">
+<p>comment分析</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line527" class="location">library\think\db\Builder.php at line 527</a>
+
+<h3 id="parseDistinct()">parseDistinct</h3>
+<code class="signature">protected  string <strong>parseDistinct</strong>(mixed distinct)</code>
+<div class="details">
+<p>distinct分析</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line538" class="location">library\think\db\Builder.php at line 538</a>
+
+<h3 id="parseUnion()">parseUnion</h3>
+<code class="signature">protected  string <strong>parseUnion</strong>(mixed union)</code>
+<div class="details">
+<p>union分析</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line561" class="location">library\think\db\Builder.php at line 561</a>
+
+<h3 id="parseForce()">parseForce</h3>
+<code class="signature">protected  string <strong>parseForce</strong>(mixed index)</code>
+<div class="details">
+<p>index分析，可在操作链中指定需要强制使用的索引</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line580" class="location">library\think\db\Builder.php at line 580</a>
+
+<h3 id="parseLock()">parseLock</h3>
+<code class="signature">protected  string <strong>parseLock</strong>(bool locl, bool lock)</code>
+<div class="details">
+<p>设置锁机制</p></div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line591" class="location">library\think\db\Builder.php at line 591</a>
+
+<h3 id="select()">select</h3>
+<code class="signature">public  string <strong>select</strong>(array options)</code>
+<div class="details">
+<p>生成查询SQL</p><dl>
+<dt>Parameters:</dt>
+<dd>options - 表达式</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line621" class="location">library\think\db\Builder.php at line 621</a>
+
+<h3 id="insert()">insert</h3>
+<code class="signature">public  string <strong>insert</strong>(array data, array options, bool replace)</code>
+<div class="details">
+<p>生成insert SQL</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 数据</dd>
+<dd>options - 表达式</dd>
+<dd>replace - 是否replace</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line651" class="location">library\think\db\Builder.php at line 651</a>
+
+<h3 id="insertAll()">insertAll</h3>
+<code class="signature">public  string <strong>insertAll</strong>(array dataSet, array options)</code>
+<div class="details">
+<p>生成insertall SQL</p><dl>
+<dt>Parameters:</dt>
+<dd>dataSet - 数据集</dd>
+<dd>options - 表达式</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line698" class="location">library\think\db\Builder.php at line 698</a>
+
+<h3 id="selectInsert()">selectInsert</h3>
+<code class="signature">public  string <strong>selectInsert</strong>(array fields, string table, array options)</code>
+<div class="details">
+<p>生成slectinsert SQL</p><dl>
+<dt>Parameters:</dt>
+<dd>fields - 数据</dd>
+<dd>table - 数据表</dd>
+<dd>options - 表达式</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line716" class="location">library\think\db\Builder.php at line 716</a>
+
+<h3 id="update()">update</h3>
+<code class="signature">public  string <strong>update</strong>(array fields, array options, mixed data)</code>
+<div class="details">
+<p>生成update SQL</p><dl>
+<dt>Parameters:</dt>
+<dd>fields - 数据</dd>
+<dd>options - 表达式</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/db/builder.php.html#line749" class="location">library\think\db\Builder.php at line 749</a>
+
+<h3 id="delete()">delete</h3>
+<code class="signature">public  string <strong>delete</strong>(array options)</code>
+<div class="details">
+<p>生成delete SQL</p><dl>
+<dt>Parameters:</dt>
+<dd>options - 表达式</dd>
+</dl>
+</div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../../overview-summary.html">Overview</a></li>
+<li><a href="../../think/db/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../../think/db/package-tree.html">Tree</a></li>
+<li><a href="../../overview-files.html">Files</a></li>
+<li><a href="../../deprecated-list.html">Deprecated</a></li>
+<li><a href="../../todo-list.html">Todo</a></li>
+<li><a href="../../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../../index.html" target="_top">Frames</a>
+<a href="../../think\db\builder.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

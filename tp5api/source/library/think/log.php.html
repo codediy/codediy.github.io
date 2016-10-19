@@ -1,0 +1,261 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\Log.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\log.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\Log.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think;
+<a name="line13"></a>
+<a name="line14"></a>use think\exception\ClassNotFoundException;
+<a name="line15"></a>
+<a name="line16"></a>/**
+<a name="line17"></a> * Class Log
+<a name="line18"></a> * @package think
+<a name="line19"></a> *
+<a name="line20"></a> * @method void log($msg) static
+<a name="line21"></a> * @method void error($msg) static
+<a name="line22"></a> * @method void info($msg) static
+<a name="line23"></a> * @method void sql($msg) static
+<a name="line24"></a> * @method void notice($msg) static
+<a name="line25"></a> * @method void alert($msg) static
+<a name="line26"></a> */
+<a name="line27"></a>class Log
+<a name="line28"></a>{
+<a name="line29"></a>    const LOG    = 'log';
+<a name="line30"></a>    const ERROR  = 'error';
+<a name="line31"></a>    const INFO   = 'info';
+<a name="line32"></a>    const SQL    = 'sql';
+<a name="line33"></a>    const NOTICE = 'notice';
+<a name="line34"></a>    const ALERT  = 'alert';
+<a name="line35"></a>
+<a name="line36"></a>    // 日志信息
+<a name="line37"></a>    protected static $log = [];
+<a name="line38"></a>    // 配置参数
+<a name="line39"></a>    protected static $config = [];
+<a name="line40"></a>    // 日志类型
+<a name="line41"></a>    protected static $type = ['log', 'error', 'info', 'sql', 'notice', 'alert'];
+<a name="line42"></a>    // 日志写入驱动
+<a name="line43"></a>    protected static $driver;
+<a name="line44"></a>
+<a name="line45"></a>    // 当前日志授权key
+<a name="line46"></a>    protected static $key;
+<a name="line47"></a>
+<a name="line48"></a>    /**
+<a name="line49"></a>     * 日志初始化
+<a name="line50"></a>     * @param array $config
+<a name="line51"></a>     */
+<a name="line52"></a>    public static function init($config = [])
+<a name="line53"></a>    {
+<a name="line54"></a>        $type         = isset($config['type']) ? $config['type'] : 'File';
+<a name="line55"></a>        $class        = false !== strpos($type, '\\') ? $type : '\\think\\log\\driver\\' . ucwords($type);
+<a name="line56"></a>        self::$config = $config;
+<a name="line57"></a>        unset($config['type']);
+<a name="line58"></a>        if (class_exists($class)) {
+<a name="line59"></a>            self::$driver = new $class($config);
+<a name="line60"></a>        } else {
+<a name="line61"></a>            throw new ClassNotFoundException('class not exists:' . $class, $class);
+<a name="line62"></a>        }
+<a name="line63"></a>        // 记录初始化信息
+<a name="line64"></a>        App::$debug && Log::record('[ LOG ] INIT ' . $type, 'info');
+<a name="line65"></a>    }
+<a name="line66"></a>
+<a name="line67"></a>    /**
+<a name="line68"></a>     * 获取日志信息
+<a name="line69"></a>     * @param string $type 信息类型
+<a name="line70"></a>     * @return array
+<a name="line71"></a>     */
+<a name="line72"></a>    public static function getLog($type = '')
+<a name="line73"></a>    {
+<a name="line74"></a>        return $type ? self::$log[$type] : self::$log;
+<a name="line75"></a>    }
+<a name="line76"></a>
+<a name="line77"></a>    /**
+<a name="line78"></a>     * 记录调试信息
+<a name="line79"></a>     * @param mixed  $msg  调试信息
+<a name="line80"></a>     * @param string $type 信息类型
+<a name="line81"></a>     * @return void
+<a name="line82"></a>     */
+<a name="line83"></a>    public static function record($msg, $type = 'log')
+<a name="line84"></a>    {
+<a name="line85"></a>        self::$log[$type][] = $msg;
+<a name="line86"></a>    }
+<a name="line87"></a>
+<a name="line88"></a>    /**
+<a name="line89"></a>     * 清空日志信息
+<a name="line90"></a>     * @return void
+<a name="line91"></a>     */
+<a name="line92"></a>    public static function clear()
+<a name="line93"></a>    {
+<a name="line94"></a>        self::$log = [];
+<a name="line95"></a>    }
+<a name="line96"></a>
+<a name="line97"></a>    /**
+<a name="line98"></a>     * 当前日志记录的授权key
+<a name="line99"></a>     * @param string  $key  授权key
+<a name="line100"></a>     * @return void
+<a name="line101"></a>     */
+<a name="line102"></a>    public static function key($key)
+<a name="line103"></a>    {
+<a name="line104"></a>        self::$key = $key;
+<a name="line105"></a>    }
+<a name="line106"></a>
+<a name="line107"></a>    /**
+<a name="line108"></a>     * 检查日志写入权限
+<a name="line109"></a>     * @param array  $config  当前日志配置参数
+<a name="line110"></a>     * @return bool
+<a name="line111"></a>     */
+<a name="line112"></a>    public static function check($config)
+<a name="line113"></a>    {
+<a name="line114"></a>        if (self::$key && !empty($config['allow_key']) && !in_array(self::$key, $config['allow_key'])) {
+<a name="line115"></a>            return false;
+<a name="line116"></a>        }
+<a name="line117"></a>        return true;
+<a name="line118"></a>    }
+<a name="line119"></a>
+<a name="line120"></a>    /**
+<a name="line121"></a>     * 保存调试信息
+<a name="line122"></a>     * @return bool
+<a name="line123"></a>     */
+<a name="line124"></a>    public static function save()
+<a name="line125"></a>    {
+<a name="line126"></a>        if (!empty(self::$log)) {
+<a name="line127"></a>            if (is_null(self::$driver)) {
+<a name="line128"></a>                self::init(Config::get('log'));
+<a name="line129"></a>            }
+<a name="line130"></a>
+<a name="line131"></a>            if (!self::check(self::$config)) {
+<a name="line132"></a>                // 检测日志写入权限
+<a name="line133"></a>                return false;
+<a name="line134"></a>            }
+<a name="line135"></a>
+<a name="line136"></a>            if (empty(self::$config['level'])) {
+<a name="line137"></a>                // 获取全部日志
+<a name="line138"></a>                $log = self::$log;
+<a name="line139"></a>            } else {
+<a name="line140"></a>                // 记录允许级别
+<a name="line141"></a>                $log = [];
+<a name="line142"></a>                foreach (self::$config['level'] as $level) {
+<a name="line143"></a>                    if (isset(self::$log[$level])) {
+<a name="line144"></a>                        $log[$level] = self::$log[$level];
+<a name="line145"></a>                    }
+<a name="line146"></a>                }
+<a name="line147"></a>            }
+<a name="line148"></a>
+<a name="line149"></a>            $result = self::$driver->save($log);
+<a name="line150"></a>            if ($result) {
+<a name="line151"></a>                self::$log = [];
+<a name="line152"></a>            }
+<a name="line153"></a>
+<a name="line154"></a>            return $result;
+<a name="line155"></a>        }
+<a name="line156"></a>        return true;
+<a name="line157"></a>    }
+<a name="line158"></a>
+<a name="line159"></a>    /**
+<a name="line160"></a>     * 实时写入日志信息 并支持行为
+<a name="line161"></a>     * @param mixed  $msg  调试信息
+<a name="line162"></a>     * @param string $type 信息类型
+<a name="line163"></a>     * @param bool   $force 是否强制写入
+<a name="line164"></a>     * @return bool
+<a name="line165"></a>     */
+<a name="line166"></a>    public static function write($msg, $type = 'log', $force = false)
+<a name="line167"></a>    {
+<a name="line168"></a>        // 封装日志信息
+<a name="line169"></a>        if (true === $force || empty(self::$config['level'])) {
+<a name="line170"></a>            $log[$type][] = $msg;
+<a name="line171"></a>        } elseif (in_array($type, self::$config['level'])) {
+<a name="line172"></a>            $log[$type][] = $msg;
+<a name="line173"></a>        } else {
+<a name="line174"></a>            return false;
+<a name="line175"></a>        }
+<a name="line176"></a>
+<a name="line177"></a>        // 监听log_write
+<a name="line178"></a>        Hook::listen('log_write', $log);
+<a name="line179"></a>        if (is_null(self::$driver)) {
+<a name="line180"></a>            self::init(Config::get('log'));
+<a name="line181"></a>        }
+<a name="line182"></a>        // 写入日志
+<a name="line183"></a>        return self::$driver->save($log);
+<a name="line184"></a>    }
+<a name="line185"></a>
+<a name="line186"></a>    /**
+<a name="line187"></a>     * 静态调用
+<a name="line188"></a>     * @param $method
+<a name="line189"></a>     * @param $args
+<a name="line190"></a>     * @return mixed
+<a name="line191"></a>     */
+<a name="line192"></a>    public static function __callStatic($method, $args)
+<a name="line193"></a>    {
+<a name="line194"></a>        if (in_array($method, self::$type)) {
+<a name="line195"></a>            array_push($args, $method);
+<a name="line196"></a>            return call_user_func_array('\\think\\Log::record', $args);
+<a name="line197"></a>        }
+<a name="line198"></a>    }
+<a name="line199"></a>
+<a name="line200"></a>}
+<a name="line201"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\log.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

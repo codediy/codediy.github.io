@@ -1,0 +1,394 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../../stylesheet.css">
+<link rel="start" href="../../overview-summary.html">
+
+<title>Input (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../../overview-summary.html">Overview</a></li>
+<li><a href="../../think/console/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../../think/console/package-tree.html">Tree</a></li>
+<li><a href="../../overview-files.html">Files</a></li>
+<li><a href="../../deprecated-list.html">Deprecated</a></li>
+<li><a href="../../todo-list.html">Todo</a></li>
+<li><a href="../../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../../index.html" target="_top">Frames</a>
+<a href="../../think\console\input.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\console\Input</div>
+<a href="../../source/library/think/console/input.php.html#line18" class="location">library\think\console\Input.php at line 18</a>
+
+<h1>Class Input</h1>
+
+<pre class="tree"><strong>Input</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>Input</strong></p>
+
+<hr>
+
+<table id="summary_constructor">
+<tr><th colspan="2">Constructor Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#__construct()">__construct</a>(mixed argv)</p></td>
+</tr>
+</table>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#setTokens()">setTokens</a>(mixed tokens)</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#bind()">bind</a>(<a href="../../think/console/input/definition.html">Definition</a> definition)</p><p class="description">绑定实例</p></td>
+</tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#parse()">parse</a>()</p><p class="description">解析参数</p></td>
+</tr>
+<tr>
+<td class="type"> string|null</td>
+<td class="description"><p class="name"><a href="#getFirstArgument()">getFirstArgument</a>()</p><p class="description">获取第一个参数</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#hasParameterOption()">hasParameterOption</a>(string|array values)</p><p class="description">检查原始参数是否包含某个值</p></td>
+</tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#getParameterOption()">getParameterOption</a>(string|array values, mixed default)</p><p class="description">获取原始选项的值</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#validate()">validate</a>()</p><p class="description">验证输入</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#isInteractive()">isInteractive</a>()</p><p class="description">检查输入是否是交互的</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#setInteractive()">setInteractive</a>(bool interactive)</p><p class="description">设置输入的交互</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../../think/console/input/argument.html">Argument[]</a></td>
+<td class="description"><p class="name"><a href="#getArguments()">getArguments</a>()</p><p class="description">获取所有的参数</p></td>
+</tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#getArgument()">getArgument</a>(string name)</p><p class="description">根据名称获取参数</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#setArgument()">setArgument</a>(string name, string value)</p><p class="description">设置参数的值</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#hasArgument()">hasArgument</a>(string|int name)</p><p class="description">检查是否存在某个参数</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../../think/console/input/option.html">Option[]</a></td>
+<td class="description"><p class="name"><a href="#getOptions()">getOptions</a>()</p><p class="description">获取所有的选项</p></td>
+</tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#getOption()">getOption</a>(string name)</p><p class="description">获取选项值</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#setOption()">setOption</a>(string name, string|bool value)</p><p class="description">设置选项值</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#hasOption()">hasOption</a>(string name)</p><p class="description">是否有某个选项</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#escapeToken()">escapeToken</a>(string token)</p><p class="description">转义指令</p></td>
+</tr>
+</table>
+
+<h2 id="detail_method">Constructor Detail</h2>
+<a href="../../source/library/think/console/input.php.html#line41" class="location">library\think\console\Input.php at line 41</a>
+
+<h3 id="__construct()">__construct</h3>
+<code class="signature">public  void <strong>__construct</strong>(mixed argv)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../../source/library/think/console/input.php.html#line54" class="location">library\think\console\Input.php at line 54</a>
+
+<h3 id="setTokens()">setTokens</h3>
+<code class="signature">protected  void <strong>setTokens</strong>(mixed tokens)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/input.php.html#line63" class="location">library\think\console\Input.php at line 63</a>
+
+<h3 id="bind()">bind</h3>
+<code class="signature">public  void <strong>bind</strong>(<a href="../../think/console/input/definition.html">Definition</a> definition)</code>
+<div class="details">
+<p>绑定实例</p><dl>
+<dt>Parameters:</dt>
+<dd>definition - A InputDefinition instance</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/input.php.html#line75" class="location">library\think\console\Input.php at line 75</a>
+
+<h3 id="parse()">parse</h3>
+<code class="signature">protected  void <strong>parse</strong>()</code>
+<div class="details">
+<p>解析参数</p></div>
+
+<hr>
+
+<a href="../../source/library/think/console/input.php.html#line246" class="location">library\think\console\Input.php at line 246</a>
+
+<h3 id="getFirstArgument()">getFirstArgument</h3>
+<code class="signature">public  string|null <strong>getFirstArgument</strong>()</code>
+<div class="details">
+<p>获取第一个参数</p></div>
+
+<hr>
+
+<a href="../../source/library/think/console/input.php.html#line263" class="location">library\think\console\Input.php at line 263</a>
+
+<h3 id="hasParameterOption()">hasParameterOption</h3>
+<code class="signature">public  bool <strong>hasParameterOption</strong>(string|array values)</code>
+<div class="details">
+<p>检查原始参数是否包含某个值</p><dl>
+<dt>Parameters:</dt>
+<dd>values - 需要检查的值</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/input.php.html#line284" class="location">library\think\console\Input.php at line 284</a>
+
+<h3 id="getParameterOption()">getParameterOption</h3>
+<code class="signature">public  mixed <strong>getParameterOption</strong>(string|array values, mixed default)</code>
+<div class="details">
+<p>获取原始选项的值</p><dl>
+<dt>Parameters:</dt>
+<dd>values - 需要检查的值</dd>
+<dd>default - 默认值</dd>
+<dt>Returns:</dt>
+<dd>The option value</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/input.php.html#line310" class="location">library\think\console\Input.php at line 310</a>
+
+<h3 id="validate()">validate</h3>
+<code class="signature">public  void <strong>validate</strong>()</code>
+<div class="details">
+<p>验证输入</p><dl>
+<dt>Throws:</dt>
+<dd>\RuntimeException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/input.php.html#line321" class="location">library\think\console\Input.php at line 321</a>
+
+<h3 id="isInteractive()">isInteractive</h3>
+<code class="signature">public  bool <strong>isInteractive</strong>()</code>
+<div class="details">
+<p>检查输入是否是交互的</p></div>
+
+<hr>
+
+<a href="../../source/library/think/console/input.php.html#line330" class="location">library\think\console\Input.php at line 330</a>
+
+<h3 id="setInteractive()">setInteractive</h3>
+<code class="signature">public  void <strong>setInteractive</strong>(bool interactive)</code>
+<div class="details">
+<p>设置输入的交互</p></div>
+
+<hr>
+
+<a href="../../source/library/think/console/input.php.html#line339" class="location">library\think\console\Input.php at line 339</a>
+
+<h3 id="getArguments()">getArguments</h3>
+<code class="signature">public  <a href="../../think/console/input/argument.html">Argument[]</a> <strong>getArguments</strong>()</code>
+<div class="details">
+<p>获取所有的参数</p></div>
+
+<hr>
+
+<a href="../../source/library/think/console/input.php.html#line350" class="location">library\think\console\Input.php at line 350</a>
+
+<h3 id="getArgument()">getArgument</h3>
+<code class="signature">public  mixed <strong>getArgument</strong>(string name)</code>
+<div class="details">
+<p>根据名称获取参数</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 参数名</dd>
+<dt>Throws:</dt>
+<dd>\InvalidArgumentException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/input.php.html#line366" class="location">library\think\console\Input.php at line 366</a>
+
+<h3 id="setArgument()">setArgument</h3>
+<code class="signature">public  void <strong>setArgument</strong>(string name, string value)</code>
+<div class="details">
+<p>设置参数的值</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 参数名</dd>
+<dd>value - 值</dd>
+<dt>Throws:</dt>
+<dd>\InvalidArgumentException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/input.php.html#line380" class="location">library\think\console\Input.php at line 380</a>
+
+<h3 id="hasArgument()">hasArgument</h3>
+<code class="signature">public  bool <strong>hasArgument</strong>(string|int name)</code>
+<div class="details">
+<p>检查是否存在某个参数</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 参数名或位置</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/input.php.html#line389" class="location">library\think\console\Input.php at line 389</a>
+
+<h3 id="getOptions()">getOptions</h3>
+<code class="signature">public  <a href="../../think/console/input/option.html">Option[]</a> <strong>getOptions</strong>()</code>
+<div class="details">
+<p>获取所有的选项</p></div>
+
+<hr>
+
+<a href="../../source/library/think/console/input.php.html#line400" class="location">library\think\console\Input.php at line 400</a>
+
+<h3 id="getOption()">getOption</h3>
+<code class="signature">public  mixed <strong>getOption</strong>(string name)</code>
+<div class="details">
+<p>获取选项值</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 选项名称</dd>
+<dt>Throws:</dt>
+<dd>\InvalidArgumentException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/input.php.html#line415" class="location">library\think\console\Input.php at line 415</a>
+
+<h3 id="setOption()">setOption</h3>
+<code class="signature">public  void <strong>setOption</strong>(string name, string|bool value)</code>
+<div class="details">
+<p>设置选项值</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 选项名</dd>
+<dd>value - 值</dd>
+<dt>Throws:</dt>
+<dd>\InvalidArgumentException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/input.php.html#line429" class="location">library\think\console\Input.php at line 429</a>
+
+<h3 id="hasOption()">hasOption</h3>
+<code class="signature">public  bool <strong>hasOption</strong>(string name)</code>
+<div class="details">
+<p>是否有某个选项</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 选项名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/console/input.php.html#line439" class="location">library\think\console\Input.php at line 439</a>
+
+<h3 id="escapeToken()">escapeToken</h3>
+<code class="signature">public  string <strong>escapeToken</strong>(string token)</code>
+<div class="details">
+<p>转义指令</p></div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../../overview-summary.html">Overview</a></li>
+<li><a href="../../think/console/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../../think/console/package-tree.html">Tree</a></li>
+<li><a href="../../overview-files.html">Files</a></li>
+<li><a href="../../deprecated-list.html">Deprecated</a></li>
+<li><a href="../../todo-list.html">Todo</a></li>
+<li><a href="../../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../../index.html" target="_top">Frames</a>
+<a href="../../think\console\input.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

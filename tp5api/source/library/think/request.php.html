@@ -1,0 +1,1618 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\Request.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\request.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\Request.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think;
+<a name="line13"></a>
+<a name="line14"></a>use think\Config;
+<a name="line15"></a>use think\Exception;
+<a name="line16"></a>use think\File;
+<a name="line17"></a>use think\Session;
+<a name="line18"></a>
+<a name="line19"></a>class Request
+<a name="line20"></a>{
+<a name="line21"></a>    /**
+<a name="line22"></a>     * @var object 对象实例
+<a name="line23"></a>     */
+<a name="line24"></a>    protected static $instance;
+<a name="line25"></a>
+<a name="line26"></a>    protected $method;
+<a name="line27"></a>    /**
+<a name="line28"></a>     * @var string 域名
+<a name="line29"></a>     */
+<a name="line30"></a>    protected $domain;
+<a name="line31"></a>
+<a name="line32"></a>    /**
+<a name="line33"></a>     * @var string URL地址
+<a name="line34"></a>     */
+<a name="line35"></a>    protected $url;
+<a name="line36"></a>
+<a name="line37"></a>    /**
+<a name="line38"></a>     * @var string 基础URL
+<a name="line39"></a>     */
+<a name="line40"></a>    protected $baseUrl;
+<a name="line41"></a>
+<a name="line42"></a>    /**
+<a name="line43"></a>     * @var string 当前执行的文件
+<a name="line44"></a>     */
+<a name="line45"></a>    protected $baseFile;
+<a name="line46"></a>
+<a name="line47"></a>    /**
+<a name="line48"></a>     * @var string 访问的ROOT地址
+<a name="line49"></a>     */
+<a name="line50"></a>    protected $root;
+<a name="line51"></a>
+<a name="line52"></a>    /**
+<a name="line53"></a>     * @var string pathinfo
+<a name="line54"></a>     */
+<a name="line55"></a>    protected $pathinfo;
+<a name="line56"></a>
+<a name="line57"></a>    /**
+<a name="line58"></a>     * @var string pathinfo（不含后缀）
+<a name="line59"></a>     */
+<a name="line60"></a>    protected $path;
+<a name="line61"></a>
+<a name="line62"></a>    /**
+<a name="line63"></a>     * @var array 当前路由信息
+<a name="line64"></a>     */
+<a name="line65"></a>    protected $routeInfo = [];
+<a name="line66"></a>
+<a name="line67"></a>    /**
+<a name="line68"></a>     * @var array 当前调度信息
+<a name="line69"></a>     */
+<a name="line70"></a>    protected $dispatch = [];
+<a name="line71"></a>    protected $module;
+<a name="line72"></a>    protected $controller;
+<a name="line73"></a>    protected $action;
+<a name="line74"></a>    // 当前语言集
+<a name="line75"></a>    protected $langset;
+<a name="line76"></a>
+<a name="line77"></a>    /**
+<a name="line78"></a>     * @var array 请求参数
+<a name="line79"></a>     */
+<a name="line80"></a>    protected $param   = [];
+<a name="line81"></a>    protected $get     = [];
+<a name="line82"></a>    protected $post    = [];
+<a name="line83"></a>    protected $request = [];
+<a name="line84"></a>    protected $route   = [];
+<a name="line85"></a>    protected $put;
+<a name="line86"></a>    protected $session = [];
+<a name="line87"></a>    protected $file    = [];
+<a name="line88"></a>    protected $cookie  = [];
+<a name="line89"></a>    protected $server  = [];
+<a name="line90"></a>    protected $header  = [];
+<a name="line91"></a>
+<a name="line92"></a>    /**
+<a name="line93"></a>     * @var array 资源类型
+<a name="line94"></a>     */
+<a name="line95"></a>    protected $mimeType = [
+<a name="line96"></a>        'xml'  => 'application/xml,text/xml,application/x-xml',
+<a name="line97"></a>        'json' => 'application/json,text/x-json,application/jsonrequest,text/json',
+<a name="line98"></a>        'js'   => 'text/javascript,application/javascript,application/x-javascript',
+<a name="line99"></a>        'css'  => 'text/css',
+<a name="line100"></a>        'rss'  => 'application/rss+xml',
+<a name="line101"></a>        'yaml' => 'application/x-yaml,text/yaml',
+<a name="line102"></a>        'atom' => 'application/atom+xml',
+<a name="line103"></a>        'pdf'  => 'application/pdf',
+<a name="line104"></a>        'text' => 'text/plain',
+<a name="line105"></a>        'png'  => 'image/png',
+<a name="line106"></a>        'jpg'  => 'image/jpg,image/jpeg,image/pjpeg',
+<a name="line107"></a>        'gif'  => 'image/gif',
+<a name="line108"></a>        'csv'  => 'text/csv',
+<a name="line109"></a>        'html' => 'text/html,application/xhtml+xml,*/*',
+<a name="line110"></a>    ];
+<a name="line111"></a>
+<a name="line112"></a>    protected $content;
+<a name="line113"></a>
+<a name="line114"></a>    // 全局过滤规则
+<a name="line115"></a>    protected $filter;
+<a name="line116"></a>    // Hook扩展方法
+<a name="line117"></a>    protected static $hook = [];
+<a name="line118"></a>    // 绑定的属性
+<a name="line119"></a>    protected $bind = [];
+<a name="line120"></a>    // php://input
+<a name="line121"></a>    protected $input;
+<a name="line122"></a>    // 请求缓存
+<a name="line123"></a>    protected $cache;
+<a name="line124"></a>
+<a name="line125"></a>    /**
+<a name="line126"></a>     * 架构函数
+<a name="line127"></a>     * @access protected
+<a name="line128"></a>     * @param array $options 参数
+<a name="line129"></a>     */
+<a name="line130"></a>    protected function __construct($options = [])
+<a name="line131"></a>    {
+<a name="line132"></a>        foreach ($options as $name => $item) {
+<a name="line133"></a>            if (property_exists($this, $name)) {
+<a name="line134"></a>                $this->$name = $item;
+<a name="line135"></a>            }
+<a name="line136"></a>        }
+<a name="line137"></a>        if (is_null($this->filter)) {
+<a name="line138"></a>            $this->filter = Config::get('default_filter');
+<a name="line139"></a>        }
+<a name="line140"></a>        // 保存 php://input
+<a name="line141"></a>        $this->input = file_get_contents('php://input');
+<a name="line142"></a>    }
+<a name="line143"></a>
+<a name="line144"></a>    public function __call($method, $args)
+<a name="line145"></a>    {
+<a name="line146"></a>        if (array_key_exists($method, self::$hook)) {
+<a name="line147"></a>            array_unshift($args, $this);
+<a name="line148"></a>            return call_user_func_array(self::$hook[$method], $args);
+<a name="line149"></a>        } else {
+<a name="line150"></a>            throw new Exception('method not exists:' . __CLASS__ . '->' . $method);
+<a name="line151"></a>        }
+<a name="line152"></a>    }
+<a name="line153"></a>
+<a name="line154"></a>    /**
+<a name="line155"></a>     * Hook 方法注入
+<a name="line156"></a>     * @access public
+<a name="line157"></a>     * @param string|array  $method 方法名
+<a name="line158"></a>     * @param mixed         $callback callable
+<a name="line159"></a>     * @return void
+<a name="line160"></a>     */
+<a name="line161"></a>    public static function hook($method, $callback = null)
+<a name="line162"></a>    {
+<a name="line163"></a>        if (is_array($method)) {
+<a name="line164"></a>            self::$hook = array_merge(self::$hook, $method);
+<a name="line165"></a>        } else {
+<a name="line166"></a>            self::$hook[$method] = $callback;
+<a name="line167"></a>        }
+<a name="line168"></a>    }
+<a name="line169"></a>
+<a name="line170"></a>    /**
+<a name="line171"></a>     * 初始化
+<a name="line172"></a>     * @access public
+<a name="line173"></a>     * @param array $options 参数
+<a name="line174"></a>     * @return \think\Request
+<a name="line175"></a>     */
+<a name="line176"></a>    public static function instance($options = [])
+<a name="line177"></a>    {
+<a name="line178"></a>        if (is_null(self::$instance)) {
+<a name="line179"></a>            self::$instance = new static($options);
+<a name="line180"></a>        }
+<a name="line181"></a>        return self::$instance;
+<a name="line182"></a>    }
+<a name="line183"></a>
+<a name="line184"></a>    /**
+<a name="line185"></a>     * 创建一个URL请求
+<a name="line186"></a>     * @access public
+<a name="line187"></a>     * @param string    $uri URL地址
+<a name="line188"></a>     * @param string    $method 请求类型
+<a name="line189"></a>     * @param array     $params 请求参数
+<a name="line190"></a>     * @param array     $cookie
+<a name="line191"></a>     * @param array     $files
+<a name="line192"></a>     * @param array     $server
+<a name="line193"></a>     * @param string    $content
+<a name="line194"></a>     * @return \think\Request
+<a name="line195"></a>     */
+<a name="line196"></a>    public static function create($uri, $method = 'GET', $params = [], $cookie = [], $files = [], $server = [], $content = null)
+<a name="line197"></a>    {
+<a name="line198"></a>        $server['PATH_INFO']      = '';
+<a name="line199"></a>        $server['REQUEST_METHOD'] = strtoupper($method);
+<a name="line200"></a>        $info                     = parse_url($uri);
+<a name="line201"></a>        if (isset($info['host'])) {
+<a name="line202"></a>            $server['SERVER_NAME'] = $info['host'];
+<a name="line203"></a>            $server['HTTP_HOST']   = $info['host'];
+<a name="line204"></a>        }
+<a name="line205"></a>        if (isset($info['scheme'])) {
+<a name="line206"></a>            if ('https' === $info['scheme']) {
+<a name="line207"></a>                $server['HTTPS']       = 'on';
+<a name="line208"></a>                $server['SERVER_PORT'] = 443;
+<a name="line209"></a>            } else {
+<a name="line210"></a>                unset($server['HTTPS']);
+<a name="line211"></a>                $server['SERVER_PORT'] = 80;
+<a name="line212"></a>            }
+<a name="line213"></a>        }
+<a name="line214"></a>        if (isset($info['port'])) {
+<a name="line215"></a>            $server['SERVER_PORT'] = $info['port'];
+<a name="line216"></a>            $server['HTTP_HOST']   = $server['HTTP_HOST'] . ':' . $info['port'];
+<a name="line217"></a>        }
+<a name="line218"></a>        if (isset($info['user'])) {
+<a name="line219"></a>            $server['PHP_AUTH_USER'] = $info['user'];
+<a name="line220"></a>        }
+<a name="line221"></a>        if (isset($info['pass'])) {
+<a name="line222"></a>            $server['PHP_AUTH_PW'] = $info['pass'];
+<a name="line223"></a>        }
+<a name="line224"></a>        if (!isset($info['path'])) {
+<a name="line225"></a>            $info['path'] = '/';
+<a name="line226"></a>        }
+<a name="line227"></a>        $options     = [];
+<a name="line228"></a>        $queryString = '';
+<a name="line229"></a>        if (isset($info['query'])) {
+<a name="line230"></a>            parse_str(html_entity_decode($info['query']), $query);
+<a name="line231"></a>            if (!empty($params)) {
+<a name="line232"></a>                $params      = array_replace($query, $params);
+<a name="line233"></a>                $queryString = http_build_query($query, '', '&');
+<a name="line234"></a>            } else {
+<a name="line235"></a>                $params      = $query;
+<a name="line236"></a>                $queryString = $info['query'];
+<a name="line237"></a>            }
+<a name="line238"></a>        } elseif (!empty($params)) {
+<a name="line239"></a>            $queryString = http_build_query($params, '', '&');
+<a name="line240"></a>        }
+<a name="line241"></a>        $server['REQUEST_URI']  = $info['path'] . ('' !== $queryString ? '?' . $queryString : '');
+<a name="line242"></a>        $server['QUERY_STRING'] = $queryString;
+<a name="line243"></a>        $options['cookie']      = $cookie;
+<a name="line244"></a>        $options['param']       = $params;
+<a name="line245"></a>        $options['file']        = $files;
+<a name="line246"></a>        $options['server']      = $server;
+<a name="line247"></a>        $options['url']         = $server['REQUEST_URI'];
+<a name="line248"></a>        $options['baseUrl']     = $info['path'];
+<a name="line249"></a>        $options['pathinfo']    = '/' == $info['path'] ? '/' : ltrim($info['path'], '/');
+<a name="line250"></a>        $options['method']      = $server['REQUEST_METHOD'];
+<a name="line251"></a>        $options['domain']      = isset($info['scheme']) ? $info['scheme'] . '://' . $server['HTTP_HOST'] : '';
+<a name="line252"></a>        $options['content']     = $content;
+<a name="line253"></a>        self::$instance         = new self($options);
+<a name="line254"></a>        return self::$instance;
+<a name="line255"></a>    }
+<a name="line256"></a>
+<a name="line257"></a>    /**
+<a name="line258"></a>     * 获取当前包含协议的域名
+<a name="line259"></a>     * @access public
+<a name="line260"></a>     * @param string $domain 域名
+<a name="line261"></a>     * @return string
+<a name="line262"></a>     */
+<a name="line263"></a>    public function domain($domain = null)
+<a name="line264"></a>    {
+<a name="line265"></a>        if (!is_null($domain)) {
+<a name="line266"></a>            $this->domain = $domain;
+<a name="line267"></a>            return $this;
+<a name="line268"></a>        } elseif (!$this->domain) {
+<a name="line269"></a>            $this->domain = $this->scheme() . '://' . $this->host();
+<a name="line270"></a>        }
+<a name="line271"></a>        return $this->domain;
+<a name="line272"></a>    }
+<a name="line273"></a>
+<a name="line274"></a>    /**
+<a name="line275"></a>     * 获取当前完整URL 包括QUERY_STRING
+<a name="line276"></a>     * @access public
+<a name="line277"></a>     * @param string|true $url URL地址 true 带域名获取
+<a name="line278"></a>     * @return string
+<a name="line279"></a>     */
+<a name="line280"></a>    public function url($url = null)
+<a name="line281"></a>    {
+<a name="line282"></a>        if (!is_null($url) && true !== $url) {
+<a name="line283"></a>            $this->url = $url;
+<a name="line284"></a>            return $this;
+<a name="line285"></a>        } elseif (!$this->url) {
+<a name="line286"></a>            if (IS_CLI) {
+<a name="line287"></a>                $this->url = isset($_SERVER['argv'][1]) ? $_SERVER['argv'][1] : '';
+<a name="line288"></a>            } elseif (isset($_SERVER['HTTP_X_REWRITE_URL'])) {
+<a name="line289"></a>                $this->url = $_SERVER['HTTP_X_REWRITE_URL'];
+<a name="line290"></a>            } elseif (isset($_SERVER['REQUEST_URI'])) {
+<a name="line291"></a>                $this->url = $_SERVER['REQUEST_URI'];
+<a name="line292"></a>            } elseif (isset($_SERVER['ORIG_PATH_INFO'])) {
+<a name="line293"></a>                $this->url = $_SERVER['ORIG_PATH_INFO'] . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '');
+<a name="line294"></a>            } else {
+<a name="line295"></a>                $this->url = '';
+<a name="line296"></a>            }
+<a name="line297"></a>        }
+<a name="line298"></a>        return true === $url ? $this->domain() . $this->url : $this->url;
+<a name="line299"></a>    }
+<a name="line300"></a>
+<a name="line301"></a>    /**
+<a name="line302"></a>     * 获取当前URL 不含QUERY_STRING
+<a name="line303"></a>     * @access public
+<a name="line304"></a>     * @param string $url URL地址
+<a name="line305"></a>     * @return string
+<a name="line306"></a>     */
+<a name="line307"></a>    public function baseUrl($url = null)
+<a name="line308"></a>    {
+<a name="line309"></a>        if (!is_null($url) && true !== $url) {
+<a name="line310"></a>            $this->baseUrl = $url;
+<a name="line311"></a>            return $this;
+<a name="line312"></a>        } elseif (!$this->baseUrl) {
+<a name="line313"></a>            $str           = $this->url();
+<a name="line314"></a>            $this->baseUrl = strpos($str, '?') ? strstr($str, '?', true) : $str;
+<a name="line315"></a>        }
+<a name="line316"></a>        return true === $url ? $this->domain() . $this->baseUrl : $this->baseUrl;
+<a name="line317"></a>    }
+<a name="line318"></a>
+<a name="line319"></a>    /**
+<a name="line320"></a>     * 获取当前执行的文件 SCRIPT_NAME
+<a name="line321"></a>     * @access public
+<a name="line322"></a>     * @param string $file 当前执行的文件
+<a name="line323"></a>     * @return string
+<a name="line324"></a>     */
+<a name="line325"></a>    public function baseFile($file = null)
+<a name="line326"></a>    {
+<a name="line327"></a>        if (!is_null($file) && true !== $file) {
+<a name="line328"></a>            $this->baseFile = $file;
+<a name="line329"></a>            return $this;
+<a name="line330"></a>        } elseif (!$this->baseFile) {
+<a name="line331"></a>            $url = '';
+<a name="line332"></a>            if (!IS_CLI) {
+<a name="line333"></a>                $script_name = basename($_SERVER['SCRIPT_FILENAME']);
+<a name="line334"></a>                if (basename($_SERVER['SCRIPT_NAME']) === $script_name) {
+<a name="line335"></a>                    $url = $_SERVER['SCRIPT_NAME'];
+<a name="line336"></a>                } elseif (basename($_SERVER['PHP_SELF']) === $script_name) {
+<a name="line337"></a>                    $url = $_SERVER['PHP_SELF'];
+<a name="line338"></a>                } elseif (isset($_SERVER['ORIG_SCRIPT_NAME']) && basename($_SERVER['ORIG_SCRIPT_NAME']) === $script_name) {
+<a name="line339"></a>                    $url = $_SERVER['ORIG_SCRIPT_NAME'];
+<a name="line340"></a>                } elseif (($pos = strpos($_SERVER['PHP_SELF'], '/' . $script_name)) !== false) {
+<a name="line341"></a>                    $url = substr($_SERVER['SCRIPT_NAME'], 0, $pos) . '/' . $script_name;
+<a name="line342"></a>                } elseif (isset($_SERVER['DOCUMENT_ROOT']) && strpos($_SERVER['SCRIPT_FILENAME'], $_SERVER['DOCUMENT_ROOT']) === 0) {
+<a name="line343"></a>                    $url = str_replace('\\', '/', str_replace($_SERVER['DOCUMENT_ROOT'], '', $_SERVER['SCRIPT_FILENAME']));
+<a name="line344"></a>                }
+<a name="line345"></a>            }
+<a name="line346"></a>            $this->baseFile = $url;
+<a name="line347"></a>        }
+<a name="line348"></a>        return true === $file ? $this->domain() . $this->baseFile : $this->baseFile;
+<a name="line349"></a>    }
+<a name="line350"></a>
+<a name="line351"></a>    /**
+<a name="line352"></a>     * 获取URL访问根地址
+<a name="line353"></a>     * @access public
+<a name="line354"></a>     * @param string $url URL地址
+<a name="line355"></a>     * @return string
+<a name="line356"></a>     */
+<a name="line357"></a>    public function root($url = null)
+<a name="line358"></a>    {
+<a name="line359"></a>        if (!is_null($url) && true !== $url) {
+<a name="line360"></a>            $this->root = $url;
+<a name="line361"></a>            return $this;
+<a name="line362"></a>        } elseif (!$this->root) {
+<a name="line363"></a>            $file = $this->baseFile();
+<a name="line364"></a>            if ($file && 0 !== strpos($this->url(), $file)) {
+<a name="line365"></a>                $file = str_replace('\\', '/', dirname($file));
+<a name="line366"></a>            }
+<a name="line367"></a>            $this->root = rtrim($file, '/');
+<a name="line368"></a>        }
+<a name="line369"></a>        return true === $url ? $this->domain() . $this->root : $this->root;
+<a name="line370"></a>    }
+<a name="line371"></a>
+<a name="line372"></a>    /**
+<a name="line373"></a>     * 获取当前请求URL的pathinfo信息（含URL后缀）
+<a name="line374"></a>     * @access public
+<a name="line375"></a>     * @return string
+<a name="line376"></a>     */
+<a name="line377"></a>    public function pathinfo()
+<a name="line378"></a>    {
+<a name="line379"></a>        if (is_null($this->pathinfo)) {
+<a name="line380"></a>            if (isset($_GET[Config::get('var_pathinfo')])) {
+<a name="line381"></a>                // 判断URL里面是否有兼容模式参数
+<a name="line382"></a>                $_SERVER['PATH_INFO'] = $_GET[Config::get('var_pathinfo')];
+<a name="line383"></a>                unset($_GET[Config::get('var_pathinfo')]);
+<a name="line384"></a>            } elseif (IS_CLI) {
+<a name="line385"></a>                // CLI模式下 index.php module/controller/action/params/...
+<a name="line386"></a>                $_SERVER['PATH_INFO'] = isset($_SERVER['argv'][1]) ? $_SERVER['argv'][1] : '';
+<a name="line387"></a>            }
+<a name="line388"></a>
+<a name="line389"></a>            // 分析PATHINFO信息
+<a name="line390"></a>            if (!isset($_SERVER['PATH_INFO'])) {
+<a name="line391"></a>                foreach (Config::get('pathinfo_fetch') as $type) {
+<a name="line392"></a>                    if (!empty($_SERVER[$type])) {
+<a name="line393"></a>                        $_SERVER['PATH_INFO'] = (0 === strpos($_SERVER[$type], $_SERVER['SCRIPT_NAME'])) ?
+<a name="line394"></a>                        substr($_SERVER[$type], strlen($_SERVER['SCRIPT_NAME'])) : $_SERVER[$type];
+<a name="line395"></a>                        break;
+<a name="line396"></a>                    }
+<a name="line397"></a>                }
+<a name="line398"></a>            }
+<a name="line399"></a>            $this->pathinfo = empty($_SERVER['PATH_INFO']) ? '/' : ltrim($_SERVER['PATH_INFO'], '/');
+<a name="line400"></a>        }
+<a name="line401"></a>        return $this->pathinfo;
+<a name="line402"></a>    }
+<a name="line403"></a>
+<a name="line404"></a>    /**
+<a name="line405"></a>     * 获取当前请求URL的pathinfo信息(不含URL后缀)
+<a name="line406"></a>     * @access public
+<a name="line407"></a>     * @return string
+<a name="line408"></a>     */
+<a name="line409"></a>    public function path()
+<a name="line410"></a>    {
+<a name="line411"></a>        if (is_null($this->path)) {
+<a name="line412"></a>            $suffix   = Config::get('url_html_suffix');
+<a name="line413"></a>            $pathinfo = $this->pathinfo();
+<a name="line414"></a>            if (false === $suffix) {
+<a name="line415"></a>                // 禁止伪静态访问
+<a name="line416"></a>                $this->path = $pathinfo;
+<a name="line417"></a>            } elseif ($suffix) {
+<a name="line418"></a>                // 去除正常的URL后缀
+<a name="line419"></a>                $this->path = preg_replace('/\.(' . ltrim($suffix, '.') . ')$/i', '', $pathinfo);
+<a name="line420"></a>            } else {
+<a name="line421"></a>                // 允许任何后缀访问
+<a name="line422"></a>                $this->path = preg_replace('/\.' . $this->ext() . '$/i', '', $pathinfo);
+<a name="line423"></a>            }
+<a name="line424"></a>        }
+<a name="line425"></a>        return $this->path;
+<a name="line426"></a>    }
+<a name="line427"></a>
+<a name="line428"></a>    /**
+<a name="line429"></a>     * 当前URL的访问后缀
+<a name="line430"></a>     * @access public
+<a name="line431"></a>     * @return string
+<a name="line432"></a>     */
+<a name="line433"></a>    public function ext()
+<a name="line434"></a>    {
+<a name="line435"></a>        return pathinfo($this->pathinfo(), PATHINFO_EXTENSION);
+<a name="line436"></a>    }
+<a name="line437"></a>
+<a name="line438"></a>    /**
+<a name="line439"></a>     * 获取当前请求的时间
+<a name="line440"></a>     * @access public
+<a name="line441"></a>     * @param bool $float 是否使用浮点类型
+<a name="line442"></a>     * @return integer|float
+<a name="line443"></a>     */
+<a name="line444"></a>    public function time($float = false)
+<a name="line445"></a>    {
+<a name="line446"></a>        return $float ? $_SERVER['REQUEST_TIME_FLOAT'] : $_SERVER['REQUEST_TIME'];
+<a name="line447"></a>    }
+<a name="line448"></a>
+<a name="line449"></a>    /**
+<a name="line450"></a>     * 当前请求的资源类型
+<a name="line451"></a>     * @access public
+<a name="line452"></a>     * @return false|string
+<a name="line453"></a>     */
+<a name="line454"></a>    public function type()
+<a name="line455"></a>    {
+<a name="line456"></a>        $accept = isset($this->server['HTTP_ACCEPT']) ? $this->server['HTTP_ACCEPT'] : $_SERVER['HTTP_ACCEPT'];
+<a name="line457"></a>        if (empty($accept)) {
+<a name="line458"></a>            return false;
+<a name="line459"></a>        }
+<a name="line460"></a>
+<a name="line461"></a>        foreach ($this->mimeType as $key => $val) {
+<a name="line462"></a>            $array = explode(',', $val);
+<a name="line463"></a>            foreach ($array as $k => $v) {
+<a name="line464"></a>                if (stristr($accept, $v)) {
+<a name="line465"></a>                    return $key;
+<a name="line466"></a>                }
+<a name="line467"></a>            }
+<a name="line468"></a>        }
+<a name="line469"></a>        return false;
+<a name="line470"></a>    }
+<a name="line471"></a>
+<a name="line472"></a>    /**
+<a name="line473"></a>     * 设置资源类型
+<a name="line474"></a>     * @access public
+<a name="line475"></a>     * @param string|array  $type 资源类型名
+<a name="line476"></a>     * @param string        $val 资源类型
+<a name="line477"></a>     * @return void
+<a name="line478"></a>     */
+<a name="line479"></a>    public function mimeType($type, $val = '')
+<a name="line480"></a>    {
+<a name="line481"></a>        if (is_array($type)) {
+<a name="line482"></a>            $this->mimeType = array_merge($this->mimeType, $type);
+<a name="line483"></a>        } else {
+<a name="line484"></a>            $this->mimeType[$type] = $val;
+<a name="line485"></a>        }
+<a name="line486"></a>    }
+<a name="line487"></a>
+<a name="line488"></a>    /**
+<a name="line489"></a>     * 当前的请求类型
+<a name="line490"></a>     * @access public
+<a name="line491"></a>     * @param bool $method  true 获取原始请求类型
+<a name="line492"></a>     * @return string
+<a name="line493"></a>     */
+<a name="line494"></a>    public function method($method = false)
+<a name="line495"></a>    {
+<a name="line496"></a>        if (true === $method) {
+<a name="line497"></a>            // 获取原始请求类型
+<a name="line498"></a>            return IS_CLI ? 'GET' : (isset($this->server['REQUEST_METHOD']) ? $this->server['REQUEST_METHOD'] : $_SERVER['REQUEST_METHOD']);
+<a name="line499"></a>        } elseif (!$this->method) {
+<a name="line500"></a>            if (isset($_POST[Config::get('var_method')])) {
+<a name="line501"></a>                $this->method = strtoupper($_POST[Config::get('var_method')]);
+<a name="line502"></a>                $this->{$this->method}($_POST);
+<a name="line503"></a>            } elseif (isset($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'])) {
+<a name="line504"></a>                $this->method = strtoupper($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']);
+<a name="line505"></a>            } else {
+<a name="line506"></a>                $this->method = IS_CLI ? 'GET' : (isset($this->server['REQUEST_METHOD']) ? $this->server['REQUEST_METHOD'] : $_SERVER['REQUEST_METHOD']);
+<a name="line507"></a>            }
+<a name="line508"></a>        }
+<a name="line509"></a>        return $this->method;
+<a name="line510"></a>    }
+<a name="line511"></a>
+<a name="line512"></a>    /**
+<a name="line513"></a>     * 是否为GET请求
+<a name="line514"></a>     * @access public
+<a name="line515"></a>     * @return bool
+<a name="line516"></a>     */
+<a name="line517"></a>    public function isGet()
+<a name="line518"></a>    {
+<a name="line519"></a>        return $this->method() == 'GET';
+<a name="line520"></a>    }
+<a name="line521"></a>
+<a name="line522"></a>    /**
+<a name="line523"></a>     * 是否为POST请求
+<a name="line524"></a>     * @access public
+<a name="line525"></a>     * @return bool
+<a name="line526"></a>     */
+<a name="line527"></a>    public function isPost()
+<a name="line528"></a>    {
+<a name="line529"></a>        return $this->method() == 'POST';
+<a name="line530"></a>    }
+<a name="line531"></a>
+<a name="line532"></a>    /**
+<a name="line533"></a>     * 是否为PUT请求
+<a name="line534"></a>     * @access public
+<a name="line535"></a>     * @return bool
+<a name="line536"></a>     */
+<a name="line537"></a>    public function isPut()
+<a name="line538"></a>    {
+<a name="line539"></a>        return $this->method() == 'PUT';
+<a name="line540"></a>    }
+<a name="line541"></a>
+<a name="line542"></a>    /**
+<a name="line543"></a>     * 是否为DELTE请求
+<a name="line544"></a>     * @access public
+<a name="line545"></a>     * @return bool
+<a name="line546"></a>     */
+<a name="line547"></a>    public function isDelete()
+<a name="line548"></a>    {
+<a name="line549"></a>        return $this->method() == 'DELETE';
+<a name="line550"></a>    }
+<a name="line551"></a>
+<a name="line552"></a>    /**
+<a name="line553"></a>     * 是否为HEAD请求
+<a name="line554"></a>     * @access public
+<a name="line555"></a>     * @return bool
+<a name="line556"></a>     */
+<a name="line557"></a>    public function isHead()
+<a name="line558"></a>    {
+<a name="line559"></a>        return $this->method() == 'HEAD';
+<a name="line560"></a>    }
+<a name="line561"></a>
+<a name="line562"></a>    /**
+<a name="line563"></a>     * 是否为PATCH请求
+<a name="line564"></a>     * @access public
+<a name="line565"></a>     * @return bool
+<a name="line566"></a>     */
+<a name="line567"></a>    public function isPatch()
+<a name="line568"></a>    {
+<a name="line569"></a>        return $this->method() == 'PATCH';
+<a name="line570"></a>    }
+<a name="line571"></a>
+<a name="line572"></a>    /**
+<a name="line573"></a>     * 是否为OPTIONS请求
+<a name="line574"></a>     * @access public
+<a name="line575"></a>     * @return bool
+<a name="line576"></a>     */
+<a name="line577"></a>    public function isOptions()
+<a name="line578"></a>    {
+<a name="line579"></a>        return $this->method() == 'OPTIONS';
+<a name="line580"></a>    }
+<a name="line581"></a>
+<a name="line582"></a>    /**
+<a name="line583"></a>     * 是否为cli
+<a name="line584"></a>     * @access public
+<a name="line585"></a>     * @return bool
+<a name="line586"></a>     */
+<a name="line587"></a>    public function isCli()
+<a name="line588"></a>    {
+<a name="line589"></a>        return PHP_SAPI == 'cli';
+<a name="line590"></a>    }
+<a name="line591"></a>
+<a name="line592"></a>    /**
+<a name="line593"></a>     * 是否为cgi
+<a name="line594"></a>     * @access public
+<a name="line595"></a>     * @return bool
+<a name="line596"></a>     */
+<a name="line597"></a>    public function isCgi()
+<a name="line598"></a>    {
+<a name="line599"></a>        return strpos(PHP_SAPI, 'cgi') === 0;
+<a name="line600"></a>    }
+<a name="line601"></a>
+<a name="line602"></a>    /**
+<a name="line603"></a>     * 设置获取获取当前请求的参数
+<a name="line604"></a>     * @access public
+<a name="line605"></a>     * @param string|array  $name 变量名
+<a name="line606"></a>     * @param mixed         $default 默认值
+<a name="line607"></a>     * @param string|array  $filter 过滤方法
+<a name="line608"></a>     * @return mixed
+<a name="line609"></a>     */
+<a name="line610"></a>    public function param($name = '', $default = null, $filter = null)
+<a name="line611"></a>    {
+<a name="line612"></a>        if (empty($this->param)) {
+<a name="line613"></a>            $method = $this->method(true);
+<a name="line614"></a>            // 自动获取请求变量
+<a name="line615"></a>            switch ($method) {
+<a name="line616"></a>                case 'POST':
+<a name="line617"></a>                    $vars = $this->post(false);
+<a name="line618"></a>                    break;
+<a name="line619"></a>                case 'PUT':
+<a name="line620"></a>                case 'DELETE':
+<a name="line621"></a>                case 'PATCH':
+<a name="line622"></a>                    $vars = $this->put(false);
+<a name="line623"></a>                    break;
+<a name="line624"></a>                default:
+<a name="line625"></a>                    $vars = [];
+<a name="line626"></a>            }
+<a name="line627"></a>            // 当前请求参数和URL地址中的参数合并
+<a name="line628"></a>            $this->param = array_merge($this->get(false), $vars, $this->route(false));
+<a name="line629"></a>        }
+<a name="line630"></a>        if (true === $name) {
+<a name="line631"></a>            // 获取包含文件上传信息的数组
+<a name="line632"></a>            $file = $this->file();
+<a name="line633"></a>            $data = array_merge($this->param, $file);
+<a name="line634"></a>            return $this->input($data, '', $default, $filter);
+<a name="line635"></a>        }
+<a name="line636"></a>        return $this->input($this->param, $name, $default, $filter);
+<a name="line637"></a>    }
+<a name="line638"></a>
+<a name="line639"></a>    /**
+<a name="line640"></a>     * 设置获取获取路由参数
+<a name="line641"></a>     * @access public
+<a name="line642"></a>     * @param string|array  $name 变量名
+<a name="line643"></a>     * @param mixed         $default 默认值
+<a name="line644"></a>     * @param string|array  $filter 过滤方法
+<a name="line645"></a>     * @return mixed
+<a name="line646"></a>     */
+<a name="line647"></a>    public function route($name = '', $default = null, $filter = null)
+<a name="line648"></a>    {
+<a name="line649"></a>        if (is_array($name)) {
+<a name="line650"></a>            $this->param        = [];
+<a name="line651"></a>            return $this->route = array_merge($this->route, $name);
+<a name="line652"></a>        }
+<a name="line653"></a>        return $this->input($this->route, $name, $default, $filter);
+<a name="line654"></a>    }
+<a name="line655"></a>
+<a name="line656"></a>    /**
+<a name="line657"></a>     * 设置获取获取GET参数
+<a name="line658"></a>     * @access public
+<a name="line659"></a>     * @param string|array  $name 变量名
+<a name="line660"></a>     * @param mixed         $default 默认值
+<a name="line661"></a>     * @param string|array  $filter 过滤方法
+<a name="line662"></a>     * @return mixed
+<a name="line663"></a>     */
+<a name="line664"></a>    public function get($name = '', $default = null, $filter = null)
+<a name="line665"></a>    {
+<a name="line666"></a>        if (empty($this->get)) {
+<a name="line667"></a>            $this->get = $_GET;
+<a name="line668"></a>        }
+<a name="line669"></a>        if (is_array($name)) {
+<a name="line670"></a>            $this->param      = [];
+<a name="line671"></a>            return $this->get = array_merge($this->get, $name);
+<a name="line672"></a>        }
+<a name="line673"></a>        return $this->input($this->get, $name, $default, $filter);
+<a name="line674"></a>    }
+<a name="line675"></a>
+<a name="line676"></a>    /**
+<a name="line677"></a>     * 设置获取获取POST参数
+<a name="line678"></a>     * @access public
+<a name="line679"></a>     * @param string        $name 变量名
+<a name="line680"></a>     * @param mixed         $default 默认值
+<a name="line681"></a>     * @param string|array  $filter 过滤方法
+<a name="line682"></a>     * @return mixed
+<a name="line683"></a>     */
+<a name="line684"></a>    public function post($name = '', $default = null, $filter = null)
+<a name="line685"></a>    {
+<a name="line686"></a>        if (empty($this->post)) {
+<a name="line687"></a>            $this->post = $_POST;
+<a name="line688"></a>        }
+<a name="line689"></a>        if (is_array($name)) {
+<a name="line690"></a>            $this->param       = [];
+<a name="line691"></a>            return $this->post = array_merge($this->post, $name);
+<a name="line692"></a>        }
+<a name="line693"></a>        return $this->input($this->post, $name, $default, $filter);
+<a name="line694"></a>    }
+<a name="line695"></a>
+<a name="line696"></a>    /**
+<a name="line697"></a>     * 设置获取获取PUT参数
+<a name="line698"></a>     * @access public
+<a name="line699"></a>     * @param string|array      $name 变量名
+<a name="line700"></a>     * @param mixed             $default 默认值
+<a name="line701"></a>     * @param string|array      $filter 过滤方法
+<a name="line702"></a>     * @return mixed
+<a name="line703"></a>     */
+<a name="line704"></a>    public function put($name = '', $default = null, $filter = null)
+<a name="line705"></a>    {
+<a name="line706"></a>        if (is_null($this->put)) {
+<a name="line707"></a>            $content = $this->input;
+<a name="line708"></a>            if (strpos($content, '":')) {
+<a name="line709"></a>                $this->put = json_decode($content, true);
+<a name="line710"></a>            } else {
+<a name="line711"></a>                parse_str($content, $this->put);
+<a name="line712"></a>            }
+<a name="line713"></a>        }
+<a name="line714"></a>        if (is_array($name)) {
+<a name="line715"></a>            $this->param      = [];
+<a name="line716"></a>            return $this->put = is_null($this->put) ? $name : array_merge($this->put, $name);
+<a name="line717"></a>        }
+<a name="line718"></a>
+<a name="line719"></a>        return $this->input($this->put, $name, $default, $filter);
+<a name="line720"></a>    }
+<a name="line721"></a>
+<a name="line722"></a>    /**
+<a name="line723"></a>     * 设置获取获取DELETE参数
+<a name="line724"></a>     * @access public
+<a name="line725"></a>     * @param string|array      $name 变量名
+<a name="line726"></a>     * @param mixed             $default 默认值
+<a name="line727"></a>     * @param string|array      $filter 过滤方法
+<a name="line728"></a>     * @return mixed
+<a name="line729"></a>     */
+<a name="line730"></a>    public function delete($name = '', $default = null, $filter = null)
+<a name="line731"></a>    {
+<a name="line732"></a>        return $this->put($name, $default, $filter);
+<a name="line733"></a>    }
+<a name="line734"></a>
+<a name="line735"></a>    /**
+<a name="line736"></a>     * 设置获取获取PATCH参数
+<a name="line737"></a>     * @access public
+<a name="line738"></a>     * @param string|array      $name 变量名
+<a name="line739"></a>     * @param mixed             $default 默认值
+<a name="line740"></a>     * @param string|array      $filter 过滤方法
+<a name="line741"></a>     * @return mixed
+<a name="line742"></a>     */
+<a name="line743"></a>    public function patch($name = '', $default = null, $filter = null)
+<a name="line744"></a>    {
+<a name="line745"></a>        return $this->put($name, $default, $filter);
+<a name="line746"></a>    }
+<a name="line747"></a>
+<a name="line748"></a>    /**
+<a name="line749"></a>     * 获取request变量
+<a name="line750"></a>     * @param string        $name 数据名称
+<a name="line751"></a>     * @param string        $default 默认值
+<a name="line752"></a>     * @param string|array  $filter 过滤方法
+<a name="line753"></a>     * @return mixed
+<a name="line754"></a>     */
+<a name="line755"></a>    public function request($name = '', $default = null, $filter = null)
+<a name="line756"></a>    {
+<a name="line757"></a>        if (empty($this->request)) {
+<a name="line758"></a>            $this->request = $_REQUEST;
+<a name="line759"></a>        }
+<a name="line760"></a>        if (is_array($name)) {
+<a name="line761"></a>            $this->param          = [];
+<a name="line762"></a>            return $this->request = array_merge($this->request, $name);
+<a name="line763"></a>        }
+<a name="line764"></a>        return $this->input($this->request, $name, $default, $filter);
+<a name="line765"></a>    }
+<a name="line766"></a>
+<a name="line767"></a>    /**
+<a name="line768"></a>     * 获取session数据
+<a name="line769"></a>     * @access public
+<a name="line770"></a>     * @param string|array  $name 数据名称
+<a name="line771"></a>     * @param string        $default 默认值
+<a name="line772"></a>     * @param string|array  $filter 过滤方法
+<a name="line773"></a>     * @return mixed
+<a name="line774"></a>     */
+<a name="line775"></a>    public function session($name = '', $default = null, $filter = null)
+<a name="line776"></a>    {
+<a name="line777"></a>        if (empty($this->session)) {
+<a name="line778"></a>            $this->session = Session::get();
+<a name="line779"></a>        }
+<a name="line780"></a>        if (is_array($name)) {
+<a name="line781"></a>            return $this->session = array_merge($this->session, $name);
+<a name="line782"></a>        }
+<a name="line783"></a>        return $this->input($this->session, $name, $default, $filter);
+<a name="line784"></a>    }
+<a name="line785"></a>
+<a name="line786"></a>    /**
+<a name="line787"></a>     * 获取cookie参数
+<a name="line788"></a>     * @access public
+<a name="line789"></a>     * @param string|array  $name 数据名称
+<a name="line790"></a>     * @param string        $default 默认值
+<a name="line791"></a>     * @param string|array  $filter 过滤方法
+<a name="line792"></a>     * @return mixed
+<a name="line793"></a>     */
+<a name="line794"></a>    public function cookie($name = '', $default = null, $filter = null)
+<a name="line795"></a>    {
+<a name="line796"></a>        if (empty($this->cookie)) {
+<a name="line797"></a>            $this->cookie = $_COOKIE;
+<a name="line798"></a>        }
+<a name="line799"></a>        if (is_array($name)) {
+<a name="line800"></a>            return $this->cookie = array_merge($this->cookie, $name);
+<a name="line801"></a>        }
+<a name="line802"></a>        return $this->input($this->cookie, $name, $default, $filter);
+<a name="line803"></a>    }
+<a name="line804"></a>
+<a name="line805"></a>    /**
+<a name="line806"></a>     * 获取server参数
+<a name="line807"></a>     * @access public
+<a name="line808"></a>     * @param string|array  $name 数据名称
+<a name="line809"></a>     * @param string        $default 默认值
+<a name="line810"></a>     * @param string|array  $filter 过滤方法
+<a name="line811"></a>     * @return mixed
+<a name="line812"></a>     */
+<a name="line813"></a>    public function server($name = '', $default = null, $filter = null)
+<a name="line814"></a>    {
+<a name="line815"></a>        if (empty($this->server)) {
+<a name="line816"></a>            $this->server = $_SERVER;
+<a name="line817"></a>        }
+<a name="line818"></a>        if (is_array($name)) {
+<a name="line819"></a>            return $this->server = array_merge($this->server, $name);
+<a name="line820"></a>        }
+<a name="line821"></a>        return $this->input($this->server, false === $name ? false : strtoupper($name), $default, $filter);
+<a name="line822"></a>    }
+<a name="line823"></a>
+<a name="line824"></a>    /**
+<a name="line825"></a>     * 获取上传的文件信息
+<a name="line826"></a>     * @access public
+<a name="line827"></a>     * @param string|array $name 名称
+<a name="line828"></a>     * @return null|array|\think\File
+<a name="line829"></a>     */
+<a name="line830"></a>    public function file($name = '')
+<a name="line831"></a>    {
+<a name="line832"></a>        if (empty($this->file)) {
+<a name="line833"></a>            $this->file = isset($_FILES) ? $_FILES : [];
+<a name="line834"></a>        }
+<a name="line835"></a>        if (is_array($name)) {
+<a name="line836"></a>            return $this->file = array_merge($this->file, $name);
+<a name="line837"></a>        }
+<a name="line838"></a>        $files = $this->file;
+<a name="line839"></a>        if (!empty($files)) {
+<a name="line840"></a>            // 处理上传文件
+<a name="line841"></a>            $array = [];
+<a name="line842"></a>            foreach ($files as $key => $file) {
+<a name="line843"></a>                if (is_array($file['name'])) {
+<a name="line844"></a>                    $item  = [];
+<a name="line845"></a>                    $keys  = array_keys($file);
+<a name="line846"></a>                    $count = count($file['name']);
+<a name="line847"></a>                    for ($i = 0; $i < $count; $i++) {
+<a name="line848"></a>                        if (empty($file['tmp_name'][$i])) {
+<a name="line849"></a>                            continue;
+<a name="line850"></a>                        }
+<a name="line851"></a>                        $temp['key'] = $key;
+<a name="line852"></a>                        foreach ($keys as $_key) {
+<a name="line853"></a>                            $temp[$_key] = $file[$_key][$i];
+<a name="line854"></a>                        }
+<a name="line855"></a>                        $item[] = (new File($temp['tmp_name']))->setUploadInfo($temp);
+<a name="line856"></a>                    }
+<a name="line857"></a>                    $array[$key] = $item;
+<a name="line858"></a>                } else {
+<a name="line859"></a>                    if ($file instanceof File) {
+<a name="line860"></a>                        $array[$key] = $file;
+<a name="line861"></a>                    } else {
+<a name="line862"></a>                        if (empty($file['tmp_name'])) {
+<a name="line863"></a>                            continue;
+<a name="line864"></a>                        }
+<a name="line865"></a>                        $array[$key] = (new File($file['tmp_name']))->setUploadInfo($file);
+<a name="line866"></a>                    }
+<a name="line867"></a>                }
+<a name="line868"></a>            }
+<a name="line869"></a>            if (strpos($name, '.')) {
+<a name="line870"></a>                list($name, $sub) = explode('.', $name);
+<a name="line871"></a>            }
+<a name="line872"></a>            if ('' === $name) {
+<a name="line873"></a>                // 获取全部文件
+<a name="line874"></a>                return $array;
+<a name="line875"></a>            } elseif (isset($sub) && isset($array[$name][$sub])) {
+<a name="line876"></a>                return $array[$name][$sub];
+<a name="line877"></a>            } elseif (isset($array[$name])) {
+<a name="line878"></a>                return $array[$name];
+<a name="line879"></a>            }
+<a name="line880"></a>        }
+<a name="line881"></a>        return null;
+<a name="line882"></a>    }
+<a name="line883"></a>
+<a name="line884"></a>    /**
+<a name="line885"></a>     * 获取环境变量
+<a name="line886"></a>     * @param string|array  $name 数据名称
+<a name="line887"></a>     * @param string        $default 默认值
+<a name="line888"></a>     * @param string|array  $filter 过滤方法
+<a name="line889"></a>     * @return mixed
+<a name="line890"></a>     */
+<a name="line891"></a>    public function env($name = '', $default = null, $filter = null)
+<a name="line892"></a>    {
+<a name="line893"></a>        if (empty($this->env)) {
+<a name="line894"></a>            $this->env = $_ENV;
+<a name="line895"></a>        }
+<a name="line896"></a>        if (is_array($name)) {
+<a name="line897"></a>            return $this->env = array_merge($this->env, $name);
+<a name="line898"></a>        }
+<a name="line899"></a>        return $this->input($this->env, false === $name ? false : strtoupper($name), $default, $filter);
+<a name="line900"></a>    }
+<a name="line901"></a>
+<a name="line902"></a>    /**
+<a name="line903"></a>     * 设置或者获取当前的Header
+<a name="line904"></a>     * @access public
+<a name="line905"></a>     * @param string|array  $name header名称
+<a name="line906"></a>     * @param string        $default 默认值
+<a name="line907"></a>     * @return string
+<a name="line908"></a>     */
+<a name="line909"></a>    public function header($name = '', $default = null)
+<a name="line910"></a>    {
+<a name="line911"></a>        if (empty($this->header)) {
+<a name="line912"></a>            $header = [];
+<a name="line913"></a>            if (function_exists('apache_request_headers') && $result = apache_request_headers()) {
+<a name="line914"></a>                $header = $result;
+<a name="line915"></a>            } else {
+<a name="line916"></a>                $server = $this->server ?: $_SERVER;
+<a name="line917"></a>                foreach ($server as $key => $val) {
+<a name="line918"></a>                    if (0 === strpos($key, 'HTTP_')) {
+<a name="line919"></a>                        $key          = str_replace('_', '-', strtolower(substr($key, 5)));
+<a name="line920"></a>                        $header[$key] = $val;
+<a name="line921"></a>                    }
+<a name="line922"></a>                }
+<a name="line923"></a>                if (isset($server['CONTENT_TYPE'])) {
+<a name="line924"></a>                    $header['content-type'] = $server['CONTENT_TYPE'];
+<a name="line925"></a>                }
+<a name="line926"></a>                if (isset($server['CONTENT_LENGTH'])) {
+<a name="line927"></a>                    $header['content-length'] = $server['CONTENT_LENGTH'];
+<a name="line928"></a>                }
+<a name="line929"></a>            }
+<a name="line930"></a>            $this->header = array_change_key_case($header);
+<a name="line931"></a>        }
+<a name="line932"></a>        if (is_array($name)) {
+<a name="line933"></a>            return $this->header = array_merge($this->header, $name);
+<a name="line934"></a>        }
+<a name="line935"></a>        if ('' === $name) {
+<a name="line936"></a>            return $this->header;
+<a name="line937"></a>        }
+<a name="line938"></a>        $name = str_replace('_', '-', strtolower($name));
+<a name="line939"></a>        return isset($this->header[$name]) ? $this->header[$name] : $default;
+<a name="line940"></a>    }
+<a name="line941"></a>
+<a name="line942"></a>    /**
+<a name="line943"></a>     * 获取变量 支持过滤和默认值
+<a name="line944"></a>     * @param array         $data 数据源
+<a name="line945"></a>     * @param string|false  $name 字段名
+<a name="line946"></a>     * @param mixed         $default 默认值
+<a name="line947"></a>     * @param string|array  $filter 过滤函数
+<a name="line948"></a>     * @return mixed
+<a name="line949"></a>     */
+<a name="line950"></a>    public function input($data = [], $name = '', $default = null, $filter = null)
+<a name="line951"></a>    {
+<a name="line952"></a>        if (false === $name) {
+<a name="line953"></a>            // 获取原始数据
+<a name="line954"></a>            return $data;
+<a name="line955"></a>        }
+<a name="line956"></a>        $name = (string) $name;
+<a name="line957"></a>        if ('' != $name) {
+<a name="line958"></a>            // 解析name
+<a name="line959"></a>            if (strpos($name, '/')) {
+<a name="line960"></a>                list($name, $type) = explode('/', $name);
+<a name="line961"></a>            } else {
+<a name="line962"></a>                $type = 's';
+<a name="line963"></a>            }
+<a name="line964"></a>            // 按.拆分成多维数组进行判断
+<a name="line965"></a>            foreach (explode('.', $name) as $val) {
+<a name="line966"></a>                if (isset($data[$val])) {
+<a name="line967"></a>                    $data = $data[$val];
+<a name="line968"></a>                } else {
+<a name="line969"></a>                    // 无输入数据，返回默认值
+<a name="line970"></a>                    return $default;
+<a name="line971"></a>                }
+<a name="line972"></a>            }
+<a name="line973"></a>            if (is_object($data)) {
+<a name="line974"></a>                return $data;
+<a name="line975"></a>            }
+<a name="line976"></a>        }
+<a name="line977"></a>
+<a name="line978"></a>        // 解析过滤器
+<a name="line979"></a>        $filter = $filter ?: $this->filter;
+<a name="line980"></a>
+<a name="line981"></a>        if (is_string($filter)) {
+<a name="line982"></a>            $filter = explode(',', $filter);
+<a name="line983"></a>        } else {
+<a name="line984"></a>            $filter = (array) $filter;
+<a name="line985"></a>        }
+<a name="line986"></a>        $filter[] = $default;
+<a name="line987"></a>        if (is_array($data)) {
+<a name="line988"></a>            array_walk_recursive($data, [$this, 'filterValue'], $filter);
+<a name="line989"></a>            reset($data);
+<a name="line990"></a>        } else {
+<a name="line991"></a>            $this->filterValue($data, $name, $filter);
+<a name="line992"></a>        }
+<a name="line993"></a>
+<a name="line994"></a>        if (isset($type) && $data !== $default) {
+<a name="line995"></a>            // 强制类型转换
+<a name="line996"></a>            $this->typeCast($data, $type);
+<a name="line997"></a>        }
+<a name="line998"></a>        return $data;
+<a name="line999"></a>    }
+<a name="line1000"></a>
+<a name="line1001"></a>    /**
+<a name="line1002"></a>     * 设置或获取当前的过滤规则
+<a name="line1003"></a>     * @param mixed $filter 过滤规则
+<a name="line1004"></a>     * @return mixed
+<a name="line1005"></a>     */
+<a name="line1006"></a>    public function filter($filter = null)
+<a name="line1007"></a>    {
+<a name="line1008"></a>        if (is_null($filter)) {
+<a name="line1009"></a>            return $this->filter;
+<a name="line1010"></a>        } else {
+<a name="line1011"></a>            $this->filter = $filter;
+<a name="line1012"></a>        }
+<a name="line1013"></a>    }
+<a name="line1014"></a>
+<a name="line1015"></a>    /**
+<a name="line1016"></a>     * 递归过滤给定的值
+<a name="line1017"></a>     * @param mixed     $value 键值
+<a name="line1018"></a>     * @param mixed     $key 键名
+<a name="line1019"></a>     * @param array     $filters 过滤方法+默认值
+<a name="line1020"></a>     * @return mixed
+<a name="line1021"></a>     */
+<a name="line1022"></a>    private function filterValue(&$value, $key, $filters)
+<a name="line1023"></a>    {
+<a name="line1024"></a>        $default = array_pop($filters);
+<a name="line1025"></a>        foreach ($filters as $filter) {
+<a name="line1026"></a>            if (is_callable($filter)) {
+<a name="line1027"></a>                // 调用函数或者方法过滤
+<a name="line1028"></a>                $value = call_user_func($filter, $value);
+<a name="line1029"></a>            } elseif (is_scalar($value)) {
+<a name="line1030"></a>                if (strpos($filter, '/')) {
+<a name="line1031"></a>                    // 正则过滤
+<a name="line1032"></a>                    if (!preg_match($filter, $value)) {
+<a name="line1033"></a>                        // 匹配不成功返回默认值
+<a name="line1034"></a>                        $value = $default;
+<a name="line1035"></a>                        break;
+<a name="line1036"></a>                    }
+<a name="line1037"></a>                } elseif (!empty($filter)) {
+<a name="line1038"></a>                    // filter函数不存在时, 则使用filter_var进行过滤
+<a name="line1039"></a>                    // filter为非整形值时, 调用filter_id取得过滤id
+<a name="line1040"></a>                    $value = filter_var($value, is_int($filter) ? $filter : filter_id($filter));
+<a name="line1041"></a>                    if (false === $value) {
+<a name="line1042"></a>                        $value = $default;
+<a name="line1043"></a>                        break;
+<a name="line1044"></a>                    }
+<a name="line1045"></a>                }
+<a name="line1046"></a>            }
+<a name="line1047"></a>        }
+<a name="line1048"></a>        return $this->filterExp($value);
+<a name="line1049"></a>    }
+<a name="line1050"></a>
+<a name="line1051"></a>    /**
+<a name="line1052"></a>     * 过滤表单中的表达式
+<a name="line1053"></a>     * @param string $value
+<a name="line1054"></a>     * @return void
+<a name="line1055"></a>     */
+<a name="line1056"></a>    public function filterExp(&$value)
+<a name="line1057"></a>    {
+<a name="line1058"></a>        // 过滤查询特殊字符
+<a name="line1059"></a>        if (is_string($value) && preg_match('/^(EXP|NEQ|GT|EGT|LT|ELT|OR|XOR|LIKE|NOTLIKE|NOT BETWEEN|NOTBETWEEN|BETWEEN|NOTIN|NOT IN|IN)$/i', $value)) {
+<a name="line1060"></a>            $value .= ' ';
+<a name="line1061"></a>        }
+<a name="line1062"></a>        // TODO 其他安全过滤
+<a name="line1063"></a>    }
+<a name="line1064"></a>
+<a name="line1065"></a>    /**
+<a name="line1066"></a>     * 强制类型转换
+<a name="line1067"></a>     * @param string $data
+<a name="line1068"></a>     * @param string $type
+<a name="line1069"></a>     * @return mixed
+<a name="line1070"></a>     */
+<a name="line1071"></a>    private function typeCast(&$data, $type)
+<a name="line1072"></a>    {
+<a name="line1073"></a>        switch (strtolower($type)) {
+<a name="line1074"></a>            // 数组
+<a name="line1075"></a>            case 'a':
+<a name="line1076"></a>                $data = (array) $data;
+<a name="line1077"></a>                break;
+<a name="line1078"></a>            // 数字
+<a name="line1079"></a>            case 'd':
+<a name="line1080"></a>                $data = (int) $data;
+<a name="line1081"></a>                break;
+<a name="line1082"></a>            // 浮点
+<a name="line1083"></a>            case 'f':
+<a name="line1084"></a>                $data = (float) $data;
+<a name="line1085"></a>                break;
+<a name="line1086"></a>            // 布尔
+<a name="line1087"></a>            case 'b':
+<a name="line1088"></a>                $data = (boolean) $data;
+<a name="line1089"></a>                break;
+<a name="line1090"></a>            // 字符串
+<a name="line1091"></a>            case 's':
+<a name="line1092"></a>            default:
+<a name="line1093"></a>                if (is_scalar($data)) {
+<a name="line1094"></a>                    $data = (string) $data;
+<a name="line1095"></a>                } else {
+<a name="line1096"></a>                    throw new \InvalidArgumentException('variable type error：' . gettype($data));
+<a name="line1097"></a>                }
+<a name="line1098"></a>        }
+<a name="line1099"></a>    }
+<a name="line1100"></a>
+<a name="line1101"></a>    /**
+<a name="line1102"></a>     * 是否存在某个请求参数
+<a name="line1103"></a>     * @access public
+<a name="line1104"></a>     * @param string    $name 变量名
+<a name="line1105"></a>     * @param string    $type 变量类型
+<a name="line1106"></a>     * @param bool      $checkEmpty 是否检测空值
+<a name="line1107"></a>     * @return mixed
+<a name="line1108"></a>     */
+<a name="line1109"></a>    public function has($name, $type = 'param', $checkEmpty = false)
+<a name="line1110"></a>    {
+<a name="line1111"></a>        if (empty($this->$type)) {
+<a name="line1112"></a>            $param = $this->$type();
+<a name="line1113"></a>        } else {
+<a name="line1114"></a>            $param = $this->$type;
+<a name="line1115"></a>        }
+<a name="line1116"></a>        // 按.拆分成多维数组进行判断
+<a name="line1117"></a>        foreach (explode('.', $name) as $val) {
+<a name="line1118"></a>            if (isset($param[$val])) {
+<a name="line1119"></a>                $param = $param[$val];
+<a name="line1120"></a>            } else {
+<a name="line1121"></a>                return false;
+<a name="line1122"></a>            }
+<a name="line1123"></a>        }
+<a name="line1124"></a>        return ($checkEmpty && '' === $param) ? false : true;
+<a name="line1125"></a>    }
+<a name="line1126"></a>
+<a name="line1127"></a>    /**
+<a name="line1128"></a>     * 获取指定的参数
+<a name="line1129"></a>     * @access public
+<a name="line1130"></a>     * @param string|array  $name 变量名
+<a name="line1131"></a>     * @param string        $type 变量类型
+<a name="line1132"></a>     * @return mixed
+<a name="line1133"></a>     */
+<a name="line1134"></a>    public function only($name, $type = 'param')
+<a name="line1135"></a>    {
+<a name="line1136"></a>        $param = $this->$type();
+<a name="line1137"></a>        if (is_string($name)) {
+<a name="line1138"></a>            $name = explode(',', $name);
+<a name="line1139"></a>        }
+<a name="line1140"></a>        $item = [];
+<a name="line1141"></a>        foreach ($name as $key) {
+<a name="line1142"></a>            if (isset($param[$key])) {
+<a name="line1143"></a>                $item[$key] = $param[$key];
+<a name="line1144"></a>            }
+<a name="line1145"></a>        }
+<a name="line1146"></a>        return $item;
+<a name="line1147"></a>    }
+<a name="line1148"></a>
+<a name="line1149"></a>    /**
+<a name="line1150"></a>     * 排除指定参数获取
+<a name="line1151"></a>     * @access public
+<a name="line1152"></a>     * @param string|array  $name 变量名
+<a name="line1153"></a>     * @param string        $type 变量类型
+<a name="line1154"></a>     * @return mixed
+<a name="line1155"></a>     */
+<a name="line1156"></a>    public function except($name, $type = 'param')
+<a name="line1157"></a>    {
+<a name="line1158"></a>        $param = $this->$type();
+<a name="line1159"></a>        if (is_string($name)) {
+<a name="line1160"></a>            $name = explode(',', $name);
+<a name="line1161"></a>        }
+<a name="line1162"></a>        foreach ($name as $key) {
+<a name="line1163"></a>            if (isset($param[$key])) {
+<a name="line1164"></a>                unset($param[$key]);
+<a name="line1165"></a>            }
+<a name="line1166"></a>        }
+<a name="line1167"></a>        return $param;
+<a name="line1168"></a>    }
+<a name="line1169"></a>
+<a name="line1170"></a>    /**
+<a name="line1171"></a>     * 当前是否ssl
+<a name="line1172"></a>     * @access public
+<a name="line1173"></a>     * @return bool
+<a name="line1174"></a>     */
+<a name="line1175"></a>    public function isSsl()
+<a name="line1176"></a>    {
+<a name="line1177"></a>        $server = array_merge($_SERVER, $this->server);
+<a name="line1178"></a>        if (isset($server['HTTPS']) && ('1' == $server['HTTPS'] || 'on' == strtolower($server['HTTPS']))) {
+<a name="line1179"></a>            return true;
+<a name="line1180"></a>        } elseif (isset($server['REQUEST_SCHEME']) && 'https' == $server['REQUEST_SCHEME']) {
+<a name="line1181"></a>            return true;
+<a name="line1182"></a>        } elseif (isset($server['SERVER_PORT']) && ('443' == $server['SERVER_PORT'])) {
+<a name="line1183"></a>            return true;
+<a name="line1184"></a>        } elseif (isset($server['HTTP_X_FORWARDED_PROTO']) && 'https' == $server['HTTP_X_FORWARDED_PROTO']) {
+<a name="line1185"></a>            return true;
+<a name="line1186"></a>        }
+<a name="line1187"></a>        return false;
+<a name="line1188"></a>    }
+<a name="line1189"></a>
+<a name="line1190"></a>    /**
+<a name="line1191"></a>     * 当前是否Ajax请求
+<a name="line1192"></a>     * @access public
+<a name="line1193"></a>     * @param bool $ajax  true 获取原始ajax请求
+<a name="line1194"></a>     * @return bool
+<a name="line1195"></a>     */
+<a name="line1196"></a>    public function isAjax($ajax = false)
+<a name="line1197"></a>    {
+<a name="line1198"></a>        $value  = $this->server('HTTP_X_REQUESTED_WITH', '', 'strtolower');
+<a name="line1199"></a>        $result = ('xmlhttprequest' == $value) ? true : false;
+<a name="line1200"></a>        if (true === $ajax) {
+<a name="line1201"></a>            return $result;
+<a name="line1202"></a>        } else {
+<a name="line1203"></a>            return $this->param(Config::get('var_ajax')) ? true : $result;
+<a name="line1204"></a>        }
+<a name="line1205"></a>    }
+<a name="line1206"></a>
+<a name="line1207"></a>    /**
+<a name="line1208"></a>     * 当前是否Pjax请求
+<a name="line1209"></a>     * @access public
+<a name="line1210"></a>     * @param bool $pjax  true 获取原始pjax请求
+<a name="line1211"></a>     * @return bool
+<a name="line1212"></a>     */
+<a name="line1213"></a>    public function isPjax($pjax = false)
+<a name="line1214"></a>    {
+<a name="line1215"></a>        $result = !is_null($this->server('HTTP_X_PJAX')) ? true : false;
+<a name="line1216"></a>        if (true === $pjax) {
+<a name="line1217"></a>            return $result;
+<a name="line1218"></a>        } else {
+<a name="line1219"></a>            return $this->param(Config::get('var_pjax')) ? true : $result;
+<a name="line1220"></a>        }
+<a name="line1221"></a>    }
+<a name="line1222"></a>
+<a name="line1223"></a>    /**
+<a name="line1224"></a>     * 获取客户端IP地址
+<a name="line1225"></a>     * @param integer   $type 返回类型 0 返回IP地址 1 返回IPV4地址数字
+<a name="line1226"></a>     * @param boolean   $adv 是否进行高级模式获取（有可能被伪装）
+<a name="line1227"></a>     * @return mixed
+<a name="line1228"></a>     */
+<a name="line1229"></a>    public function ip($type = 0, $adv = false)
+<a name="line1230"></a>    {
+<a name="line1231"></a>        $type      = $type ? 1 : 0;
+<a name="line1232"></a>        static $ip = null;
+<a name="line1233"></a>        if (null !== $ip) {
+<a name="line1234"></a>            return $ip[$type];
+<a name="line1235"></a>        }
+<a name="line1236"></a>
+<a name="line1237"></a>        if ($adv) {
+<a name="line1238"></a>            if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+<a name="line1239"></a>                $arr = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+<a name="line1240"></a>                $pos = array_search('unknown', $arr);
+<a name="line1241"></a>                if (false !== $pos) {
+<a name="line1242"></a>                    unset($arr[$pos]);
+<a name="line1243"></a>                }
+<a name="line1244"></a>
+<a name="line1245"></a>                $ip = trim($arr[0]);
+<a name="line1246"></a>            } elseif (isset($_SERVER['HTTP_CLIENT_IP'])) {
+<a name="line1247"></a>                $ip = $_SERVER['HTTP_CLIENT_IP'];
+<a name="line1248"></a>            } elseif (isset($_SERVER['REMOTE_ADDR'])) {
+<a name="line1249"></a>                $ip = $_SERVER['REMOTE_ADDR'];
+<a name="line1250"></a>            }
+<a name="line1251"></a>        } elseif (isset($_SERVER['REMOTE_ADDR'])) {
+<a name="line1252"></a>            $ip = $_SERVER['REMOTE_ADDR'];
+<a name="line1253"></a>        }
+<a name="line1254"></a>        // IP地址合法验证
+<a name="line1255"></a>        $long = sprintf("%u", ip2long($ip));
+<a name="line1256"></a>        $ip   = $long ? array($ip, $long) : array('0.0.0.0', 0);
+<a name="line1257"></a>        return $ip[$type];
+<a name="line1258"></a>    }
+<a name="line1259"></a>
+<a name="line1260"></a>    /**
+<a name="line1261"></a>     * 检测是否使用手机访问
+<a name="line1262"></a>     * @access public
+<a name="line1263"></a>     * @return bool
+<a name="line1264"></a>     */
+<a name="line1265"></a>    public function isMobile()
+<a name="line1266"></a>    {
+<a name="line1267"></a>        if (isset($_SERVER['HTTP_VIA']) && stristr($_SERVER['HTTP_VIA'], "wap")) {
+<a name="line1268"></a>            return true;
+<a name="line1269"></a>        } elseif (isset($_SERVER['HTTP_ACCEPT']) && strpos(strtoupper($_SERVER['HTTP_ACCEPT']), "VND.WAP.WML")) {
+<a name="line1270"></a>            return true;
+<a name="line1271"></a>        } elseif (isset($_SERVER['HTTP_X_WAP_PROFILE']) || isset($_SERVER['HTTP_PROFILE'])) {
+<a name="line1272"></a>            return true;
+<a name="line1273"></a>        } elseif (isset($_SERVER['HTTP_USER_AGENT']) && preg_match('/(blackberry|configuration\/cldc|hp |hp-|htc |htc_|htc-|iemobile|kindle|midp|mmp|motorola|mobile|nokia|opera mini|opera |Googlebot-Mobile|YahooSeeker\/M1A1-R2D2|android|iphone|ipod|mobi|palm|palmos|pocket|portalmmm|ppc;|smartphone|sonyericsson|sqh|spv|symbian|treo|up.browser|up.link|vodafone|windows ce|xda |xda_)/i', $_SERVER['HTTP_USER_AGENT'])) {
+<a name="line1274"></a>            return true;
+<a name="line1275"></a>        } else {
+<a name="line1276"></a>            return false;
+<a name="line1277"></a>        }
+<a name="line1278"></a>    }
+<a name="line1279"></a>
+<a name="line1280"></a>    /**
+<a name="line1281"></a>     * 当前URL地址中的scheme参数
+<a name="line1282"></a>     * @access public
+<a name="line1283"></a>     * @return string
+<a name="line1284"></a>     */
+<a name="line1285"></a>    public function scheme()
+<a name="line1286"></a>    {
+<a name="line1287"></a>        return $this->isSsl() ? 'https' : 'http';
+<a name="line1288"></a>    }
+<a name="line1289"></a>
+<a name="line1290"></a>    /**
+<a name="line1291"></a>     * 当前请求URL地址中的query参数
+<a name="line1292"></a>     * @access public
+<a name="line1293"></a>     * @return string
+<a name="line1294"></a>     */
+<a name="line1295"></a>    public function query()
+<a name="line1296"></a>    {
+<a name="line1297"></a>        return $this->server('QUERY_STRING');
+<a name="line1298"></a>    }
+<a name="line1299"></a>
+<a name="line1300"></a>    /**
+<a name="line1301"></a>     * 当前请求的host
+<a name="line1302"></a>     * @access public
+<a name="line1303"></a>     * @return string
+<a name="line1304"></a>     */
+<a name="line1305"></a>    public function host()
+<a name="line1306"></a>    {
+<a name="line1307"></a>        return $this->server('HTTP_HOST');
+<a name="line1308"></a>    }
+<a name="line1309"></a>
+<a name="line1310"></a>    /**
+<a name="line1311"></a>     * 当前请求URL地址中的port参数
+<a name="line1312"></a>     * @access public
+<a name="line1313"></a>     * @return integer
+<a name="line1314"></a>     */
+<a name="line1315"></a>    public function port()
+<a name="line1316"></a>    {
+<a name="line1317"></a>        return $this->server('SERVER_PORT');
+<a name="line1318"></a>    }
+<a name="line1319"></a>
+<a name="line1320"></a>    /**
+<a name="line1321"></a>     * 当前请求 SERVER_PROTOCOL
+<a name="line1322"></a>     * @access public
+<a name="line1323"></a>     * @return integer
+<a name="line1324"></a>     */
+<a name="line1325"></a>    public function protocol()
+<a name="line1326"></a>    {
+<a name="line1327"></a>        return $this->server('SERVER_PROTOCOL');
+<a name="line1328"></a>    }
+<a name="line1329"></a>
+<a name="line1330"></a>    /**
+<a name="line1331"></a>     * 当前请求 REMOTE_PORT
+<a name="line1332"></a>     * @access public
+<a name="line1333"></a>     * @return integer
+<a name="line1334"></a>     */
+<a name="line1335"></a>    public function remotePort()
+<a name="line1336"></a>    {
+<a name="line1337"></a>        return $this->server('REMOTE_PORT');
+<a name="line1338"></a>    }
+<a name="line1339"></a>
+<a name="line1340"></a>    /**
+<a name="line1341"></a>     * 获取当前请求的路由信息
+<a name="line1342"></a>     * @access public
+<a name="line1343"></a>     * @param array $route 路由名称
+<a name="line1344"></a>     * @return array
+<a name="line1345"></a>     */
+<a name="line1346"></a>    public function routeInfo($route = [])
+<a name="line1347"></a>    {
+<a name="line1348"></a>        if (!empty($route)) {
+<a name="line1349"></a>            $this->routeInfo = $route;
+<a name="line1350"></a>        } else {
+<a name="line1351"></a>            return $this->routeInfo;
+<a name="line1352"></a>        }
+<a name="line1353"></a>    }
+<a name="line1354"></a>
+<a name="line1355"></a>    /**
+<a name="line1356"></a>     * 设置或者获取当前请求的调度信息
+<a name="line1357"></a>     * @access public
+<a name="line1358"></a>     * @param array  $dispatch 调度信息
+<a name="line1359"></a>     * @return array
+<a name="line1360"></a>     */
+<a name="line1361"></a>    public function dispatch($dispatch = null)
+<a name="line1362"></a>    {
+<a name="line1363"></a>        if (!is_null($dispatch)) {
+<a name="line1364"></a>            $this->dispatch = $dispatch;
+<a name="line1365"></a>        }
+<a name="line1366"></a>        return $this->dispatch;
+<a name="line1367"></a>    }
+<a name="line1368"></a>
+<a name="line1369"></a>    /**
+<a name="line1370"></a>     * 设置或者获取当前的模块名
+<a name="line1371"></a>     * @access public
+<a name="line1372"></a>     * @param string $module 模块名
+<a name="line1373"></a>     * @return string|$this
+<a name="line1374"></a>     */
+<a name="line1375"></a>    public function module($module = null)
+<a name="line1376"></a>    {
+<a name="line1377"></a>        if (!is_null($module)) {
+<a name="line1378"></a>            $this->module = $module;
+<a name="line1379"></a>            return $this;
+<a name="line1380"></a>        } else {
+<a name="line1381"></a>            return $this->module ?: '';
+<a name="line1382"></a>        }
+<a name="line1383"></a>    }
+<a name="line1384"></a>
+<a name="line1385"></a>    /**
+<a name="line1386"></a>     * 设置或者获取当前的控制器名
+<a name="line1387"></a>     * @access public
+<a name="line1388"></a>     * @param string $controller 控制器名
+<a name="line1389"></a>     * @return string|$this
+<a name="line1390"></a>     */
+<a name="line1391"></a>    public function controller($controller = null)
+<a name="line1392"></a>    {
+<a name="line1393"></a>        if (!is_null($controller)) {
+<a name="line1394"></a>            $this->controller = $controller;
+<a name="line1395"></a>            return $this;
+<a name="line1396"></a>        } else {
+<a name="line1397"></a>            return $this->controller ?: '';
+<a name="line1398"></a>        }
+<a name="line1399"></a>    }
+<a name="line1400"></a>
+<a name="line1401"></a>    /**
+<a name="line1402"></a>     * 设置或者获取当前的操作名
+<a name="line1403"></a>     * @access public
+<a name="line1404"></a>     * @param string $action 操作名
+<a name="line1405"></a>     * @return string
+<a name="line1406"></a>     */
+<a name="line1407"></a>    public function action($action = null)
+<a name="line1408"></a>    {
+<a name="line1409"></a>        if (!is_null($action)) {
+<a name="line1410"></a>            $this->action = $action;
+<a name="line1411"></a>            return $this;
+<a name="line1412"></a>        } else {
+<a name="line1413"></a>            return $this->action ?: '';
+<a name="line1414"></a>        }
+<a name="line1415"></a>    }
+<a name="line1416"></a>
+<a name="line1417"></a>    /**
+<a name="line1418"></a>     * 设置或者获取当前的语言
+<a name="line1419"></a>     * @access public
+<a name="line1420"></a>     * @param string $lang 语言名
+<a name="line1421"></a>     * @return string
+<a name="line1422"></a>     */
+<a name="line1423"></a>    public function langset($lang = null)
+<a name="line1424"></a>    {
+<a name="line1425"></a>        if (!is_null($lang)) {
+<a name="line1426"></a>            $this->langset = $lang;
+<a name="line1427"></a>            return $this;
+<a name="line1428"></a>        } else {
+<a name="line1429"></a>            return $this->langset ?: '';
+<a name="line1430"></a>        }
+<a name="line1431"></a>    }
+<a name="line1432"></a>
+<a name="line1433"></a>    /**
+<a name="line1434"></a>     * 设置或者获取当前请求的content
+<a name="line1435"></a>     * @access public
+<a name="line1436"></a>     * @return string
+<a name="line1437"></a>     */
+<a name="line1438"></a>    public function getContent()
+<a name="line1439"></a>    {
+<a name="line1440"></a>        if (is_null($this->content)) {
+<a name="line1441"></a>            $this->content = $this->input;
+<a name="line1442"></a>        }
+<a name="line1443"></a>        return $this->content;
+<a name="line1444"></a>    }
+<a name="line1445"></a>
+<a name="line1446"></a>    /**
+<a name="line1447"></a>     * 获取当前请求的php://input
+<a name="line1448"></a>     * @access public
+<a name="line1449"></a>     * @return string
+<a name="line1450"></a>     */
+<a name="line1451"></a>    public function getInput()
+<a name="line1452"></a>    {
+<a name="line1453"></a>        return $this->input;
+<a name="line1454"></a>    }
+<a name="line1455"></a>
+<a name="line1456"></a>    /**
+<a name="line1457"></a>     * 生成请求令牌
+<a name="line1458"></a>     * @access public
+<a name="line1459"></a>     * @param string $name 令牌名称
+<a name="line1460"></a>     * @param mixed  $type 令牌生成方法
+<a name="line1461"></a>     * @return string
+<a name="line1462"></a>     */
+<a name="line1463"></a>    public function token($name = '__token__', $type = 'md5')
+<a name="line1464"></a>    {
+<a name="line1465"></a>        $type  = is_callable($type) ? $type : 'md5';
+<a name="line1466"></a>        $token = call_user_func($type, $_SERVER['REQUEST_TIME_FLOAT']);
+<a name="line1467"></a>        if ($this->isAjax()) {
+<a name="line1468"></a>            header($name . ': ' . $token);
+<a name="line1469"></a>        }
+<a name="line1470"></a>        Session::set($name, $token);
+<a name="line1471"></a>        return $token;
+<a name="line1472"></a>    }
+<a name="line1473"></a>
+<a name="line1474"></a>    /**
+<a name="line1475"></a>     * 读取或者设置缓存
+<a name="line1476"></a>     * @access public
+<a name="line1477"></a>     * @param string $key 缓存标识，支持变量规则 ，例如 item/:name/:id
+<a name="line1478"></a>     * @param mixed  $expire 缓存有效期
+<a name="line1479"></a>     * @return mixed
+<a name="line1480"></a>     */
+<a name="line1481"></a>    public function cache($key, $expire = null)
+<a name="line1482"></a>    {
+<a name="line1483"></a>        if ($this->isGet()) {
+<a name="line1484"></a>            if (false !== strpos($key, ':')) {
+<a name="line1485"></a>                $param = $this->param();
+<a name="line1486"></a>                foreach ($param as $item => $val) {
+<a name="line1487"></a>                    if (is_string($val) && false !== strpos($key, ':' . $item)) {
+<a name="line1488"></a>                        $key = str_replace(':' . $item, $val, $key);
+<a name="line1489"></a>                    }
+<a name="line1490"></a>                }
+<a name="line1491"></a>            } elseif ('__URL__' == $key) {
+<a name="line1492"></a>                // 当前URL地址作为缓存标识
+<a name="line1493"></a>                $key = md5($this->url());
+<a name="line1494"></a>            } elseif (strpos($key, ']')) {
+<a name="line1495"></a>                if ('[' . $this->ext() . ']' == $key) {
+<a name="line1496"></a>                    // 缓存某个后缀的请求
+<a name="line1497"></a>                    $key = md5($this->url());
+<a name="line1498"></a>                } else {
+<a name="line1499"></a>                    return;
+<a name="line1500"></a>                }
+<a name="line1501"></a>            }
+<a name="line1502"></a>
+<a name="line1503"></a>            if (strtotime($this->server('HTTP_IF_MODIFIED_SINCE')) + $expire > $_SERVER['REQUEST_TIME']) {
+<a name="line1504"></a>                // 读取缓存
+<a name="line1505"></a>                $response = Response::create()->code(304);
+<a name="line1506"></a>                throw new \think\exception\HttpResponseException($response);
+<a name="line1507"></a>            } elseif (Cache::has($key)) {
+<a name="line1508"></a>                list($content, $header) = Cache::get($key);
+<a name="line1509"></a>                $response               = Response::create($content)->header($header);
+<a name="line1510"></a>                throw new \think\exception\HttpResponseException($response);
+<a name="line1511"></a>            } else {
+<a name="line1512"></a>                $this->cache = [$key, $expire];
+<a name="line1513"></a>            }
+<a name="line1514"></a>        }
+<a name="line1515"></a>    }
+<a name="line1516"></a>
+<a name="line1517"></a>    /**
+<a name="line1518"></a>     * 读取缓存设置
+<a name="line1519"></a>     * @access public
+<a name="line1520"></a>     * @return array
+<a name="line1521"></a>     */
+<a name="line1522"></a>    public function getCache()
+<a name="line1523"></a>    {
+<a name="line1524"></a>        return $this->cache;
+<a name="line1525"></a>    }
+<a name="line1526"></a>
+<a name="line1527"></a>    /**
+<a name="line1528"></a>     * 设置当前请求绑定的对象实例
+<a name="line1529"></a>     * @access public
+<a name="line1530"></a>     * @param string $name 绑定的对象标识
+<a name="line1531"></a>     * @param mixed  $obj 绑定的对象实例
+<a name="line1532"></a>     * @return mixed
+<a name="line1533"></a>     */
+<a name="line1534"></a>    public function bind($name, $obj = null)
+<a name="line1535"></a>    {
+<a name="line1536"></a>        if (is_array($name)) {
+<a name="line1537"></a>            $this->bind = array_merge($this->bind, $name);
+<a name="line1538"></a>        } else {
+<a name="line1539"></a>            $this->bind[$name] = $obj;
+<a name="line1540"></a>        }
+<a name="line1541"></a>    }
+<a name="line1542"></a>
+<a name="line1543"></a>    public function __set($name, $value)
+<a name="line1544"></a>    {
+<a name="line1545"></a>        $this->bind[$name] = $value;
+<a name="line1546"></a>    }
+<a name="line1547"></a>
+<a name="line1548"></a>    public function __get($name)
+<a name="line1549"></a>    {
+<a name="line1550"></a>        return isset($this->bind[$name]) ? $this->bind[$name] : null;
+<a name="line1551"></a>    }
+<a name="line1552"></a>
+<a name="line1553"></a>    public function __isset($name)
+<a name="line1554"></a>    {
+<a name="line1555"></a>        return isset($this->bind[$name]);
+<a name="line1556"></a>    }
+<a name="line1557"></a>}
+<a name="line1558"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\request.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

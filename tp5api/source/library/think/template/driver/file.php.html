@@ -1,0 +1,132 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:06 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\template\driver\File.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\template\driver\file.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\template\driver\File.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think\template\driver;
+<a name="line13"></a>
+<a name="line14"></a>use think\Exception;
+<a name="line15"></a>
+<a name="line16"></a>class File
+<a name="line17"></a>{
+<a name="line18"></a>    /**
+<a name="line19"></a>     * 写入编译缓存
+<a name="line20"></a>     * @param string $cacheFile 缓存的文件名
+<a name="line21"></a>     * @param string $content 缓存的内容
+<a name="line22"></a>     * @return void|array
+<a name="line23"></a>     */
+<a name="line24"></a>    public function write($cacheFile, $content)
+<a name="line25"></a>    {
+<a name="line26"></a>        // 检测模板目录
+<a name="line27"></a>        $dir = dirname($cacheFile);
+<a name="line28"></a>        if (!is_dir($dir)) {
+<a name="line29"></a>            mkdir($dir, 0755, true);
+<a name="line30"></a>        }
+<a name="line31"></a>        // 生成模板缓存文件
+<a name="line32"></a>        if (false === file_put_contents($cacheFile, $content)) {
+<a name="line33"></a>            throw new Exception('cache write error:' . $cacheFile, 11602);
+<a name="line34"></a>        }
+<a name="line35"></a>    }
+<a name="line36"></a>
+<a name="line37"></a>    /**
+<a name="line38"></a>     * 读取编译编译
+<a name="line39"></a>     * @param string  $cacheFile 缓存的文件名
+<a name="line40"></a>     * @param array   $vars 变量数组
+<a name="line41"></a>     * @return void
+<a name="line42"></a>     */
+<a name="line43"></a>    public function read($cacheFile, $vars = [])
+<a name="line44"></a>    {
+<a name="line45"></a>        if (!empty($vars) && is_array($vars)) {
+<a name="line46"></a>            // 模板阵列变量分解成为独立变量
+<a name="line47"></a>            extract($vars, EXTR_OVERWRITE);
+<a name="line48"></a>        }
+<a name="line49"></a>        //载入模版缓存文件
+<a name="line50"></a>        include $cacheFile;
+<a name="line51"></a>    }
+<a name="line52"></a>
+<a name="line53"></a>    /**
+<a name="line54"></a>     * 检查编译缓存是否有效
+<a name="line55"></a>     * @param string  $cacheFile 缓存的文件名
+<a name="line56"></a>     * @param int     $cacheTime 缓存时间
+<a name="line57"></a>     * @return boolean
+<a name="line58"></a>     */
+<a name="line59"></a>    public function check($cacheFile, $cacheTime)
+<a name="line60"></a>    {
+<a name="line61"></a>        // 缓存文件不存在, 直接返回false
+<a name="line62"></a>        if (!file_exists($cacheFile)) {
+<a name="line63"></a>            return false;
+<a name="line64"></a>        }
+<a name="line65"></a>        if (0 != $cacheTime && $_SERVER['REQUEST_TIME'] > filemtime($cacheFile) + $cacheTime) {
+<a name="line66"></a>            // 缓存是否在有效期
+<a name="line67"></a>            return false;
+<a name="line68"></a>        }
+<a name="line69"></a>        return true;
+<a name="line70"></a>    }
+<a name="line71"></a>}
+<a name="line72"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\template\driver\file.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

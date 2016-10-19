@@ -1,0 +1,207 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../../stylesheet.css">
+<link rel="start" href="../../overview-summary.html">
+
+<title>Redirect (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../../overview-summary.html">Overview</a></li>
+<li><a href="../../think/response/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../../think/response/package-tree.html">Tree</a></li>
+<li><a href="../../overview-files.html">Files</a></li>
+<li><a href="../../deprecated-list.html">Deprecated</a></li>
+<li><a href="../../todo-list.html">Todo</a></li>
+<li><a href="../../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../../index.html" target="_top">Frames</a>
+<a href="../../think\response\redirect.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\response\Redirect</div>
+<a href="../../source/library/think/response/redirect.php.html#line19" class="location">library\think\response\Redirect.php at line 19</a>
+
+<h1>Class Redirect</h1>
+
+<pre class="tree"><a href="../../think/response.html">Response</a><br>    └─<strong>Redirect</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>Redirect</strong><br>extends <a href="../../think/response.html">Response</a>
+
+</p>
+
+<hr>
+
+<table id="summary_constructor">
+<tr><th colspan="2">Constructor Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#__construct()">__construct</a>(str data, int code, array header, array options)</p><p class="description">架构函数</p></td>
+</tr>
+</table>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type">protected  mixed</td>
+<td class="description"><p class="name"><a href="#output()">output</a>(mixed data)</p><p class="description">处理数据</p></td>
+</tr>
+<tr>
+<td class="type"> $this</td>
+<td class="description"><p class="name"><a href="#with()">with</a>(string|array name, mixed value)</p><p class="description">重定向传值（通过Session）</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getTargetUrl()">getTargetUrl</a>()</p><p class="description">获取跳转地址</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#params()">params</a>(mixed params)</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#remember()">remember</a>()</p><p class="description">记住当前url后跳转</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#restore()">restore</a>()</p><p class="description">跳转到上次记住的url</p></td>
+</tr>
+</table>
+
+<table class="inherit">
+<tr><th colspan="2">Methods inherited from think\Response</th></tr>
+<tr><td><a href="../../think/response.html#__construct()">__construct</a>, <a href="../../think/response.html#cacheControl()">cacheControl</a>, <a href="../../think/response.html#code()">code</a>, <a href="../../think/response.html#content()">content</a>, <a href="../../think/response.html#contentType()">contentType</a>, <a href="../../think/response.html#create()">create</a>, <a href="../../think/response.html#data()">data</a>, <a href="../../think/response.html#eTag()">eTag</a>, <a href="../../think/response.html#expires()">expires</a>, <a href="../../think/response.html#getCode()">getCode</a>, <a href="../../think/response.html#getContent()">getContent</a>, <a href="../../think/response.html#getData()">getData</a>, <a href="../../think/response.html#getHeader()">getHeader</a>, <a href="../../think/response.html#header()">header</a>, <a href="../../think/response.html#lastModified()">lastModified</a>, <a href="../../think/response.html#options()">options</a>, <a href="../../think/response.html#output()">output</a>, <a href="../../think/response.html#send()">send</a></td></tr></table>
+
+<h2 id="detail_method">Constructor Detail</h2>
+<a href="../../source/library/think/response/redirect.php.html#line27" class="location">library\think\response\Redirect.php at line 27</a>
+
+<h3 id="__construct()">__construct</h3>
+<code class="signature">public  void <strong>__construct</strong>(str data, int code, array header, array options)</code>
+<div class="details">
+<p>架构函数</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 输出数据</dd>
+<dd></dd>
+<dd></dd>
+<dd>options - 输出参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../../source/library/think/response/redirect.php.html#line39" class="location">library\think\response\Redirect.php at line 39</a>
+
+<h3 id="output()">output</h3>
+<code class="signature">protected  mixed <strong>output</strong>(mixed data)</code>
+<div class="details">
+<p>处理数据</p><dl>
+<dt>Parameters:</dt>
+<dd>data - 要处理的数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/response/redirect.php.html#line52" class="location">library\think\response\Redirect.php at line 52</a>
+
+<h3 id="with()">with</h3>
+<code class="signature">public  $this <strong>with</strong>(string|array name, mixed value)</code>
+<div class="details">
+<p>重定向传值（通过Session）</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 变量名或者数组</dd>
+<dd>value - 值</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../../source/library/think/response/redirect.php.html#line68" class="location">library\think\response\Redirect.php at line 68</a>
+
+<h3 id="getTargetUrl()">getTargetUrl</h3>
+<code class="signature">public  string <strong>getTargetUrl</strong>()</code>
+<div class="details">
+<p>获取跳转地址</p></div>
+
+<hr>
+
+<a href="../../source/library/think/response/redirect.php.html#line73" class="location">library\think\response\Redirect.php at line 73</a>
+
+<h3 id="params()">params</h3>
+<code class="signature">public  void <strong>params</strong>(mixed params)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../../source/library/think/response/redirect.php.html#line82" class="location">library\think\response\Redirect.php at line 82</a>
+
+<h3 id="remember()">remember</h3>
+<code class="signature">public  void <strong>remember</strong>()</code>
+<div class="details">
+<p>记住当前url后跳转</p></div>
+
+<hr>
+
+<a href="../../source/library/think/response/redirect.php.html#line90" class="location">library\think\response\Redirect.php at line 90</a>
+
+<h3 id="restore()">restore</h3>
+<code class="signature">public  void <strong>restore</strong>()</code>
+<div class="details">
+<p>跳转到上次记住的url</p></div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../../overview-summary.html">Overview</a></li>
+<li><a href="../../think/response/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../../think/response/package-tree.html">Tree</a></li>
+<li><a href="../../overview-files.html">Files</a></li>
+<li><a href="../../deprecated-list.html">Deprecated</a></li>
+<li><a href="../../todo-list.html">Todo</a></li>
+<li><a href="../../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../../index.html" target="_top">Frames</a>
+<a href="../../think\response\redirect.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

@@ -1,0 +1,207 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:04 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>Cookie (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\cookie.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\Cookie</div>
+<a href="../source/library/think/cookie.php.html#line14" class="location">library\think\Cookie.php at line 14</a>
+
+<h1>Class Cookie</h1>
+
+<pre class="tree"><strong>Cookie</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>Cookie</strong></p>
+
+<hr>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#init()">init</a>(array config)</p><p class="description">Cookie初始化</p></td>
+</tr>
+<tr>
+<td class="type">static  string|void</td>
+<td class="description"><p class="name"><a href="#prefix()">prefix</a>(string prefix)</p><p class="description">设置或者获取cookie作用域（前缀）</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#set()">set</a>(string name, mixed value, mixed option)</p><p class="description">Cookie 设置、获取、删除</p></td>
+</tr>
+<tr>
+<td class="type">static  bool</td>
+<td class="description"><p class="name"><a href="#has()">has</a>(string name, string|null prefix)</p><p class="description">判断Cookie数据</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#get()">get</a>(string name, string|null prefix)</p><p class="description">Cookie获取</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#delete()">delete</a>(string name, string|null prefix)</p><p class="description">Cookie删除</p></td>
+</tr>
+<tr>
+<td class="type">static  mixed</td>
+<td class="description"><p class="name"><a href="#clear()">clear</a>(string|null prefix)</p><p class="description">Cookie清空</p></td>
+</tr>
+</table>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../source/library/think/cookie.php.html#line25" class="location">library\think\Cookie.php at line 25</a>
+
+<h3 id="init()">init</h3>
+<code class="signature">public static  void <strong>init</strong>(array config)</code>
+<div class="details">
+<p>Cookie初始化</p></div>
+
+<hr>
+
+<a href="../source/library/think/cookie.php.html#line42" class="location">library\think\Cookie.php at line 42</a>
+
+<h3 id="prefix()">prefix</h3>
+<code class="signature">public static  string|void <strong>prefix</strong>(string prefix)</code>
+<div class="details">
+<p>设置或者获取cookie作用域（前缀）</p></div>
+
+<hr>
+
+<a href="../source/library/think/cookie.php.html#line60" class="location">library\think\Cookie.php at line 60</a>
+
+<h3 id="set()">set</h3>
+<code class="signature">public static  mixed <strong>set</strong>(string name, mixed value, mixed option)</code>
+<div class="details">
+<p>Cookie 设置、获取、删除</p><dl>
+<dt>Parameters:</dt>
+<dd>name - cookie名称</dd>
+<dd>value - cookie值</dd>
+<dd>option - 可选参数 可能会是 null|integer|string</dd>
+<dt>Internal:</dt>
+<dd>param mixed $options cookie参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/cookie.php.html#line93" class="location">library\think\Cookie.php at line 93</a>
+
+<h3 id="has()">has</h3>
+<code class="signature">public static  bool <strong>has</strong>(string name, string|null prefix)</code>
+<div class="details">
+<p>判断Cookie数据</p><dl>
+<dt>Parameters:</dt>
+<dd>name - cookie名称</dd>
+<dd>prefix - cookie前缀</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/cookie.php.html#line107" class="location">library\think\Cookie.php at line 107</a>
+
+<h3 id="get()">get</h3>
+<code class="signature">public static  mixed <strong>get</strong>(string name, string|null prefix)</code>
+<div class="details">
+<p>Cookie获取</p><dl>
+<dt>Parameters:</dt>
+<dd>name - cookie名称</dd>
+<dd>prefix - cookie前缀</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/cookie.php.html#line131" class="location">library\think\Cookie.php at line 131</a>
+
+<h3 id="delete()">delete</h3>
+<code class="signature">public static  mixed <strong>delete</strong>(string name, string|null prefix)</code>
+<div class="details">
+<p>Cookie删除</p><dl>
+<dt>Parameters:</dt>
+<dd>name - cookie名称</dd>
+<dd>prefix - cookie前缀</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/cookie.php.html#line149" class="location">library\think\Cookie.php at line 149</a>
+
+<h3 id="clear()">clear</h3>
+<code class="signature">public static  mixed <strong>clear</strong>(string|null prefix)</code>
+<div class="details">
+<p>Cookie清空</p><dl>
+<dt>Parameters:</dt>
+<dd>prefix - cookie前缀</dd>
+</dl>
+</div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\cookie.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

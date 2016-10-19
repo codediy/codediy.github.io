@@ -1,0 +1,1530 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\Model.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\model.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\Model.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think;
+<a name="line13"></a>
+<a name="line14"></a>use InvalidArgumentException;
+<a name="line15"></a>use think\Cache;
+<a name="line16"></a>use think\Config;
+<a name="line17"></a>use think\Db;
+<a name="line18"></a>use think\db\Query;
+<a name="line19"></a>use think\Exception;
+<a name="line20"></a>use think\Exception\ValidateException;
+<a name="line21"></a>use think\Loader;
+<a name="line22"></a>use think\model\Relation;
+<a name="line23"></a>use think\paginator\Collection as PaginatorCollection;
+<a name="line24"></a>
+<a name="line25"></a>/**
+<a name="line26"></a> * Class Model
+<a name="line27"></a> * @package think
+<a name="line28"></a> * @method static PaginatorCollection paginate(integer $listRows = 15, boolean $simple = false, array $config = []) 分页查询
+<a name="line29"></a> * @method static mixed value($field, $default = null) 得到某个字段的值
+<a name="line30"></a> * @method static array column($field, $key = '') 得到某个列的数组
+<a name="line31"></a> * @method static integer count($field = '*') COUNT查询
+<a name="line32"></a> * @method static integer sum($field = '*') SUM查询
+<a name="line33"></a> * @method static integer min($field = '*') MIN查询
+<a name="line34"></a> * @method static integer max($field = '*') MAX查询
+<a name="line35"></a> * @method static integer avg($field = '*') AVG查询
+<a name="line36"></a> * @method static setField($field, $value = '')
+<a name="line37"></a> * @method static Query where($field, $op = null, $condition = null) 指定AND查询条件
+<a name="line38"></a> * @method static static findOrFail($data = null) 查找单条记录 如果不存在则抛出异常
+<a name="line39"></a> *
+<a name="line40"></a> */
+<a name="line41"></a>abstract class Model implements \JsonSerializable, \ArrayAccess
+<a name="line42"></a>{
+<a name="line43"></a>    // 数据库对象池
+<a name="line44"></a>    protected static $links = [];
+<a name="line45"></a>    // 数据库配置
+<a name="line46"></a>    protected $connection = [];
+<a name="line47"></a>    // 数据库查询对象
+<a name="line48"></a>    protected $query;
+<a name="line49"></a>    // 当前模型名称
+<a name="line50"></a>    protected $name;
+<a name="line51"></a>    // 数据表名称
+<a name="line52"></a>    protected $table;
+<a name="line53"></a>    // 当前类名称
+<a name="line54"></a>    protected $class;
+<a name="line55"></a>    // 回调事件
+<a name="line56"></a>    private static $event = [];
+<a name="line57"></a>    // 错误信息
+<a name="line58"></a>    protected $error;
+<a name="line59"></a>    // 字段验证规则
+<a name="line60"></a>    protected $validate;
+<a name="line61"></a>    // 数据表主键 复合主键使用数组定义 不设置则自动获取
+<a name="line62"></a>    protected $pk;
+<a name="line63"></a>    // 数据表字段信息 留空则自动获取
+<a name="line64"></a>    protected $field = [];
+<a name="line65"></a>    // 只读字段
+<a name="line66"></a>    protected $readonly = [];
+<a name="line67"></a>    // 显示属性
+<a name="line68"></a>    protected $visible = [];
+<a name="line69"></a>    // 隐藏属性
+<a name="line70"></a>    protected $hidden = [];
+<a name="line71"></a>    // 追加属性
+<a name="line72"></a>    protected $append = [];
+<a name="line73"></a>    // 数据信息
+<a name="line74"></a>    protected $data = [];
+<a name="line75"></a>    // 记录改变字段
+<a name="line76"></a>    protected $change = [];
+<a name="line77"></a>
+<a name="line78"></a>    // 保存自动完成列表
+<a name="line79"></a>    protected $auto = [];
+<a name="line80"></a>    // 新增自动完成列表
+<a name="line81"></a>    protected $insert = [];
+<a name="line82"></a>    // 更新自动完成列表
+<a name="line83"></a>    protected $update = [];
+<a name="line84"></a>    // 是否需要自动写入时间戳 如果设置为字符串 则表示时间字段的类型
+<a name="line85"></a>    protected $autoWriteTimestamp;
+<a name="line86"></a>    // 创建时间字段
+<a name="line87"></a>    protected $createTime = 'create_time';
+<a name="line88"></a>    // 更新时间字段
+<a name="line89"></a>    protected $updateTime = 'update_time';
+<a name="line90"></a>    // 时间字段取出后的默认时间格式
+<a name="line91"></a>    protected $dateFormat = 'Y-m-d H:i:s';
+<a name="line92"></a>    // 字段类型或者格式转换
+<a name="line93"></a>    protected $type = [];
+<a name="line94"></a>    // 是否为更新数据
+<a name="line95"></a>    protected $isUpdate = false;
+<a name="line96"></a>    // 更新条件
+<a name="line97"></a>    protected $updateWhere;
+<a name="line98"></a>    // 当前执行的关联对象
+<a name="line99"></a>    protected $relation;
+<a name="line100"></a>    // 验证失败是否抛出异常
+<a name="line101"></a>    protected $failException = false;
+<a name="line102"></a>    // 全局查询范围
+<a name="line103"></a>    protected $useGlobalScope = true;
+<a name="line104"></a>
+<a name="line105"></a>    /**
+<a name="line106"></a>     * 初始化过的模型.
+<a name="line107"></a>     *
+<a name="line108"></a>     * @var array
+<a name="line109"></a>     */
+<a name="line110"></a>    protected static $initialized = [];
+<a name="line111"></a>
+<a name="line112"></a>    /**
+<a name="line113"></a>     * 架构函数
+<a name="line114"></a>     * @access public
+<a name="line115"></a>     * @param array|object $data 数据
+<a name="line116"></a>     */
+<a name="line117"></a>    public function __construct($data = [])
+<a name="line118"></a>    {
+<a name="line119"></a>        if (is_object($data)) {
+<a name="line120"></a>            $this->data = get_object_vars($data);
+<a name="line121"></a>        } else {
+<a name="line122"></a>            $this->data = $data;
+<a name="line123"></a>        }
+<a name="line124"></a>
+<a name="line125"></a>        // 当前类名
+<a name="line126"></a>        $this->class = get_class($this);
+<a name="line127"></a>
+<a name="line128"></a>        if (empty($this->name)) {
+<a name="line129"></a>            // 当前模型名
+<a name="line130"></a>            $name       = str_replace('\\', '/', $this->class);
+<a name="line131"></a>            $this->name = basename($name);
+<a name="line132"></a>            if (Config::get('class_suffix')) {
+<a name="line133"></a>                $suffix     = basename(dirname($name));
+<a name="line134"></a>                $this->name = substr($this->name, 0, -strlen($suffix));
+<a name="line135"></a>            }
+<a name="line136"></a>        }
+<a name="line137"></a>
+<a name="line138"></a>        if (is_null($this->autoWriteTimestamp)) {
+<a name="line139"></a>            // 自动写入时间戳
+<a name="line140"></a>            $this->autoWriteTimestamp = $this->db()->getConfig('auto_timestamp');
+<a name="line141"></a>        }
+<a name="line142"></a>
+<a name="line143"></a>        // 执行初始化操作
+<a name="line144"></a>        $this->initialize();
+<a name="line145"></a>    }
+<a name="line146"></a>
+<a name="line147"></a>    /**
+<a name="line148"></a>     * 获取当前模型的数据库查询对象
+<a name="line149"></a>     * @access public
+<a name="line150"></a>     * @param bool $baseQuery 是否调用全局查询范围
+<a name="line151"></a>     * @return Query
+<a name="line152"></a>     */
+<a name="line153"></a>    public function db($baseQuery = true)
+<a name="line154"></a>    {
+<a name="line155"></a>        $model = $this->class;
+<a name="line156"></a>        if (!isset(self::$links[$model])) {
+<a name="line157"></a>            // 设置当前模型 确保查询返回模型对象
+<a name="line158"></a>            $query = Db::connect($this->connection)->model($model, $this->query);
+<a name="line159"></a>
+<a name="line160"></a>            // 设置当前数据表和模型名
+<a name="line161"></a>            if (!empty($this->table)) {
+<a name="line162"></a>                $query->setTable($this->table);
+<a name="line163"></a>            } else {
+<a name="line164"></a>                $query->name($this->name);
+<a name="line165"></a>            }
+<a name="line166"></a>
+<a name="line167"></a>            if (!empty($this->pk)) {
+<a name="line168"></a>                $query->pk($this->pk);
+<a name="line169"></a>            }
+<a name="line170"></a>
+<a name="line171"></a>            self::$links[$model] = $query;
+<a name="line172"></a>        }
+<a name="line173"></a>        // 全局作用域
+<a name="line174"></a>        if ($baseQuery && method_exists($this, 'base')) {
+<a name="line175"></a>            call_user_func_array([$this, 'base'], [ & self::$links[$model]]);
+<a name="line176"></a>        }
+<a name="line177"></a>        // 返回当前模型的数据库查询对象
+<a name="line178"></a>        return self::$links[$model];
+<a name="line179"></a>    }
+<a name="line180"></a>
+<a name="line181"></a>    /**
+<a name="line182"></a>     *  获取关联模型实例
+<a name="line183"></a>     * @access protected
+<a name="line184"></a>     * @param string|array $relation 关联查询
+<a name="line185"></a>     * @return Relation|Query
+<a name="line186"></a>     */
+<a name="line187"></a>    protected function relation($relation = null)
+<a name="line188"></a>    {
+<a name="line189"></a>        if (!is_null($relation)) {
+<a name="line190"></a>            // 执行关联查询
+<a name="line191"></a>            return $this->db()->relation($relation);
+<a name="line192"></a>        }
+<a name="line193"></a>
+<a name="line194"></a>        // 获取关联对象实例
+<a name="line195"></a>        if (is_null($this->relation)) {
+<a name="line196"></a>            $this->relation = new Relation($this);
+<a name="line197"></a>        }
+<a name="line198"></a>        return $this->relation;
+<a name="line199"></a>    }
+<a name="line200"></a>
+<a name="line201"></a>    /**
+<a name="line202"></a>     *  初始化模型
+<a name="line203"></a>     * @access protected
+<a name="line204"></a>     * @return void
+<a name="line205"></a>     */
+<a name="line206"></a>    protected function initialize()
+<a name="line207"></a>    {
+<a name="line208"></a>        $class = get_class($this);
+<a name="line209"></a>        if (!isset(static::$initialized[$class])) {
+<a name="line210"></a>            static::$initialized[$class] = true;
+<a name="line211"></a>            static::init();
+<a name="line212"></a>        }
+<a name="line213"></a>    }
+<a name="line214"></a>
+<a name="line215"></a>    /**
+<a name="line216"></a>     * 初始化处理
+<a name="line217"></a>     * @access protected
+<a name="line218"></a>     * @return void
+<a name="line219"></a>     */
+<a name="line220"></a>    protected static function init()
+<a name="line221"></a>    {}
+<a name="line222"></a>
+<a name="line223"></a>    /**
+<a name="line224"></a>     * 设置数据对象值
+<a name="line225"></a>     * @access public
+<a name="line226"></a>     * @param mixed $data 数据或者属性名
+<a name="line227"></a>     * @param mixed $value 值
+<a name="line228"></a>     * @return $this
+<a name="line229"></a>     */
+<a name="line230"></a>    public function data($data, $value = null)
+<a name="line231"></a>    {
+<a name="line232"></a>        if (is_string($data)) {
+<a name="line233"></a>            $this->data[$data] = $value;
+<a name="line234"></a>        } else {
+<a name="line235"></a>            // 清空数据
+<a name="line236"></a>            $this->data = [];
+<a name="line237"></a>            if (is_object($data)) {
+<a name="line238"></a>                $data = get_object_vars($data);
+<a name="line239"></a>            }
+<a name="line240"></a>            if (true === $value) {
+<a name="line241"></a>                // 数据对象赋值
+<a name="line242"></a>                foreach ($data as $key => $value) {
+<a name="line243"></a>                    $this->setAttr($key, $value, $data);
+<a name="line244"></a>                }
+<a name="line245"></a>            } else {
+<a name="line246"></a>                $this->data = $data;
+<a name="line247"></a>            }
+<a name="line248"></a>        }
+<a name="line249"></a>        return $this;
+<a name="line250"></a>    }
+<a name="line251"></a>
+<a name="line252"></a>    /**
+<a name="line253"></a>     * 获取对象原始数据 如果不存在指定字段返回false
+<a name="line254"></a>     * @access public
+<a name="line255"></a>     * @param string $name 字段名 留空获取全部
+<a name="line256"></a>     * @return mixed
+<a name="line257"></a>     * @throws InvalidArgumentException
+<a name="line258"></a>     */
+<a name="line259"></a>    public function getData($name = null)
+<a name="line260"></a>    {
+<a name="line261"></a>        if (is_null($name)) {
+<a name="line262"></a>            return $this->data;
+<a name="line263"></a>        } elseif (array_key_exists($name, $this->data)) {
+<a name="line264"></a>            return $this->data[$name];
+<a name="line265"></a>        } else {
+<a name="line266"></a>            throw new InvalidArgumentException('property not exists:' . $this->class . '->' . $name);
+<a name="line267"></a>        }
+<a name="line268"></a>    }
+<a name="line269"></a>
+<a name="line270"></a>    /**
+<a name="line271"></a>     * 修改器 设置数据对象值
+<a name="line272"></a>     * @access public
+<a name="line273"></a>     * @param string    $name 属性名
+<a name="line274"></a>     * @param mixed     $value 属性值
+<a name="line275"></a>     * @param array     $data 数据
+<a name="line276"></a>     * @return $this
+<a name="line277"></a>     */
+<a name="line278"></a>    public function setAttr($name, $value, $data = [])
+<a name="line279"></a>    {
+<a name="line280"></a>        if (is_null($value) && $this->autoWriteTimestamp && in_array($name, [$this->createTime, $this->updateTime])) {
+<a name="line281"></a>            // 自动写入的时间戳字段
+<a name="line282"></a>            $value = $this->autoWriteTimestamp($name);
+<a name="line283"></a>        } else {
+<a name="line284"></a>            // 检测修改器
+<a name="line285"></a>            $method = 'set' . Loader::parseName($name, 1) . 'Attr';
+<a name="line286"></a>            if (method_exists($this, $method)) {
+<a name="line287"></a>                $value = $this->$method($value, array_merge($data, $this->data));
+<a name="line288"></a>            } elseif (isset($this->type[$name])) {
+<a name="line289"></a>                // 类型转换
+<a name="line290"></a>                $value = $this->writeTransform($value, $this->type[$name]);
+<a name="line291"></a>            }
+<a name="line292"></a>        }
+<a name="line293"></a>
+<a name="line294"></a>        // 标记字段更改
+<a name="line295"></a>        if (!isset($this->data[$name]) || ($this->data[$name] != $value && !in_array($name, $this->change))) {
+<a name="line296"></a>            $this->change[] = $name;
+<a name="line297"></a>        }
+<a name="line298"></a>        // 设置数据对象属性
+<a name="line299"></a>        $this->data[$name] = $value;
+<a name="line300"></a>        return $this;
+<a name="line301"></a>    }
+<a name="line302"></a>
+<a name="line303"></a>    /**
+<a name="line304"></a>     * 自动写入时间戳
+<a name="line305"></a>     * @access public
+<a name="line306"></a>     * @param string         $name 时间戳字段
+<a name="line307"></a>     * @return mixed
+<a name="line308"></a>     */
+<a name="line309"></a>    protected function autoWriteTimestamp($name)
+<a name="line310"></a>    {
+<a name="line311"></a>        if (isset($this->type[$name])) {
+<a name="line312"></a>            $type = $this->type[$name];
+<a name="line313"></a>            if (strpos($type, ':')) {
+<a name="line314"></a>                list($type, $param) = explode(':', $type, 2);
+<a name="line315"></a>            }
+<a name="line316"></a>            switch ($type) {
+<a name="line317"></a>                case 'datetime':
+<a name="line318"></a>                case 'date':
+<a name="line319"></a>                    $format = !empty($param) ? $param : $this->dateFormat;
+<a name="line320"></a>                    $value  = date($format, $_SERVER['REQUEST_TIME']);
+<a name="line321"></a>                    break;
+<a name="line322"></a>                case 'timestamp':
+<a name="line323"></a>                case 'int':
+<a name="line324"></a>                    $value = $_SERVER['REQUEST_TIME'];
+<a name="line325"></a>                    break;
+<a name="line326"></a>            }
+<a name="line327"></a>        } elseif (is_string($this->autoWriteTimestamp) && in_array(strtolower($this->autoWriteTimestamp), ['datetime', 'date', 'timestamp'])) {
+<a name="line328"></a>            $value = date($this->dateFormat, $_SERVER['REQUEST_TIME']);
+<a name="line329"></a>        } else {
+<a name="line330"></a>            $value = $_SERVER['REQUEST_TIME'];
+<a name="line331"></a>        }
+<a name="line332"></a>        return $value;
+<a name="line333"></a>    }
+<a name="line334"></a>
+<a name="line335"></a>    /**
+<a name="line336"></a>     * 数据写入 类型转换
+<a name="line337"></a>     * @access public
+<a name="line338"></a>     * @param mixed         $value 值
+<a name="line339"></a>     * @param string|array  $type 要转换的类型
+<a name="line340"></a>     * @return mixed
+<a name="line341"></a>     */
+<a name="line342"></a>    protected function writeTransform($value, $type)
+<a name="line343"></a>    {
+<a name="line344"></a>        if (is_array($type)) {
+<a name="line345"></a>            list($type, $param) = $type;
+<a name="line346"></a>        } elseif (strpos($type, ':')) {
+<a name="line347"></a>            list($type, $param) = explode(':', $type, 2);
+<a name="line348"></a>        }
+<a name="line349"></a>        switch ($type) {
+<a name="line350"></a>            case 'integer':
+<a name="line351"></a>                $value = (int) $value;
+<a name="line352"></a>                break;
+<a name="line353"></a>            case 'float':
+<a name="line354"></a>                if (empty($param)) {
+<a name="line355"></a>                    $value = (float) $value;
+<a name="line356"></a>                } else {
+<a name="line357"></a>                    $value = (float) number_format($value, $param);
+<a name="line358"></a>                }
+<a name="line359"></a>                break;
+<a name="line360"></a>            case 'boolean':
+<a name="line361"></a>                $value = (bool) $value;
+<a name="line362"></a>                break;
+<a name="line363"></a>            case 'timestamp':
+<a name="line364"></a>                if (!is_numeric($value)) {
+<a name="line365"></a>                    $value = strtotime($value);
+<a name="line366"></a>                }
+<a name="line367"></a>                break;
+<a name="line368"></a>            case 'datetime':
+<a name="line369"></a>                $format = !empty($param) ? $param : $this->dateFormat;
+<a name="line370"></a>                $value  = date($format, is_numeric($value) ? $value : strtotime($value));
+<a name="line371"></a>                break;
+<a name="line372"></a>            case 'object':
+<a name="line373"></a>                if (is_object($value)) {
+<a name="line374"></a>                    $value = json_encode($value, JSON_FORCE_OBJECT);
+<a name="line375"></a>                }
+<a name="line376"></a>                break;
+<a name="line377"></a>            case 'array':
+<a name="line378"></a>                $value = (array) $value;
+<a name="line379"></a>            case 'json':
+<a name="line380"></a>                $option = !empty($param) ? (int) $param : JSON_UNESCAPED_UNICODE;
+<a name="line381"></a>                $value  = json_encode($value, $option);
+<a name="line382"></a>                break;
+<a name="line383"></a>            case 'serialize':
+<a name="line384"></a>                $value = serialize($value);
+<a name="line385"></a>                break;
+<a name="line386"></a>        }
+<a name="line387"></a>        return $value;
+<a name="line388"></a>    }
+<a name="line389"></a>
+<a name="line390"></a>    /**
+<a name="line391"></a>     * 获取器 获取数据对象的值
+<a name="line392"></a>     * @access public
+<a name="line393"></a>     * @param string $name 名称
+<a name="line394"></a>     * @return mixed
+<a name="line395"></a>     * @throws InvalidArgumentException
+<a name="line396"></a>     */
+<a name="line397"></a>    public function getAttr($name)
+<a name="line398"></a>    {
+<a name="line399"></a>        try {
+<a name="line400"></a>            $notFound = false;
+<a name="line401"></a>            $value    = $this->getData($name);
+<a name="line402"></a>        } catch (InvalidArgumentException $e) {
+<a name="line403"></a>            $notFound = true;
+<a name="line404"></a>            $value    = null;
+<a name="line405"></a>        }
+<a name="line406"></a>
+<a name="line407"></a>        // 检测属性获取器
+<a name="line408"></a>        $method = 'get' . Loader::parseName($name, 1) . 'Attr';
+<a name="line409"></a>        if (method_exists($this, $method)) {
+<a name="line410"></a>            $value = $this->$method($value, $this->data);
+<a name="line411"></a>        } elseif (isset($this->type[$name])) {
+<a name="line412"></a>            // 类型转换
+<a name="line413"></a>            $value = $this->readTransform($value, $this->type[$name]);
+<a name="line414"></a>        } elseif ($notFound) {
+<a name="line415"></a>            $method = Loader::parseName($name, 1);
+<a name="line416"></a>            if (method_exists($this, $method) && !method_exists('\think\Model', $method)) {
+<a name="line417"></a>                // 不存在该字段 获取关联数据
+<a name="line418"></a>                $value = $this->relation()->getRelation($method);
+<a name="line419"></a>                // 保存关联对象值
+<a name="line420"></a>                $this->data[$name] = $value;
+<a name="line421"></a>            } else {
+<a name="line422"></a>                throw new InvalidArgumentException('property not exists:' . $this->class . '->' . $name);
+<a name="line423"></a>            }
+<a name="line424"></a>        }
+<a name="line425"></a>        return $value;
+<a name="line426"></a>    }
+<a name="line427"></a>
+<a name="line428"></a>    /**
+<a name="line429"></a>     * 数据读取 类型转换
+<a name="line430"></a>     * @access public
+<a name="line431"></a>     * @param mixed         $value 值
+<a name="line432"></a>     * @param string|array  $type 要转换的类型
+<a name="line433"></a>     * @return mixed
+<a name="line434"></a>     */
+<a name="line435"></a>    protected function readTransform($value, $type)
+<a name="line436"></a>    {
+<a name="line437"></a>        if (is_array($type)) {
+<a name="line438"></a>            list($type, $param) = $type;
+<a name="line439"></a>        } elseif (strpos($type, ':')) {
+<a name="line440"></a>            list($type, $param) = explode(':', $type, 2);
+<a name="line441"></a>        }
+<a name="line442"></a>        switch ($type) {
+<a name="line443"></a>            case 'integer':
+<a name="line444"></a>                $value = (int) $value;
+<a name="line445"></a>                break;
+<a name="line446"></a>            case 'float':
+<a name="line447"></a>                if (empty($param)) {
+<a name="line448"></a>                    $value = (float) $value;
+<a name="line449"></a>                } else {
+<a name="line450"></a>                    $value = (float) number_format($value, $param);
+<a name="line451"></a>                }
+<a name="line452"></a>                break;
+<a name="line453"></a>            case 'boolean':
+<a name="line454"></a>                $value = (bool) $value;
+<a name="line455"></a>                break;
+<a name="line456"></a>            case 'timestamp':
+<a name="line457"></a>                if (!is_null($value)) {
+<a name="line458"></a>                    $format = !empty($param) ? $param : $this->dateFormat;
+<a name="line459"></a>                    $value  = date($format, $value);
+<a name="line460"></a>                }
+<a name="line461"></a>                break;
+<a name="line462"></a>            case 'datetime':
+<a name="line463"></a>                if (!is_null($value)) {
+<a name="line464"></a>                    $format = !empty($param) ? $param : $this->dateFormat;
+<a name="line465"></a>                    $value  = date($format, strtotime($value));
+<a name="line466"></a>                }
+<a name="line467"></a>                break;
+<a name="line468"></a>            case 'json':
+<a name="line469"></a>                $value = json_decode($value, true);
+<a name="line470"></a>                break;
+<a name="line471"></a>            case 'array':
+<a name="line472"></a>                $value = is_null($value) ? [] : json_decode($value, true);
+<a name="line473"></a>                break;
+<a name="line474"></a>            case 'object':
+<a name="line475"></a>                $value = empty($value) ? new \stdClass() : json_decode($value);
+<a name="line476"></a>                break;
+<a name="line477"></a>            case 'serialize':
+<a name="line478"></a>                $value = unserialize($value);
+<a name="line479"></a>                break;
+<a name="line480"></a>        }
+<a name="line481"></a>        return $value;
+<a name="line482"></a>    }
+<a name="line483"></a>
+<a name="line484"></a>    /**
+<a name="line485"></a>     * 设置需要追加的输出属性
+<a name="line486"></a>     * @access public
+<a name="line487"></a>     * @param array $append 属性列表
+<a name="line488"></a>     * @return $this
+<a name="line489"></a>     */
+<a name="line490"></a>    public function append($append = [])
+<a name="line491"></a>    {
+<a name="line492"></a>        $this->append = $append;
+<a name="line493"></a>        return $this;
+<a name="line494"></a>    }
+<a name="line495"></a>
+<a name="line496"></a>    /**
+<a name="line497"></a>     * 设置需要隐藏的输出属性
+<a name="line498"></a>     * @access public
+<a name="line499"></a>     * @param array $hidden 属性列表
+<a name="line500"></a>     * @return $this
+<a name="line501"></a>     */
+<a name="line502"></a>    public function hidden($hidden = [])
+<a name="line503"></a>    {
+<a name="line504"></a>        $this->hidden = $hidden;
+<a name="line505"></a>        return $this;
+<a name="line506"></a>    }
+<a name="line507"></a>
+<a name="line508"></a>    /**
+<a name="line509"></a>     * 设置需要输出的属性
+<a name="line510"></a>     * @param array $visible
+<a name="line511"></a>     * @return $this
+<a name="line512"></a>     */
+<a name="line513"></a>    public function visible($visible = [])
+<a name="line514"></a>    {
+<a name="line515"></a>        $this->visible = $visible;
+<a name="line516"></a>        return $this;
+<a name="line517"></a>    }
+<a name="line518"></a>
+<a name="line519"></a>    /**
+<a name="line520"></a>     * 转换当前模型对象为数组
+<a name="line521"></a>     * @access public
+<a name="line522"></a>     * @return array
+<a name="line523"></a>     */
+<a name="line524"></a>    public function toArray()
+<a name="line525"></a>    {
+<a name="line526"></a>        $item = [];
+<a name="line527"></a>
+<a name="line528"></a>        //过滤属性
+<a name="line529"></a>        if (!empty($this->visible)) {
+<a name="line530"></a>            $data = array_intersect_key($this->data, array_flip($this->visible));
+<a name="line531"></a>        } elseif (!empty($this->hidden)) {
+<a name="line532"></a>            $data = array_diff_key($this->data, array_flip($this->hidden));
+<a name="line533"></a>        } else {
+<a name="line534"></a>            $data = $this->data;
+<a name="line535"></a>        }
+<a name="line536"></a>
+<a name="line537"></a>        foreach ($data as $key => $val) {
+<a name="line538"></a>            if ($val instanceof Model || $val instanceof Collection) {
+<a name="line539"></a>                // 关联模型对象
+<a name="line540"></a>                $item[$key] = $val->toArray();
+<a name="line541"></a>            } elseif (is_array($val) && reset($val) instanceof Model) {
+<a name="line542"></a>                // 关联模型数据集
+<a name="line543"></a>                $arr = [];
+<a name="line544"></a>                foreach ($val as $k => $value) {
+<a name="line545"></a>                    $arr[$k] = $value->toArray();
+<a name="line546"></a>                }
+<a name="line547"></a>                $item[$key] = $arr;
+<a name="line548"></a>            } else {
+<a name="line549"></a>                // 模型属性
+<a name="line550"></a>                $item[$key] = $this->getAttr($key);
+<a name="line551"></a>            }
+<a name="line552"></a>        }
+<a name="line553"></a>        // 追加属性（必须定义获取器）
+<a name="line554"></a>        if (!empty($this->append)) {
+<a name="line555"></a>            foreach ($this->append as $name) {
+<a name="line556"></a>                $item[$name] = $this->getAttr($name);
+<a name="line557"></a>            }
+<a name="line558"></a>        }
+<a name="line559"></a>        return !empty($item) ? $item : [];
+<a name="line560"></a>    }
+<a name="line561"></a>
+<a name="line562"></a>    /**
+<a name="line563"></a>     * 转换当前模型对象为JSON字符串
+<a name="line564"></a>     * @access public
+<a name="line565"></a>     * @param integer   $options json参数
+<a name="line566"></a>     * @return string
+<a name="line567"></a>     */
+<a name="line568"></a>    public function toJson($options = JSON_UNESCAPED_UNICODE)
+<a name="line569"></a>    {
+<a name="line570"></a>        return json_encode($this->toArray(), $options);
+<a name="line571"></a>    }
+<a name="line572"></a>
+<a name="line573"></a>    /**
+<a name="line574"></a>     * 获取模型对象的主键
+<a name="line575"></a>     * @access public
+<a name="line576"></a>     * @param string $name 模型名
+<a name="line577"></a>     * @return mixed
+<a name="line578"></a>     */
+<a name="line579"></a>    public function getPk($name = '')
+<a name="line580"></a>    {
+<a name="line581"></a>        if (!empty($name)) {
+<a name="line582"></a>            $table = $this->db()->getTable($name);
+<a name="line583"></a>            return $this->db()->getPk($table);
+<a name="line584"></a>        } elseif (empty($this->pk)) {
+<a name="line585"></a>            $this->pk = $this->db()->getPk();
+<a name="line586"></a>        }
+<a name="line587"></a>        return $this->pk;
+<a name="line588"></a>    }
+<a name="line589"></a>
+<a name="line590"></a>    /**
+<a name="line591"></a>     * 判断一个字段名是否为主键字段
+<a name="line592"></a>     * @access public
+<a name="line593"></a>     * @param string $key 名称
+<a name="line594"></a>     * @return bool
+<a name="line595"></a>     */
+<a name="line596"></a>    protected function isPk($key)
+<a name="line597"></a>    {
+<a name="line598"></a>        $pk = $this->getPk();
+<a name="line599"></a>        if (is_string($pk) && $pk == $key) {
+<a name="line600"></a>            return true;
+<a name="line601"></a>        } elseif (is_array($pk) && in_array($key, $pk)) {
+<a name="line602"></a>            return true;
+<a name="line603"></a>        }
+<a name="line604"></a>        return false;
+<a name="line605"></a>    }
+<a name="line606"></a>
+<a name="line607"></a>    /**
+<a name="line608"></a>     * 保存当前数据对象
+<a name="line609"></a>     * @access public
+<a name="line610"></a>     * @param array     $data 数据
+<a name="line611"></a>     * @param array     $where 更新条件
+<a name="line612"></a>     * @param string    $sequence     自增序列名
+<a name="line613"></a>     * @return integer|false
+<a name="line614"></a>     */
+<a name="line615"></a>    public function save($data = [], $where = [], $sequence = null)
+<a name="line616"></a>    {
+<a name="line617"></a>        if (!empty($data)) {
+<a name="line618"></a>            // 数据自动验证
+<a name="line619"></a>            if (!$this->validateData($data)) {
+<a name="line620"></a>                return false;
+<a name="line621"></a>            }
+<a name="line622"></a>            // 数据对象赋值
+<a name="line623"></a>            foreach ($data as $key => $value) {
+<a name="line624"></a>                $this->setAttr($key, $value, $data);
+<a name="line625"></a>            }
+<a name="line626"></a>            if (!empty($where)) {
+<a name="line627"></a>                $this->isUpdate = true;
+<a name="line628"></a>            }
+<a name="line629"></a>        }
+<a name="line630"></a>
+<a name="line631"></a>        // 检测字段
+<a name="line632"></a>        if (!empty($this->field)) {
+<a name="line633"></a>            foreach ($this->data as $key => $val) {
+<a name="line634"></a>                if (!in_array($key, $this->field)) {
+<a name="line635"></a>                    unset($this->data[$key]);
+<a name="line636"></a>                }
+<a name="line637"></a>            }
+<a name="line638"></a>        }
+<a name="line639"></a>
+<a name="line640"></a>        // 数据自动完成
+<a name="line641"></a>        $this->autoCompleteData($this->auto);
+<a name="line642"></a>
+<a name="line643"></a>        // 自动写入更新时间
+<a name="line644"></a>        if ($this->autoWriteTimestamp && $this->updateTime) {
+<a name="line645"></a>            $this->setAttr($this->updateTime, null);
+<a name="line646"></a>        }
+<a name="line647"></a>
+<a name="line648"></a>        // 事件回调
+<a name="line649"></a>        if (false === $this->trigger('before_write', $this)) {
+<a name="line650"></a>            return false;
+<a name="line651"></a>        }
+<a name="line652"></a>
+<a name="line653"></a>        if ($this->isUpdate) {
+<a name="line654"></a>            // 自动更新
+<a name="line655"></a>            $this->autoCompleteData($this->update);
+<a name="line656"></a>
+<a name="line657"></a>            // 事件回调
+<a name="line658"></a>            if (false === $this->trigger('before_update', $this)) {
+<a name="line659"></a>                return false;
+<a name="line660"></a>            }
+<a name="line661"></a>
+<a name="line662"></a>            // 去除没有更新的字段
+<a name="line663"></a>            $data = [];
+<a name="line664"></a>            foreach ($this->data as $key => $val) {
+<a name="line665"></a>                if (in_array($key, $this->change) || $this->isPk($key)) {
+<a name="line666"></a>                    $data[$key] = $val;
+<a name="line667"></a>                }
+<a name="line668"></a>            }
+<a name="line669"></a>
+<a name="line670"></a>            if (!empty($this->readonly)) {
+<a name="line671"></a>                // 只读字段不允许更新
+<a name="line672"></a>                foreach ($this->readonly as $key => $field) {
+<a name="line673"></a>                    if (isset($data[$field])) {
+<a name="line674"></a>                        unset($data[$field]);
+<a name="line675"></a>                    }
+<a name="line676"></a>                }
+<a name="line677"></a>            }
+<a name="line678"></a>
+<a name="line679"></a>            if (empty($where) && !empty($this->updateWhere)) {
+<a name="line680"></a>                $where = $this->updateWhere;
+<a name="line681"></a>            }
+<a name="line682"></a>
+<a name="line683"></a>            $pk = $this->getPk();
+<a name="line684"></a>            if (is_string($pk) && isset($data[$pk])) {
+<a name="line685"></a>                if (!isset($where[$pk])) {
+<a name="line686"></a>                    unset($where);
+<a name="line687"></a>                    $where[$pk] = $data[$pk];
+<a name="line688"></a>                }
+<a name="line689"></a>                unset($data[$pk]);
+<a name="line690"></a>            }
+<a name="line691"></a>
+<a name="line692"></a>            $result = $this->db()->where($where)->update($data);
+<a name="line693"></a>            // 清空change
+<a name="line694"></a>            $this->change = [];
+<a name="line695"></a>            // 更新回调
+<a name="line696"></a>            $this->trigger('after_update', $this);
+<a name="line697"></a>        } else {
+<a name="line698"></a>            // 自动写入
+<a name="line699"></a>            $this->autoCompleteData($this->insert);
+<a name="line700"></a>
+<a name="line701"></a>            // 自动写入创建时间
+<a name="line702"></a>            if ($this->autoWriteTimestamp && $this->createTime) {
+<a name="line703"></a>                $this->setAttr($this->createTime, null);
+<a name="line704"></a>            }
+<a name="line705"></a>
+<a name="line706"></a>            if (false === $this->trigger('before_insert', $this)) {
+<a name="line707"></a>                return false;
+<a name="line708"></a>            }
+<a name="line709"></a>
+<a name="line710"></a>            $result = $this->db()->insert($this->data);
+<a name="line711"></a>
+<a name="line712"></a>            // 获取自动增长主键
+<a name="line713"></a>            if ($result) {
+<a name="line714"></a>                $insertId = $this->db()->getLastInsID($sequence);
+<a name="line715"></a>                $pk       = $this->getPk();
+<a name="line716"></a>                if (is_string($pk) && $insertId) {
+<a name="line717"></a>                    $this->data[$pk] = $insertId;
+<a name="line718"></a>                }
+<a name="line719"></a>            }
+<a name="line720"></a>            // 标记为更新
+<a name="line721"></a>            $this->isUpdate = true;
+<a name="line722"></a>            // 清空change
+<a name="line723"></a>            $this->change = [];
+<a name="line724"></a>            // 新增回调
+<a name="line725"></a>            $this->trigger('after_insert', $this);
+<a name="line726"></a>        }
+<a name="line727"></a>        // 写入回调
+<a name="line728"></a>        $this->trigger('after_write', $this);
+<a name="line729"></a>
+<a name="line730"></a>        return $result;
+<a name="line731"></a>    }
+<a name="line732"></a>
+<a name="line733"></a>    /**
+<a name="line734"></a>     * 保存多个数据到当前数据对象
+<a name="line735"></a>     * @access public
+<a name="line736"></a>     * @param array     $dataSet 数据
+<a name="line737"></a>     * @param boolean   $replace 是否自动识别更新和写入
+<a name="line738"></a>     * @return array|false
+<a name="line739"></a>     */
+<a name="line740"></a>    public function saveAll($dataSet, $replace = true)
+<a name="line741"></a>    {
+<a name="line742"></a>        if ($this->validate) {
+<a name="line743"></a>            // 数据批量验证
+<a name="line744"></a>            $validate = $this->validate;
+<a name="line745"></a>            foreach ($dataSet as $data) {
+<a name="line746"></a>                if (!$this->validate($validate)->validateData($data)) {
+<a name="line747"></a>                    return false;
+<a name="line748"></a>                }
+<a name="line749"></a>            }
+<a name="line750"></a>        }
+<a name="line751"></a>
+<a name="line752"></a>        $result = [];
+<a name="line753"></a>        $db     = $this->db();
+<a name="line754"></a>        $db->startTrans();
+<a name="line755"></a>        try {
+<a name="line756"></a>            $pk = $this->getPk();
+<a name="line757"></a>            if (is_string($pk) && $replace) {
+<a name="line758"></a>                $auto = true;
+<a name="line759"></a>            }
+<a name="line760"></a>            foreach ($dataSet as $key => $data) {
+<a name="line761"></a>                if (!empty($auto) && isset($data[$pk])) {
+<a name="line762"></a>                    $result[$key] = self::update($data);
+<a name="line763"></a>                } else {
+<a name="line764"></a>                    $result[$key] = self::create($data);
+<a name="line765"></a>                }
+<a name="line766"></a>            }
+<a name="line767"></a>            $db->commit();
+<a name="line768"></a>            return $result;
+<a name="line769"></a>        } catch (\Exception $e) {
+<a name="line770"></a>            $db->rollback();
+<a name="line771"></a>            throw $e;
+<a name="line772"></a>        }
+<a name="line773"></a>    }
+<a name="line774"></a>
+<a name="line775"></a>    /**
+<a name="line776"></a>     * 设置允许写入的字段
+<a name="line777"></a>     * @access public
+<a name="line778"></a>     * @param bool|array $field 允许写入的字段 如果为true只允许写入数据表字段
+<a name="line779"></a>     * @return $this
+<a name="line780"></a>     */
+<a name="line781"></a>    public function allowField($field)
+<a name="line782"></a>    {
+<a name="line783"></a>        if (true === $field) {
+<a name="line784"></a>            $field = $this->db()->getTableInfo('', 'fields');
+<a name="line785"></a>        }
+<a name="line786"></a>        $this->field = $field;
+<a name="line787"></a>        return $this;
+<a name="line788"></a>    }
+<a name="line789"></a>
+<a name="line790"></a>    /**
+<a name="line791"></a>     * 是否为更新数据
+<a name="line792"></a>     * @access public
+<a name="line793"></a>     * @param bool  $update
+<a name="line794"></a>     * @param mixed $where
+<a name="line795"></a>     * @return $this
+<a name="line796"></a>     */
+<a name="line797"></a>    public function isUpdate($update = true, $where = null)
+<a name="line798"></a>    {
+<a name="line799"></a>        $this->isUpdate = $update;
+<a name="line800"></a>        if (!empty($where)) {
+<a name="line801"></a>            $this->updateWhere = $where;
+<a name="line802"></a>        }
+<a name="line803"></a>        return $this;
+<a name="line804"></a>    }
+<a name="line805"></a>
+<a name="line806"></a>    /**
+<a name="line807"></a>     * 数据自动完成
+<a name="line808"></a>     * @access public
+<a name="line809"></a>     * @param array $auto 要自动更新的字段列表
+<a name="line810"></a>     * @return void
+<a name="line811"></a>     */
+<a name="line812"></a>    protected function autoCompleteData($auto = [])
+<a name="line813"></a>    {
+<a name="line814"></a>        foreach ($auto as $field => $value) {
+<a name="line815"></a>            if (is_integer($field)) {
+<a name="line816"></a>                $field = $value;
+<a name="line817"></a>                $value = null;
+<a name="line818"></a>            }
+<a name="line819"></a>            if (!in_array($field, $this->change)) {
+<a name="line820"></a>                $this->setAttr($field, !is_null($value) ? $value : (isset($this->data[$field]) ? $this->data[$field] : $value));
+<a name="line821"></a>            }
+<a name="line822"></a>        }
+<a name="line823"></a>    }
+<a name="line824"></a>
+<a name="line825"></a>    /**
+<a name="line826"></a>     * 删除当前的记录
+<a name="line827"></a>     * @access public
+<a name="line828"></a>     * @return integer
+<a name="line829"></a>     */
+<a name="line830"></a>    public function delete()
+<a name="line831"></a>    {
+<a name="line832"></a>        if (false === $this->trigger('before_delete', $this)) {
+<a name="line833"></a>            return false;
+<a name="line834"></a>        }
+<a name="line835"></a>
+<a name="line836"></a>        $result = $this->db()->delete($this->data);
+<a name="line837"></a>
+<a name="line838"></a>        $this->trigger('after_delete', $this);
+<a name="line839"></a>        return $result;
+<a name="line840"></a>    }
+<a name="line841"></a>
+<a name="line842"></a>    /**
+<a name="line843"></a>     * 设置自动完成的字段（ 规则通过修改器定义）
+<a name="line844"></a>     * @access public
+<a name="line845"></a>     * @param array $fields 需要自动完成的字段
+<a name="line846"></a>     * @return $this
+<a name="line847"></a>     */
+<a name="line848"></a>    public function auto($fields)
+<a name="line849"></a>    {
+<a name="line850"></a>        $this->auto = $fields;
+<a name="line851"></a>        return $this;
+<a name="line852"></a>    }
+<a name="line853"></a>
+<a name="line854"></a>    /**
+<a name="line855"></a>     * 设置字段验证
+<a name="line856"></a>     * @access public
+<a name="line857"></a>     * @param array|string|bool $rule 验证规则 true表示自动读取验证器类
+<a name="line858"></a>     * @param array             $msg 提示信息
+<a name="line859"></a>     * @return $this
+<a name="line860"></a>     */
+<a name="line861"></a>    public function validate($rule = true, $msg = [])
+<a name="line862"></a>    {
+<a name="line863"></a>        if (is_array($rule)) {
+<a name="line864"></a>            $this->validate = [
+<a name="line865"></a>                'rule' => $rule,
+<a name="line866"></a>                'msg'  => $msg,
+<a name="line867"></a>            ];
+<a name="line868"></a>        } else {
+<a name="line869"></a>            $this->validate = true === $rule ? $this->name : $rule;
+<a name="line870"></a>        }
+<a name="line871"></a>        return $this;
+<a name="line872"></a>    }
+<a name="line873"></a>
+<a name="line874"></a>    /**
+<a name="line875"></a>     * 设置验证失败后是否抛出异常
+<a name="line876"></a>     * @access public
+<a name="line877"></a>     * @param bool $fail 是否抛出异常
+<a name="line878"></a>     * @return $this
+<a name="line879"></a>     */
+<a name="line880"></a>    public function validateFailException($fail = true)
+<a name="line881"></a>    {
+<a name="line882"></a>        $this->failException = $fail;
+<a name="line883"></a>        return $this;
+<a name="line884"></a>    }
+<a name="line885"></a>
+<a name="line886"></a>    /**
+<a name="line887"></a>     * 自动验证数据
+<a name="line888"></a>     * @access protected
+<a name="line889"></a>     * @param array $data 验证数据
+<a name="line890"></a>     * @return bool
+<a name="line891"></a>     */
+<a name="line892"></a>    protected function validateData($data)
+<a name="line893"></a>    {
+<a name="line894"></a>        if (!empty($this->validate)) {
+<a name="line895"></a>            $info = $this->validate;
+<a name="line896"></a>            if (is_array($info)) {
+<a name="line897"></a>                $validate = Loader::validate();
+<a name="line898"></a>                $validate->rule($info['rule']);
+<a name="line899"></a>                $validate->message($info['msg']);
+<a name="line900"></a>            } else {
+<a name="line901"></a>                $name = is_string($info) ? $info : $this->name;
+<a name="line902"></a>                if (strpos($name, '.')) {
+<a name="line903"></a>                    list($name, $scene) = explode('.', $name);
+<a name="line904"></a>                }
+<a name="line905"></a>                $validate = Loader::validate($name);
+<a name="line906"></a>                if (!empty($scene)) {
+<a name="line907"></a>                    $validate->scene($scene);
+<a name="line908"></a>                }
+<a name="line909"></a>            }
+<a name="line910"></a>            if (!$validate->check($data)) {
+<a name="line911"></a>                $this->error = $validate->getError();
+<a name="line912"></a>                if ($this->failException) {
+<a name="line913"></a>                    throw new ValidateException($this->error);
+<a name="line914"></a>                } else {
+<a name="line915"></a>                    return false;
+<a name="line916"></a>                }
+<a name="line917"></a>            }
+<a name="line918"></a>            $this->validate = null;
+<a name="line919"></a>        }
+<a name="line920"></a>        return true;
+<a name="line921"></a>    }
+<a name="line922"></a>
+<a name="line923"></a>    /**
+<a name="line924"></a>     * 返回模型的错误信息
+<a name="line925"></a>     * @access public
+<a name="line926"></a>     * @return string
+<a name="line927"></a>     */
+<a name="line928"></a>    public function getError()
+<a name="line929"></a>    {
+<a name="line930"></a>        return $this->error;
+<a name="line931"></a>    }
+<a name="line932"></a>
+<a name="line933"></a>    /**
+<a name="line934"></a>     * 注册回调方法
+<a name="line935"></a>     * @access public
+<a name="line936"></a>     * @param string        $event 事件名
+<a name="line937"></a>     * @param callable      $callback 回调方法
+<a name="line938"></a>     * @param bool          $override 是否覆盖
+<a name="line939"></a>     * @return void
+<a name="line940"></a>     */
+<a name="line941"></a>    public static function event($event, $callback, $override = false)
+<a name="line942"></a>    {
+<a name="line943"></a>        $class = get_called_class();
+<a name="line944"></a>        if ($override) {
+<a name="line945"></a>            self::$event[$class][$event] = [];
+<a name="line946"></a>        }
+<a name="line947"></a>        self::$event[$class][$event][] = $callback;
+<a name="line948"></a>    }
+<a name="line949"></a>
+<a name="line950"></a>    /**
+<a name="line951"></a>     * 触发事件
+<a name="line952"></a>     * @access protected
+<a name="line953"></a>     * @param string    $event 事件名
+<a name="line954"></a>     * @param mixed     $params 传入参数（引用）
+<a name="line955"></a>     * @return bool
+<a name="line956"></a>     */
+<a name="line957"></a>    protected function trigger($event, &$params)
+<a name="line958"></a>    {
+<a name="line959"></a>        if (isset(self::$event[$this->class][$event])) {
+<a name="line960"></a>            foreach (self::$event[$this->class][$event] as $callback) {
+<a name="line961"></a>                if (is_callable($callback)) {
+<a name="line962"></a>                    $result = call_user_func_array($callback, [ & $params]);
+<a name="line963"></a>                    if (false === $result) {
+<a name="line964"></a>                        return false;
+<a name="line965"></a>                    }
+<a name="line966"></a>                }
+<a name="line967"></a>            }
+<a name="line968"></a>        }
+<a name="line969"></a>        return true;
+<a name="line970"></a>    }
+<a name="line971"></a>
+<a name="line972"></a>    /**
+<a name="line973"></a>     * 写入数据
+<a name="line974"></a>     * @access public
+<a name="line975"></a>     * @param array     $data 数据数组
+<a name="line976"></a>     * @return $this
+<a name="line977"></a>     */
+<a name="line978"></a>    public static function create($data = [])
+<a name="line979"></a>    {
+<a name="line980"></a>        $model = new static();
+<a name="line981"></a>        $model->isUpdate(false)->save($data, []);
+<a name="line982"></a>        return $model;
+<a name="line983"></a>    }
+<a name="line984"></a>
+<a name="line985"></a>    /**
+<a name="line986"></a>     * 更新数据
+<a name="line987"></a>     * @access public
+<a name="line988"></a>     * @param array     $data 数据数组
+<a name="line989"></a>     * @param array     $where 更新条件
+<a name="line990"></a>     * @return $this
+<a name="line991"></a>     */
+<a name="line992"></a>    public static function update($data = [], $where = [])
+<a name="line993"></a>    {
+<a name="line994"></a>        $model  = new static();
+<a name="line995"></a>        $result = $model->isUpdate(true)->save($data, $where);
+<a name="line996"></a>        return $model;
+<a name="line997"></a>    }
+<a name="line998"></a>
+<a name="line999"></a>    /**
+<a name="line1000"></a>     * 查找单条记录
+<a name="line1001"></a>     * @access public
+<a name="line1002"></a>     * @param mixed        $data  主键值或者查询条件（闭包）
+<a name="line1003"></a>     * @param array|string $with  关联预查询
+<a name="line1004"></a>     * @param bool         $cache 是否缓存
+<a name="line1005"></a>     * @return static
+<a name="line1006"></a>     * @throws exception\DbException
+<a name="line1007"></a>     */
+<a name="line1008"></a>    public static function get($data = null, $with = [], $cache = false)
+<a name="line1009"></a>    {
+<a name="line1010"></a>        $query = static::parseQuery($data, $with, $cache);
+<a name="line1011"></a>        return $query->find($data);
+<a name="line1012"></a>    }
+<a name="line1013"></a>
+<a name="line1014"></a>    /**
+<a name="line1015"></a>     * 查找所有记录
+<a name="line1016"></a>     * @access public
+<a name="line1017"></a>     * @param mixed        $data  主键列表或者查询条件（闭包）
+<a name="line1018"></a>     * @param array|string $with  关联预查询
+<a name="line1019"></a>     * @param bool         $cache 是否缓存
+<a name="line1020"></a>     * @return static[]|false
+<a name="line1021"></a>     * @throws exception\DbException
+<a name="line1022"></a>     */
+<a name="line1023"></a>    public static function all($data = null, $with = [], $cache = false)
+<a name="line1024"></a>    {
+<a name="line1025"></a>        $query = static::parseQuery($data, $with, $cache);
+<a name="line1026"></a>        return $query->select($data);
+<a name="line1027"></a>    }
+<a name="line1028"></a>
+<a name="line1029"></a>    /**
+<a name="line1030"></a>     * 分析查询表达式
+<a name="line1031"></a>     * @access public
+<a name="line1032"></a>     * @param mixed         $data 主键列表或者查询条件（闭包）
+<a name="line1033"></a>     * @param string        $with 关联预查询
+<a name="line1034"></a>     * @param bool          $cache 是否缓存
+<a name="line1035"></a>     * @return Query
+<a name="line1036"></a>     */
+<a name="line1037"></a>    protected static function parseQuery(&$data, $with, $cache)
+<a name="line1038"></a>    {
+<a name="line1039"></a>        $result = self::with($with)->cache($cache);
+<a name="line1040"></a>        if (is_array($data) && key($data) !== 0) {
+<a name="line1041"></a>            $result = $result->where($data);
+<a name="line1042"></a>            $data   = null;
+<a name="line1043"></a>        } elseif ($data instanceof \Closure) {
+<a name="line1044"></a>            call_user_func_array($data, [ & $result]);
+<a name="line1045"></a>            $data = null;
+<a name="line1046"></a>        } elseif ($data instanceof Query) {
+<a name="line1047"></a>            $result = $data->with($with)->cache($cache);
+<a name="line1048"></a>            $data   = null;
+<a name="line1049"></a>        }
+<a name="line1050"></a>        return $result;
+<a name="line1051"></a>    }
+<a name="line1052"></a>
+<a name="line1053"></a>    /**
+<a name="line1054"></a>     * 删除记录
+<a name="line1055"></a>     * @access public
+<a name="line1056"></a>     * @param mixed $data 主键列表 支持闭包查询条件
+<a name="line1057"></a>     * @return integer 成功删除的记录数
+<a name="line1058"></a>     */
+<a name="line1059"></a>    public static function destroy($data)
+<a name="line1060"></a>    {
+<a name="line1061"></a>        $model = new static();
+<a name="line1062"></a>        $query = $model->db();
+<a name="line1063"></a>        if (is_array($data) && key($data) !== 0) {
+<a name="line1064"></a>            $query->where($data);
+<a name="line1065"></a>            $data = null;
+<a name="line1066"></a>        } elseif ($data instanceof \Closure) {
+<a name="line1067"></a>            call_user_func_array($data, [ & $query]);
+<a name="line1068"></a>            $data = null;
+<a name="line1069"></a>        } elseif (is_null($data)) {
+<a name="line1070"></a>            return 0;
+<a name="line1071"></a>        }
+<a name="line1072"></a>        $resultSet = $query->select($data);
+<a name="line1073"></a>        $count     = 0;
+<a name="line1074"></a>        if ($resultSet) {
+<a name="line1075"></a>            foreach ($resultSet as $data) {
+<a name="line1076"></a>                $result = $data->delete();
+<a name="line1077"></a>                $count += $result;
+<a name="line1078"></a>            }
+<a name="line1079"></a>        }
+<a name="line1080"></a>        return $count;
+<a name="line1081"></a>    }
+<a name="line1082"></a>
+<a name="line1083"></a>    /**
+<a name="line1084"></a>     * 命名范围
+<a name="line1085"></a>     * @access public
+<a name="line1086"></a>     * @param string|array|Closure  $name 命名范围名称 逗号分隔
+<a name="line1087"></a>     * @param mixed                 ...$params 参数调用
+<a name="line1088"></a>     * @return Model
+<a name="line1089"></a>     */
+<a name="line1090"></a>    public static function scope($name)
+<a name="line1091"></a>    {
+<a name="line1092"></a>        if ($name instanceof Query) {
+<a name="line1093"></a>            return $name;
+<a name="line1094"></a>        }
+<a name="line1095"></a>        $model     = new static();
+<a name="line1096"></a>        $params    = func_get_args();
+<a name="line1097"></a>        $params[0] = $model->db();
+<a name="line1098"></a>        if ($name instanceof \Closure) {
+<a name="line1099"></a>            call_user_func_array($name, $params);
+<a name="line1100"></a>        } elseif (is_string($name)) {
+<a name="line1101"></a>            $name = explode(',', $name);
+<a name="line1102"></a>        }
+<a name="line1103"></a>        if (is_array($name)) {
+<a name="line1104"></a>            foreach ($name as $scope) {
+<a name="line1105"></a>                $method = 'scope' . trim($scope);
+<a name="line1106"></a>                if (method_exists($model, $method)) {
+<a name="line1107"></a>                    call_user_func_array([$model, $method], $params);
+<a name="line1108"></a>                }
+<a name="line1109"></a>            }
+<a name="line1110"></a>        }
+<a name="line1111"></a>        return $model;
+<a name="line1112"></a>    }
+<a name="line1113"></a>
+<a name="line1114"></a>    /**
+<a name="line1115"></a>     * 设置是否使用全局查询范围
+<a name="line1116"></a>     * @param bool  $use 是否启用全局查询范围
+<a name="line1117"></a>     * @access public
+<a name="line1118"></a>     * @return Model
+<a name="line1119"></a>     */
+<a name="line1120"></a>    public static function useGlobalScope($use)
+<a name="line1121"></a>    {
+<a name="line1122"></a>        $model                 = new static();
+<a name="line1123"></a>        $model->useGlobalScope = $use;
+<a name="line1124"></a>        return $model;
+<a name="line1125"></a>    }
+<a name="line1126"></a>
+<a name="line1127"></a>    /**
+<a name="line1128"></a>     * 根据关联条件查询当前模型
+<a name="line1129"></a>     * @access public
+<a name="line1130"></a>     * @param string    $relation 关联方法名
+<a name="line1131"></a>     * @param string    $operator 比较操作符
+<a name="line1132"></a>     * @param integer   $count 个数
+<a name="line1133"></a>     * @param string    $id 关联表的统计字段
+<a name="line1134"></a>     * @return Model
+<a name="line1135"></a>     */
+<a name="line1136"></a>    public static function has($relation, $operator = '>=', $count = 1, $id = '*')
+<a name="line1137"></a>    {
+<a name="line1138"></a>        $model = new static();
+<a name="line1139"></a>        $info  = $model->$relation()->getRelationInfo();
+<a name="line1140"></a>        $table = $info['model']::getTable();
+<a name="line1141"></a>        switch ($info['type']) {
+<a name="line1142"></a>            case Relation::HAS_MANY:
+<a name="line1143"></a>                return $model->db()->alias('a')
+<a name="line1144"></a>                    ->join($table . ' b', 'a.' . $info['localKey'] . '=b.' . $info['foreignKey'], $info['joinType'])
+<a name="line1145"></a>                    ->group('b.' . $info['foreignKey'])
+<a name="line1146"></a>                    ->having('count(' . $id . ')' . $operator . $count);
+<a name="line1147"></a>            case Relation::HAS_MANY_THROUGH: // TODO
+<a name="line1148"></a>            default:
+<a name="line1149"></a>                return $model;
+<a name="line1150"></a>        }
+<a name="line1151"></a>    }
+<a name="line1152"></a>
+<a name="line1153"></a>    /**
+<a name="line1154"></a>     * 根据关联条件查询当前模型
+<a name="line1155"></a>     * @access public
+<a name="line1156"></a>     * @param string    $relation 关联方法名
+<a name="line1157"></a>     * @param mixed     $where 查询条件（数组或者闭包）
+<a name="line1158"></a>     * @return Model
+<a name="line1159"></a>     */
+<a name="line1160"></a>    public static function hasWhere($relation, $where = [])
+<a name="line1161"></a>    {
+<a name="line1162"></a>        $model = new static();
+<a name="line1163"></a>        $info  = $model->$relation()->getRelationInfo();
+<a name="line1164"></a>        switch ($info['type']) {
+<a name="line1165"></a>            case Relation::HAS_ONE:
+<a name="line1166"></a>            case Relation::HAS_MANY:
+<a name="line1167"></a>                $table = $info['model']::getTable();
+<a name="line1168"></a>                if (is_array($where)) {
+<a name="line1169"></a>                    foreach ($where as $key => $val) {
+<a name="line1170"></a>                        if (false === strpos($key, '.')) {
+<a name="line1171"></a>                            $where['b.' . $key] = $val;
+<a name="line1172"></a>                            unset($where[$key]);
+<a name="line1173"></a>                        }
+<a name="line1174"></a>                    }
+<a name="line1175"></a>                }
+<a name="line1176"></a>                return $model->db()->alias('a')
+<a name="line1177"></a>                    ->field('a.*')
+<a name="line1178"></a>                    ->join($table . ' b', 'a.' . $info['localKey'] . '=b.' . $info['foreignKey'], $info['joinType'])
+<a name="line1179"></a>                    ->where($where);
+<a name="line1180"></a>            case Relation::HAS_MANY_THROUGH: // TODO
+<a name="line1181"></a>            default:
+<a name="line1182"></a>                return $model;
+<a name="line1183"></a>        }
+<a name="line1184"></a>    }
+<a name="line1185"></a>
+<a name="line1186"></a>    /**
+<a name="line1187"></a>     * 解析模型的完整命名空间
+<a name="line1188"></a>     * @access public
+<a name="line1189"></a>     * @param string $model 模型名（或者完整类名）
+<a name="line1190"></a>     * @return string
+<a name="line1191"></a>     */
+<a name="line1192"></a>    protected function parseModel($model)
+<a name="line1193"></a>    {
+<a name="line1194"></a>        if (false === strpos($model, '\\')) {
+<a name="line1195"></a>            $path = explode('\\', get_called_class());
+<a name="line1196"></a>            array_pop($path);
+<a name="line1197"></a>            array_push($path, Loader::parseName($model, 1));
+<a name="line1198"></a>            $model = implode('\\', $path);
+<a name="line1199"></a>        }
+<a name="line1200"></a>        return $model;
+<a name="line1201"></a>    }
+<a name="line1202"></a>
+<a name="line1203"></a>    /**
+<a name="line1204"></a>     * 查询当前模型的关联数据
+<a name="line1205"></a>     * @access public
+<a name="line1206"></a>     * @param string|array $relations 关联名
+<a name="line1207"></a>     * @return $this
+<a name="line1208"></a>     */
+<a name="line1209"></a>    public function relationQuery($relations)
+<a name="line1210"></a>    {
+<a name="line1211"></a>        if (is_string($relations)) {
+<a name="line1212"></a>            $relations = explode(',', $relations);
+<a name="line1213"></a>        }
+<a name="line1214"></a>        $this->relation();
+<a name="line1215"></a>        foreach ($relations as $relation) {
+<a name="line1216"></a>            $this->data[$relation] = $this->relation->getRelation($relation);
+<a name="line1217"></a>        }
+<a name="line1218"></a>        return $this;
+<a name="line1219"></a>    }
+<a name="line1220"></a>
+<a name="line1221"></a>    /**
+<a name="line1222"></a>     * 预载入关联查询 返回数据集
+<a name="line1223"></a>     * @access public
+<a name="line1224"></a>     * @param array     $resultSet 数据集
+<a name="line1225"></a>     * @param string    $relation 关联名
+<a name="line1226"></a>     * @return array
+<a name="line1227"></a>     */
+<a name="line1228"></a>    public function eagerlyResultSet($resultSet, $relation)
+<a name="line1229"></a>    {
+<a name="line1230"></a>        return $this->relation()->eagerlyResultSet($resultSet, $relation);
+<a name="line1231"></a>    }
+<a name="line1232"></a>
+<a name="line1233"></a>    /**
+<a name="line1234"></a>     * 预载入关联查询 返回模型对象
+<a name="line1235"></a>     * @access public
+<a name="line1236"></a>     * @param Model     $result 数据对象
+<a name="line1237"></a>     * @param string    $relation 关联名
+<a name="line1238"></a>     * @return Model
+<a name="line1239"></a>     */
+<a name="line1240"></a>    public function eagerlyResult($result, $relation)
+<a name="line1241"></a>    {
+<a name="line1242"></a>        return $this->relation()->eagerlyResult($result, $relation);
+<a name="line1243"></a>    }
+<a name="line1244"></a>
+<a name="line1245"></a>    /**
+<a name="line1246"></a>     * HAS ONE 关联定义
+<a name="line1247"></a>     * @access public
+<a name="line1248"></a>     * @param string $model 模型名
+<a name="line1249"></a>     * @param string $foreignKey 关联外键
+<a name="line1250"></a>     * @param string $localKey 关联主键
+<a name="line1251"></a>     * @param array  $alias 别名定义
+<a name="line1252"></a>     * @param string $joinType JOIN类型
+<a name="line1253"></a>     * @return Relation
+<a name="line1254"></a>     */
+<a name="line1255"></a>    public function hasOne($model, $foreignKey = '', $localKey = '', $alias = [], $joinType = 'INNER')
+<a name="line1256"></a>    {
+<a name="line1257"></a>        // 记录当前关联信息
+<a name="line1258"></a>        $model      = $this->parseModel($model);
+<a name="line1259"></a>        $localKey   = $localKey ?: $this->getPk();
+<a name="line1260"></a>        $foreignKey = $foreignKey ?: Loader::parseName($this->name) . '_id';
+<a name="line1261"></a>        return $this->relation()->hasOne($model, $foreignKey, $localKey, $alias, $joinType);
+<a name="line1262"></a>    }
+<a name="line1263"></a>
+<a name="line1264"></a>    /**
+<a name="line1265"></a>     * BELONGS TO 关联定义
+<a name="line1266"></a>     * @access public
+<a name="line1267"></a>     * @param string $model 模型名
+<a name="line1268"></a>     * @param string $foreignKey 关联外键
+<a name="line1269"></a>     * @param string $otherKey 关联主键
+<a name="line1270"></a>     * @param array  $alias 别名定义
+<a name="line1271"></a>     * @param string $joinType JOIN类型
+<a name="line1272"></a>     * @return Relation
+<a name="line1273"></a>     */
+<a name="line1274"></a>    public function belongsTo($model, $foreignKey = '', $otherKey = '', $alias = [], $joinType = 'INNER')
+<a name="line1275"></a>    {
+<a name="line1276"></a>        // 记录当前关联信息
+<a name="line1277"></a>        $model      = $this->parseModel($model);
+<a name="line1278"></a>        $foreignKey = $foreignKey ?: Loader::parseName(basename(str_replace('\\', '/', $model))) . '_id';
+<a name="line1279"></a>        $otherKey   = $otherKey ?: (new $model)->getPk();
+<a name="line1280"></a>        return $this->relation()->belongsTo($model, $foreignKey, $otherKey, $alias, $joinType);
+<a name="line1281"></a>    }
+<a name="line1282"></a>
+<a name="line1283"></a>    /**
+<a name="line1284"></a>     * HAS MANY 关联定义
+<a name="line1285"></a>     * @access public
+<a name="line1286"></a>     * @param string $model 模型名
+<a name="line1287"></a>     * @param string $foreignKey 关联外键
+<a name="line1288"></a>     * @param string $localKey 关联主键
+<a name="line1289"></a>     * @param array  $alias 别名定义
+<a name="line1290"></a>     * @return Relation
+<a name="line1291"></a>     */
+<a name="line1292"></a>    public function hasMany($model, $foreignKey = '', $localKey = '', $alias = [])
+<a name="line1293"></a>    {
+<a name="line1294"></a>        // 记录当前关联信息
+<a name="line1295"></a>        $model      = $this->parseModel($model);
+<a name="line1296"></a>        $localKey   = $localKey ?: $this->getPk();
+<a name="line1297"></a>        $foreignKey = $foreignKey ?: Loader::parseName($this->name) . '_id';
+<a name="line1298"></a>        return $this->relation()->hasMany($model, $foreignKey, $localKey, $alias);
+<a name="line1299"></a>    }
+<a name="line1300"></a>
+<a name="line1301"></a>    /**
+<a name="line1302"></a>     * HAS MANY 远程关联定义
+<a name="line1303"></a>     * @access public
+<a name="line1304"></a>     * @param string $model 模型名
+<a name="line1305"></a>     * @param string $through 中间模型名
+<a name="line1306"></a>     * @param string $foreignKey 关联外键
+<a name="line1307"></a>     * @param string $throughKey 关联外键
+<a name="line1308"></a>     * @param string $localKey 关联主键
+<a name="line1309"></a>     * @param array  $alias 别名定义
+<a name="line1310"></a>     * @return Relation
+<a name="line1311"></a>     */
+<a name="line1312"></a>    public function hasManyThrough($model, $through, $foreignKey = '', $throughKey = '', $localKey = '', $alias = [])
+<a name="line1313"></a>    {
+<a name="line1314"></a>        // 记录当前关联信息
+<a name="line1315"></a>        $model      = $this->parseModel($model);
+<a name="line1316"></a>        $through    = $this->parseModel($through);
+<a name="line1317"></a>        $localKey   = $localKey ?: $this->getPk();
+<a name="line1318"></a>        $foreignKey = $foreignKey ?: Loader::parseName($this->name) . '_id';
+<a name="line1319"></a>        $name       = Loader::parseName(basename(str_replace('\\', '/', $through)));
+<a name="line1320"></a>        $throughKey = $throughKey ?: $name . '_id';
+<a name="line1321"></a>        return $this->relation()->hasManyThrough($model, $through, $foreignKey, $throughKey, $localKey, $alias);
+<a name="line1322"></a>    }
+<a name="line1323"></a>
+<a name="line1324"></a>    /**
+<a name="line1325"></a>     * BELONGS TO MANY 关联定义
+<a name="line1326"></a>     * @access public
+<a name="line1327"></a>     * @param string $model 模型名
+<a name="line1328"></a>     * @param string $table 中间表名
+<a name="line1329"></a>     * @param string $foreignKey 关联外键
+<a name="line1330"></a>     * @param string $localKey 当前模型关联键
+<a name="line1331"></a>     * @param array  $alias 别名定义
+<a name="line1332"></a>     * @return Relation
+<a name="line1333"></a>     */
+<a name="line1334"></a>    public function belongsToMany($model, $table = '', $foreignKey = '', $localKey = '', $alias = [])
+<a name="line1335"></a>    {
+<a name="line1336"></a>        // 记录当前关联信息
+<a name="line1337"></a>        $model      = $this->parseModel($model);
+<a name="line1338"></a>        $name       = Loader::parseName(basename(str_replace('\\', '/', $model)));
+<a name="line1339"></a>        $table      = $table ?: $this->db()->getTable(Loader::parseName($this->name) . '_' . $name);
+<a name="line1340"></a>        $foreignKey = $foreignKey ?: $name . '_id';
+<a name="line1341"></a>        $localKey   = $localKey ?: Loader::parseName($this->name) . '_id';
+<a name="line1342"></a>        return $this->relation()->belongsToMany($model, $table, $foreignKey, $localKey, $alias);
+<a name="line1343"></a>    }
+<a name="line1344"></a>
+<a name="line1345"></a>    public function __call($method, $args)
+<a name="line1346"></a>    {
+<a name="line1347"></a>        $query = $this->db();
+<a name="line1348"></a>        if (method_exists($this, 'scope' . $method)) {
+<a name="line1349"></a>            // 动态调用命名范围
+<a name="line1350"></a>            $method = 'scope' . $method;
+<a name="line1351"></a>            array_unshift($args, $query);
+<a name="line1352"></a>            call_user_func_array([$this, $method], $args);
+<a name="line1353"></a>            return $this;
+<a name="line1354"></a>        } else {
+<a name="line1355"></a>            return call_user_func_array([$query, $method], $args);
+<a name="line1356"></a>        }
+<a name="line1357"></a>    }
+<a name="line1358"></a>
+<a name="line1359"></a>    public static function __callStatic($method, $params)
+<a name="line1360"></a>    {
+<a name="line1361"></a>        $query = self::getDb();
+<a name="line1362"></a>        return call_user_func_array([$query, $method], $params);
+<a name="line1363"></a>    }
+<a name="line1364"></a>
+<a name="line1365"></a>    protected static function getDb()
+<a name="line1366"></a>    {
+<a name="line1367"></a>        $model = get_called_class();
+<a name="line1368"></a>        if (!isset(self::$links[$model])) {
+<a name="line1369"></a>            self::$links[$model] = (new static())->db();
+<a name="line1370"></a>        }
+<a name="line1371"></a>        return self::$links[$model];
+<a name="line1372"></a>    }
+<a name="line1373"></a>
+<a name="line1374"></a>    /**
+<a name="line1375"></a>     * 修改器 设置数据对象的值
+<a name="line1376"></a>     * @access public
+<a name="line1377"></a>     * @param string    $name 名称
+<a name="line1378"></a>     * @param mixed     $value 值
+<a name="line1379"></a>     * @return void
+<a name="line1380"></a>     */
+<a name="line1381"></a>    public function __set($name, $value)
+<a name="line1382"></a>    {
+<a name="line1383"></a>        $this->setAttr($name, $value);
+<a name="line1384"></a>    }
+<a name="line1385"></a>
+<a name="line1386"></a>    /**
+<a name="line1387"></a>     * 获取器 获取数据对象的值
+<a name="line1388"></a>     * @access public
+<a name="line1389"></a>     * @param string $name 名称
+<a name="line1390"></a>     * @return mixed
+<a name="line1391"></a>     */
+<a name="line1392"></a>    public function __get($name)
+<a name="line1393"></a>    {
+<a name="line1394"></a>        return $this->getAttr($name);
+<a name="line1395"></a>    }
+<a name="line1396"></a>
+<a name="line1397"></a>    /**
+<a name="line1398"></a>     * 检测数据对象的值
+<a name="line1399"></a>     * @access public
+<a name="line1400"></a>     * @param string $name 名称
+<a name="line1401"></a>     * @return boolean
+<a name="line1402"></a>     */
+<a name="line1403"></a>    public function __isset($name)
+<a name="line1404"></a>    {
+<a name="line1405"></a>        try {
+<a name="line1406"></a>            if (array_key_exists($name, $this->data)) {
+<a name="line1407"></a>                return true;
+<a name="line1408"></a>            } else {
+<a name="line1409"></a>                $this->getAttr($name);
+<a name="line1410"></a>                return true;
+<a name="line1411"></a>            }
+<a name="line1412"></a>        } catch (InvalidArgumentException $e) {
+<a name="line1413"></a>            return false;
+<a name="line1414"></a>        }
+<a name="line1415"></a>
+<a name="line1416"></a>    }
+<a name="line1417"></a>
+<a name="line1418"></a>    /**
+<a name="line1419"></a>     * 销毁数据对象的值
+<a name="line1420"></a>     * @access public
+<a name="line1421"></a>     * @param string $name 名称
+<a name="line1422"></a>     * @return void
+<a name="line1423"></a>     */
+<a name="line1424"></a>    public function __unset($name)
+<a name="line1425"></a>    {
+<a name="line1426"></a>        unset($this->data[$name]);
+<a name="line1427"></a>    }
+<a name="line1428"></a>
+<a name="line1429"></a>    public function __toString()
+<a name="line1430"></a>    {
+<a name="line1431"></a>        return $this->toJson();
+<a name="line1432"></a>    }
+<a name="line1433"></a>
+<a name="line1434"></a>    // JsonSerializable
+<a name="line1435"></a>    public function jsonSerialize()
+<a name="line1436"></a>    {
+<a name="line1437"></a>        return $this->toArray();
+<a name="line1438"></a>    }
+<a name="line1439"></a>
+<a name="line1440"></a>    // ArrayAccess
+<a name="line1441"></a>    public function offsetSet($name, $value)
+<a name="line1442"></a>    {
+<a name="line1443"></a>        $this->setAttr($name, $value);
+<a name="line1444"></a>    }
+<a name="line1445"></a>
+<a name="line1446"></a>    public function offsetExists($name)
+<a name="line1447"></a>    {
+<a name="line1448"></a>        return $this->__isset($name);
+<a name="line1449"></a>    }
+<a name="line1450"></a>
+<a name="line1451"></a>    public function offsetUnset($name)
+<a name="line1452"></a>    {
+<a name="line1453"></a>        $this->__unset($name);
+<a name="line1454"></a>    }
+<a name="line1455"></a>
+<a name="line1456"></a>    public function offsetGet($name)
+<a name="line1457"></a>    {
+<a name="line1458"></a>        return $this->getAttr($name);
+<a name="line1459"></a>    }
+<a name="line1460"></a>
+<a name="line1461"></a>    /**
+<a name="line1462"></a>     * 解序列化后处理
+<a name="line1463"></a>     */
+<a name="line1464"></a>    public function __wakeup()
+<a name="line1465"></a>    {
+<a name="line1466"></a>        $this->initialize();
+<a name="line1467"></a>    }
+<a name="line1468"></a>
+<a name="line1469"></a>}
+<a name="line1470"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\model.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

@@ -1,0 +1,596 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:04 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>Console (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\console.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\Console</div>
+<a href="../source/library/think/console.php.html#line21" class="location">library\think\Console.php at line 21</a>
+
+<h1>Class Console</h1>
+
+<pre class="tree"><strong>Console</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>Console</strong></p>
+
+<hr>
+
+<table id="summary_constructor">
+<tr><th colspan="2">Constructor Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#__construct()">__construct</a>(str name, str version)</p></td>
+</tr>
+</table>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#init()">init</a>(bool run)</p></td>
+</tr>
+<tr>
+<td class="type">static  Output|Buffer</td>
+<td class="description"><p class="name"><a href="#call()">call</a>(array parameters, mixed command)</p><p class="description"></p></td>
+</tr>
+<tr>
+<td class="type"> int</td>
+<td class="description"><p class="name"><a href="#run()">run</a>()</p><p class="description">执行当前的指令</p></td>
+</tr>
+<tr>
+<td class="type"> int</td>
+<td class="description"><p class="name"><a href="#doRun()">doRun</a>(<a href="../think/console/input.html">Input</a> input, <a href="../think/console/output.html">Output</a> output)</p><p class="description">执行指令</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#setDefinition()">setDefinition</a>(InputDefinition definition)</p><p class="description">设置输入参数定义</p></td>
+</tr>
+<tr>
+<td class="type"> InputDefinition</td>
+<td class="description"><p class="name"><a href="#getDefinition()">getDefinition</a>()</p><p class="description">获取输入参数定义</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getHelp()">getHelp</a>()</p><p class="description">Gets the help message.</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#setCatchExceptions()">setCatchExceptions</a>(bool boolean)</p><p class="description">是否捕获异常</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#setAutoExit()">setAutoExit</a>(bool boolean)</p><p class="description">是否自动退出</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getName()">getName</a>()</p><p class="description">获取名称</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#setName()">setName</a>(string name)</p><p class="description">设置名称</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getVersion()">getVersion</a>()</p><p class="description">获取版本</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#setVersion()">setVersion</a>(string version)</p><p class="description">设置版本</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getLongVersion()">getLongVersion</a>()</p><p class="description">获取完整的版本号</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/console/command.html">Command</a></td>
+<td class="description"><p class="name"><a href="#register()">register</a>(string name)</p><p class="description">注册一个指令</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#addCommands()">addCommands</a>(<a href="../think/console/command.html">Command</a> commands)</p><p class="description">添加指令</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/console/command.html">Command</a></td>
+<td class="description"><p class="name"><a href="#add()">add</a>(<a href="../think/console/command.html">Command</a> command)</p><p class="description">添加一个指令</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/console/command.html">Command</a></td>
+<td class="description"><p class="name"><a href="#get()">get</a>(string name)</p><p class="description">获取指令</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#has()">has</a>(string name)</p><p class="description">某个指令是否存在</p></td>
+</tr>
+<tr>
+<td class="type"> array</td>
+<td class="description"><p class="name"><a href="#getNamespaces()">getNamespaces</a>()</p><p class="description">获取所有的命名空间</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#findNamespace()">findNamespace</a>(string namespace)</p><p class="description">查找注册命名空间中的名称或缩写。</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/console/command.html">Command</a></td>
+<td class="description"><p class="name"><a href="#find()">find</a>(string name)</p><p class="description">查找指令</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/console/command.html">Command[]</a></td>
+<td class="description"><p class="name"><a href="#all()">all</a>(string namespace)</p><p class="description">获取所有的指令</p></td>
+</tr>
+<tr>
+<td class="type">static  array</td>
+<td class="description"><p class="name"><a href="#getAbbreviations()">getAbbreviations</a>(array names)</p><p class="description">获取可能的指令名</p></td>
+</tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#configureIO()">configureIO</a>(<a href="../think/console/input.html">Input</a> input, <a href="../think/console/output.html">Output</a> output)</p><p class="description">配置基于用户的参数和选项的输入和输出实例。</p></td>
+</tr>
+<tr>
+<td class="type">protected  int</td>
+<td class="description"><p class="name"><a href="#doRunCommand()">doRunCommand</a>(<a href="../think/console/command.html">Command</a> command, <a href="../think/console/input.html">Input</a> input, <a href="../think/console/output.html">Output</a> output)</p><p class="description">执行指令</p></td>
+</tr>
+<tr>
+<td class="type">protected  string</td>
+<td class="description"><p class="name"><a href="#getCommandName()">getCommandName</a>(<a href="../think/console/input.html">Input</a> input)</p><p class="description">获取指令的基础名称</p></td>
+</tr>
+<tr>
+<td class="type">protected  InputDefinition</td>
+<td class="description"><p class="name"><a href="#getDefaultInputDefinition()">getDefaultInputDefinition</a>()</p><p class="description">获取默认输入定义</p></td>
+</tr>
+<tr>
+<td class="type">protected  <a href="../think/console/command.html">Command[]</a></td>
+<td class="description"><p class="name"><a href="#getDefaultCommands()">getDefaultCommands</a>()</p><p class="description">设置默认命令</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#addDefaultCommands()">addDefaultCommands</a>(mixed classnames)</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#extractNamespace()">extractNamespace</a>(string name, string limit)</p><p class="description">返回命名空间部分</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#setDefaultCommand()">setDefaultCommand</a>(string commandName)</p><p class="description">设置默认的指令</p></td>
+</tr>
+</table>
+
+<h2 id="detail_method">Constructor Detail</h2>
+<a href="../source/library/think/console.php.html#line39" class="location">library\think\Console.php at line 39</a>
+
+<h3 id="__construct()">__construct</h3>
+<code class="signature">public  void <strong>__construct</strong>(str name, str version)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../source/library/think/console.php.html#line52" class="location">library\think\Console.php at line 52</a>
+
+<h3 id="init()">init</h3>
+<code class="signature">public static  void <strong>init</strong>(bool run)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line84" class="location">library\think\Console.php at line 84</a>
+
+<h3 id="call()">call</h3>
+<code class="signature">public static  Output|Buffer <strong>call</strong>(array parameters, mixed command)</code>
+<div class="details">
+<p></p></div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line105" class="location">library\think\Console.php at line 105</a>
+
+<h3 id="run()">run</h3>
+<code class="signature">public  int <strong>run</strong>()</code>
+<div class="details">
+<p>执行当前的指令</p><dl>
+<dt>Throws:</dt>
+<dd><a href="../think/exception.html">\Exception</a></dd>
+<dt>Api.</dt>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line149" class="location">library\think\Console.php at line 149</a>
+
+<h3 id="doRun()">doRun</h3>
+<code class="signature">public  int <strong>doRun</strong>(<a href="../think/console/input.html">Input</a> input, <a href="../think/console/output.html">Output</a> output)</code>
+<div class="details">
+<p>执行指令</p></div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line184" class="location">library\think\Console.php at line 184</a>
+
+<h3 id="setDefinition()">setDefinition</h3>
+<code class="signature">public  void <strong>setDefinition</strong>(InputDefinition definition)</code>
+<div class="details">
+<p>设置输入参数定义</p></div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line193" class="location">library\think\Console.php at line 193</a>
+
+<h3 id="getDefinition()">getDefinition</h3>
+<code class="signature">public  InputDefinition <strong>getDefinition</strong>()</code>
+<div class="details">
+<p>获取输入参数定义</p><dl>
+<dt>Returns:</dt>
+<dd>The InputDefinition instance</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line202" class="location">library\think\Console.php at line 202</a>
+
+<h3 id="getHelp()">getHelp</h3>
+<code class="signature">public  string <strong>getHelp</strong>()</code>
+<div class="details">
+<p>Gets the help message.</p><dl>
+<dt>Returns:</dt>
+<dd>A help message.</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line212" class="location">library\think\Console.php at line 212</a>
+
+<h3 id="setCatchExceptions()">setCatchExceptions</h3>
+<code class="signature">public  void <strong>setCatchExceptions</strong>(bool boolean)</code>
+<div class="details">
+<p>是否捕获异常</p><dl>
+<dt>Api.</dt>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line222" class="location">library\think\Console.php at line 222</a>
+
+<h3 id="setAutoExit()">setAutoExit</h3>
+<code class="signature">public  void <strong>setAutoExit</strong>(bool boolean)</code>
+<div class="details">
+<p>是否自动退出</p><dl>
+<dt>Api.</dt>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line231" class="location">library\think\Console.php at line 231</a>
+
+<h3 id="getName()">getName</h3>
+<code class="signature">public  string <strong>getName</strong>()</code>
+<div class="details">
+<p>获取名称</p></div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line240" class="location">library\think\Console.php at line 240</a>
+
+<h3 id="setName()">setName</h3>
+<code class="signature">public  void <strong>setName</strong>(string name)</code>
+<div class="details">
+<p>设置名称</p></div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line250" class="location">library\think\Console.php at line 250</a>
+
+<h3 id="getVersion()">getVersion</h3>
+<code class="signature">public  string <strong>getVersion</strong>()</code>
+<div class="details">
+<p>获取版本</p><dl>
+<dt>Api.</dt>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line259" class="location">library\think\Console.php at line 259</a>
+
+<h3 id="setVersion()">setVersion</h3>
+<code class="signature">public  void <strong>setVersion</strong>(string version)</code>
+<div class="details">
+<p>设置版本</p></div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line268" class="location">library\think\Console.php at line 268</a>
+
+<h3 id="getLongVersion()">getLongVersion</h3>
+<code class="signature">public  string <strong>getLongVersion</strong>()</code>
+<div class="details">
+<p>获取完整的版本号</p></div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line282" class="location">library\think\Console.php at line 282</a>
+
+<h3 id="register()">register</h3>
+<code class="signature">public  <a href="../think/console/command.html">Command</a> <strong>register</strong>(string name)</code>
+<div class="details">
+<p>注册一个指令</p></div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line291" class="location">library\think\Console.php at line 291</a>
+
+<h3 id="addCommands()">addCommands</h3>
+<code class="signature">public  void <strong>addCommands</strong>(<a href="../think/console/command.html">Command</a> commands)</code>
+<div class="details">
+<p>添加指令</p></div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line303" class="location">library\think\Console.php at line 303</a>
+
+<h3 id="add()">add</h3>
+<code class="signature">public  <a href="../think/console/command.html">Command</a> <strong>add</strong>(<a href="../think/console/command.html">Command</a> command)</code>
+<div class="details">
+<p>添加一个指令</p></div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line331" class="location">library\think\Console.php at line 331</a>
+
+<h3 id="get()">get</h3>
+<code class="signature">public  <a href="../think/console/command.html">Command</a> <strong>get</strong>(string name)</code>
+<div class="details">
+<p>获取指令</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 指令名称</dd>
+<dt>Throws:</dt>
+<dd>\InvalidArgumentException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line357" class="location">library\think\Console.php at line 357</a>
+
+<h3 id="has()">has</h3>
+<code class="signature">public  bool <strong>has</strong>(string name)</code>
+<div class="details">
+<p>某个指令是否存在</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 指令名称</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line366" class="location">library\think\Console.php at line 366</a>
+
+<h3 id="getNamespaces()">getNamespaces</h3>
+<code class="signature">public  array <strong>getNamespaces</strong>()</code>
+<div class="details">
+<p>获取所有的命名空间</p></div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line386" class="location">library\think\Console.php at line 386</a>
+
+<h3 id="findNamespace()">findNamespace</h3>
+<code class="signature">public  string <strong>findNamespace</strong>(string namespace)</code>
+<div class="details">
+<p>查找注册命名空间中的名称或缩写。</p><dl>
+<dt>Throws:</dt>
+<dd>\InvalidArgumentException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line424" class="location">library\think\Console.php at line 424</a>
+
+<h3 id="find()">find</h3>
+<code class="signature">public  <a href="../think/console/command.html">Command</a> <strong>find</strong>(string name)</code>
+<div class="details">
+<p>查找指令</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 名称或者别名</dd>
+<dt>Throws:</dt>
+<dd>\InvalidArgumentException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line476" class="location">library\think\Console.php at line 476</a>
+
+<h3 id="all()">all</h3>
+<code class="signature">public  <a href="../think/console/command.html">Command[]</a> <strong>all</strong>(string namespace)</code>
+<div class="details">
+<p>获取所有的指令</p><dl>
+<dt>Parameters:</dt>
+<dd>namespace - 命名空间</dd>
+<dt>Api.</dt>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line497" class="location">library\think\Console.php at line 497</a>
+
+<h3 id="getAbbreviations()">getAbbreviations</h3>
+<code class="signature">public static  array <strong>getAbbreviations</strong>(array names)</code>
+<div class="details">
+<p>获取可能的指令名</p></div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line515" class="location">library\think\Console.php at line 515</a>
+
+<h3 id="configureIO()">configureIO</h3>
+<code class="signature">protected  void <strong>configureIO</strong>(<a href="../think/console/input.html">Input</a> input, <a href="../think/console/output.html">Output</a> output)</code>
+<div class="details">
+<p>配置基于用户的参数和选项的输入和输出实例。</p><dl>
+<dt>Parameters:</dt>
+<dd>input - 输入实例</dd>
+<dd>output - 输出实例</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line548" class="location">library\think\Console.php at line 548</a>
+
+<h3 id="doRunCommand()">doRunCommand</h3>
+<code class="signature">protected  int <strong>doRunCommand</strong>(<a href="../think/console/command.html">Command</a> command, <a href="../think/console/input.html">Input</a> input, <a href="../think/console/output.html">Output</a> output)</code>
+<div class="details">
+<p>执行指令</p><dl>
+<dt>Parameters:</dt>
+<dd>command - 指令实例</dd>
+<dd>input - 输入实例</dd>
+<dd>output - 输出实例</dd>
+<dt>Throws:</dt>
+<dd><a href="../think/exception.html">\Exception</a></dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line558" class="location">library\think\Console.php at line 558</a>
+
+<h3 id="getCommandName()">getCommandName</h3>
+<code class="signature">protected  string <strong>getCommandName</strong>(<a href="../think/console/input.html">Input</a> input)</code>
+<div class="details">
+<p>获取指令的基础名称</p></div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line567" class="location">library\think\Console.php at line 567</a>
+
+<h3 id="getDefaultInputDefinition()">getDefaultInputDefinition</h3>
+<code class="signature">protected  InputDefinition <strong>getDefaultInputDefinition</strong>()</code>
+<div class="details">
+<p>获取默认输入定义</p></div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line585" class="location">library\think\Console.php at line 585</a>
+
+<h3 id="getDefaultCommands()">getDefaultCommands</h3>
+<code class="signature">protected  <a href="../think/console/command.html">Command[]</a> <strong>getDefaultCommands</strong>()</code>
+<div class="details">
+<p>设置默认命令</p><dl>
+<dt>Returns:</dt>
+<dd>An array of default Command instances</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line598" class="location">library\think\Console.php at line 598</a>
+
+<h3 id="addDefaultCommands()">addDefaultCommands</h3>
+<code class="signature">public static  void <strong>addDefaultCommands</strong>(mixed classnames)</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line619" class="location">library\think\Console.php at line 619</a>
+
+<h3 id="extractNamespace()">extractNamespace</h3>
+<code class="signature">public  string <strong>extractNamespace</strong>(string name, string limit)</code>
+<div class="details">
+<p>返回命名空间部分</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 指令</dd>
+<dd>limit - 部分的命名空间的最大数量</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/console.php.html#line681" class="location">library\think\Console.php at line 681</a>
+
+<h3 id="setDefaultCommand()">setDefaultCommand</h3>
+<code class="signature">public  void <strong>setDefaultCommand</strong>(string commandName)</code>
+<div class="details">
+<p>设置默认的指令</p><dl>
+<dt>Parameters:</dt>
+<dd>commandName - The Command name</dd>
+</dl>
+</div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\console.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

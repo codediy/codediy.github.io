@@ -1,0 +1,277 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\Debug.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\debug.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\Debug.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think;
+<a name="line13"></a>
+<a name="line14"></a>use think\Config;
+<a name="line15"></a>use think\exception\ClassNotFoundException;
+<a name="line16"></a>use think\Log;
+<a name="line17"></a>use think\Request;
+<a name="line18"></a>use think\Response;
+<a name="line19"></a>use think\response\Redirect;
+<a name="line20"></a>
+<a name="line21"></a>class Debug
+<a name="line22"></a>{
+<a name="line23"></a>    // 区间时间信息
+<a name="line24"></a>    protected static $info = [];
+<a name="line25"></a>    // 区间内存信息
+<a name="line26"></a>    protected static $mem = [];
+<a name="line27"></a>
+<a name="line28"></a>    /**
+<a name="line29"></a>     * 记录时间（微秒）和内存使用情况
+<a name="line30"></a>     * @param string    $name 标记位置
+<a name="line31"></a>     * @param mixed     $value 标记值 留空则取当前 time 表示仅记录时间 否则同时记录时间和内存
+<a name="line32"></a>     * @return mixed
+<a name="line33"></a>     */
+<a name="line34"></a>    public static function remark($name, $value = '')
+<a name="line35"></a>    {
+<a name="line36"></a>        // 记录时间和内存使用
+<a name="line37"></a>        self::$info[$name] = is_float($value) ? $value : microtime(true);
+<a name="line38"></a>        if ('time' != $value) {
+<a name="line39"></a>            self::$mem['mem'][$name]  = is_float($value) ? $value : memory_get_usage();
+<a name="line40"></a>            self::$mem['peak'][$name] = memory_get_peak_usage();
+<a name="line41"></a>        }
+<a name="line42"></a>    }
+<a name="line43"></a>
+<a name="line44"></a>    /**
+<a name="line45"></a>     * 统计某个区间的时间（微秒）使用情况
+<a name="line46"></a>     * @param string            $start 开始标签
+<a name="line47"></a>     * @param string            $end 结束标签
+<a name="line48"></a>     * @param integer|string    $dec 小数位
+<a name="line49"></a>     * @return integer
+<a name="line50"></a>     */
+<a name="line51"></a>    public static function getRangeTime($start, $end, $dec = 6)
+<a name="line52"></a>    {
+<a name="line53"></a>        if (!isset(self::$info[$end])) {
+<a name="line54"></a>            self::$info[$end] = microtime(true);
+<a name="line55"></a>        }
+<a name="line56"></a>        return number_format((self::$info[$end] - self::$info[$start]), $dec);
+<a name="line57"></a>    }
+<a name="line58"></a>
+<a name="line59"></a>    /**
+<a name="line60"></a>     * 统计从开始到统计时的时间（微秒）使用情况
+<a name="line61"></a>     * @param integer|string $dec 小数位
+<a name="line62"></a>     * @return integer
+<a name="line63"></a>     */
+<a name="line64"></a>    public static function getUseTime($dec = 6)
+<a name="line65"></a>    {
+<a name="line66"></a>        return number_format((microtime(true) - THINK_START_TIME), $dec);
+<a name="line67"></a>    }
+<a name="line68"></a>
+<a name="line69"></a>    /**
+<a name="line70"></a>     * 获取当前访问的吞吐率情况
+<a name="line71"></a>     * @return string
+<a name="line72"></a>     */
+<a name="line73"></a>    public static function getThroughputRate()
+<a name="line74"></a>    {
+<a name="line75"></a>        return number_format(1 / self::getUseTime(), 2) . 'req/s';
+<a name="line76"></a>    }
+<a name="line77"></a>
+<a name="line78"></a>    /**
+<a name="line79"></a>     * 记录区间的内存使用情况
+<a name="line80"></a>     * @param string            $start 开始标签
+<a name="line81"></a>     * @param string            $end 结束标签
+<a name="line82"></a>     * @param integer|string    $dec 小数位
+<a name="line83"></a>     * @return string
+<a name="line84"></a>     */
+<a name="line85"></a>    public static function getRangeMem($start, $end, $dec = 2)
+<a name="line86"></a>    {
+<a name="line87"></a>        if (!isset(self::$mem['mem'][$end])) {
+<a name="line88"></a>            self::$mem['mem'][$end] = memory_get_usage();
+<a name="line89"></a>        }
+<a name="line90"></a>        $size = self::$mem['mem'][$end] - self::$mem['mem'][$start];
+<a name="line91"></a>        $a    = ['B', 'KB', 'MB', 'GB', 'TB'];
+<a name="line92"></a>        $pos  = 0;
+<a name="line93"></a>        while ($size >= 1024) {
+<a name="line94"></a>            $size /= 1024;
+<a name="line95"></a>            $pos++;
+<a name="line96"></a>        }
+<a name="line97"></a>        return round($size, $dec) . " " . $a[$pos];
+<a name="line98"></a>    }
+<a name="line99"></a>
+<a name="line100"></a>    /**
+<a name="line101"></a>     * 统计从开始到统计时的内存使用情况
+<a name="line102"></a>     * @param integer|string $dec 小数位
+<a name="line103"></a>     * @return string
+<a name="line104"></a>     */
+<a name="line105"></a>    public static function getUseMem($dec = 2)
+<a name="line106"></a>    {
+<a name="line107"></a>        $size = memory_get_usage() - THINK_START_MEM;
+<a name="line108"></a>        $a    = ['B', 'KB', 'MB', 'GB', 'TB'];
+<a name="line109"></a>        $pos  = 0;
+<a name="line110"></a>        while ($size >= 1024) {
+<a name="line111"></a>            $size /= 1024;
+<a name="line112"></a>            $pos++;
+<a name="line113"></a>        }
+<a name="line114"></a>        return round($size, $dec) . " " . $a[$pos];
+<a name="line115"></a>    }
+<a name="line116"></a>
+<a name="line117"></a>    /**
+<a name="line118"></a>     * 统计区间的内存峰值情况
+<a name="line119"></a>     * @param string            $start 开始标签
+<a name="line120"></a>     * @param string            $end 结束标签
+<a name="line121"></a>     * @param integer|string    $dec 小数位
+<a name="line122"></a>     * @return mixed
+<a name="line123"></a>     */
+<a name="line124"></a>    public static function getMemPeak($start, $end, $dec = 2)
+<a name="line125"></a>    {
+<a name="line126"></a>        if (!isset(self::$mem['peak'][$end])) {
+<a name="line127"></a>            self::$mem['peak'][$end] = memory_get_peak_usage();
+<a name="line128"></a>        }
+<a name="line129"></a>        $size = self::$mem['peak'][$end] - self::$mem['peak'][$start];
+<a name="line130"></a>        $a    = ['B', 'KB', 'MB', 'GB', 'TB'];
+<a name="line131"></a>        $pos  = 0;
+<a name="line132"></a>        while ($size >= 1024) {
+<a name="line133"></a>            $size /= 1024;
+<a name="line134"></a>            $pos++;
+<a name="line135"></a>        }
+<a name="line136"></a>        return round($size, $dec) . " " . $a[$pos];
+<a name="line137"></a>    }
+<a name="line138"></a>
+<a name="line139"></a>    /**
+<a name="line140"></a>     * 获取文件加载信息
+<a name="line141"></a>     * @param bool  $detail 是否显示详细
+<a name="line142"></a>     * @return integer|array
+<a name="line143"></a>     */
+<a name="line144"></a>    public static function getFile($detail = false)
+<a name="line145"></a>    {
+<a name="line146"></a>        if ($detail) {
+<a name="line147"></a>            $files = get_included_files();
+<a name="line148"></a>            $info  = [];
+<a name="line149"></a>            foreach ($files as $key => $file) {
+<a name="line150"></a>                $info[] = $file . ' ( ' . number_format(filesize($file) / 1024, 2) . ' KB )';
+<a name="line151"></a>            }
+<a name="line152"></a>            return $info;
+<a name="line153"></a>        }
+<a name="line154"></a>        return count(get_included_files());
+<a name="line155"></a>    }
+<a name="line156"></a>
+<a name="line157"></a>    /**
+<a name="line158"></a>     * 浏览器友好的变量输出
+<a name="line159"></a>     * @param mixed         $var 变量
+<a name="line160"></a>     * @param boolean       $echo 是否输出 默认为true 如果为false 则返回输出字符串
+<a name="line161"></a>     * @param string        $label 标签 默认为空
+<a name="line162"></a>     * @param integer       $flags htmlspecialchars flags
+<a name="line163"></a>     * @return void|string
+<a name="line164"></a>     */
+<a name="line165"></a>    public static function dump($var, $echo = true, $label = null, $flags = ENT_SUBSTITUTE)
+<a name="line166"></a>    {
+<a name="line167"></a>        $label = (null === $label) ? '' : rtrim($label) . ':';
+<a name="line168"></a>        ob_start();
+<a name="line169"></a>        var_dump($var);
+<a name="line170"></a>        $output = ob_get_clean();
+<a name="line171"></a>        $output = preg_replace('/\]\=\>\n(\s+)/m', '] => ', $output);
+<a name="line172"></a>        if (IS_CLI) {
+<a name="line173"></a>            $output = PHP_EOL . $label . $output . PHP_EOL;
+<a name="line174"></a>        } else {
+<a name="line175"></a>            if (!extension_loaded('xdebug')) {
+<a name="line176"></a>                $output = htmlspecialchars($output, $flags);
+<a name="line177"></a>            }
+<a name="line178"></a>            $output = '<pre>' . $label . $output . '</pre>';
+<a name="line179"></a>        }
+<a name="line180"></a>        if ($echo) {
+<a name="line181"></a>            echo ($output);
+<a name="line182"></a>            return null;
+<a name="line183"></a>        } else {
+<a name="line184"></a>            return $output;
+<a name="line185"></a>        }
+<a name="line186"></a>    }
+<a name="line187"></a>
+<a name="line188"></a>    public static function inject(Response $response, &$content)
+<a name="line189"></a>    {
+<a name="line190"></a>        $config  = Config::get('trace');
+<a name="line191"></a>        $type    = isset($config['type']) ? $config['type'] : 'Html';
+<a name="line192"></a>        $request = Request::instance();
+<a name="line193"></a>        $class   = false !== strpos($type, '\\') ? $type : '\\think\\debug\\' . ucwords($type);
+<a name="line194"></a>        unset($config['type']);
+<a name="line195"></a>        if (class_exists($class)) {
+<a name="line196"></a>            $trace = new $class($config);
+<a name="line197"></a>        } else {
+<a name="line198"></a>            throw new ClassNotFoundException('class not exists:' . $class, $class);
+<a name="line199"></a>        }
+<a name="line200"></a>
+<a name="line201"></a>        if ($response instanceof Redirect) {
+<a name="line202"></a>            //TODO 记录
+<a name="line203"></a>        } else {
+<a name="line204"></a>            $output = $trace->output($response, Log::getLog());
+<a name="line205"></a>            if (is_string($output)) {
+<a name="line206"></a>                // trace调试信息注入
+<a name="line207"></a>                $pos = strripos($content, '</body>');
+<a name="line208"></a>                if (false !== $pos) {
+<a name="line209"></a>                    $content = substr($content, 0, $pos) . $output . substr($content, $pos);
+<a name="line210"></a>                } else {
+<a name="line211"></a>                    $content = $content . $output;
+<a name="line212"></a>                }
+<a name="line213"></a>            }
+<a name="line214"></a>        }
+<a name="line215"></a>    }
+<a name="line216"></a>}
+<a name="line217"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\debug.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

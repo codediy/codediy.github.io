@@ -1,0 +1,214 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:06 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\view\driver\Php.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\view\driver\php.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\view\driver\Php.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think\view\driver;
+<a name="line13"></a>
+<a name="line14"></a>use think\App;
+<a name="line15"></a>use think\exception\TemplateNotFoundException;
+<a name="line16"></a>use think\Loader;
+<a name="line17"></a>use think\Log;
+<a name="line18"></a>use think\Request;
+<a name="line19"></a>
+<a name="line20"></a>class Php
+<a name="line21"></a>{
+<a name="line22"></a>    // 模板引擎参数
+<a name="line23"></a>    protected $config = [
+<a name="line24"></a>        // 模板起始路径
+<a name="line25"></a>        'view_path'   => '',
+<a name="line26"></a>        // 模板文件后缀
+<a name="line27"></a>        'view_suffix' => 'php',
+<a name="line28"></a>        // 模板文件名分隔符
+<a name="line29"></a>        'view_depr'   => DS,
+<a name="line30"></a>    ];
+<a name="line31"></a>
+<a name="line32"></a>    public function __construct($config = [])
+<a name="line33"></a>    {
+<a name="line34"></a>        $this->config = array_merge($this->config, $config);
+<a name="line35"></a>    }
+<a name="line36"></a>
+<a name="line37"></a>    /**
+<a name="line38"></a>     * 检测是否存在模板文件
+<a name="line39"></a>     * @access public
+<a name="line40"></a>     * @param string $template 模板文件或者模板规则
+<a name="line41"></a>     * @return bool
+<a name="line42"></a>     */
+<a name="line43"></a>    public function exists($template)
+<a name="line44"></a>    {
+<a name="line45"></a>        if ('' == pathinfo($template, PATHINFO_EXTENSION)) {
+<a name="line46"></a>            // 获取模板文件名
+<a name="line47"></a>            $template = $this->parseTemplate($template);
+<a name="line48"></a>        }
+<a name="line49"></a>        return is_file($template);
+<a name="line50"></a>    }
+<a name="line51"></a>
+<a name="line52"></a>    /**
+<a name="line53"></a>     * 渲染模板文件
+<a name="line54"></a>     * @access public
+<a name="line55"></a>     * @param string    $template 模板文件
+<a name="line56"></a>     * @param array     $data 模板变量
+<a name="line57"></a>     * @return void
+<a name="line58"></a>     */
+<a name="line59"></a>    public function fetch($template, $data = [])
+<a name="line60"></a>    {
+<a name="line61"></a>        if ('' == pathinfo($template, PATHINFO_EXTENSION)) {
+<a name="line62"></a>            // 获取模板文件名
+<a name="line63"></a>            $template = $this->parseTemplate($template);
+<a name="line64"></a>        }
+<a name="line65"></a>        // 模板不存在 抛出异常
+<a name="line66"></a>        if (!is_file($template)) {
+<a name="line67"></a>            throw new TemplateNotFoundException('template not exists:' . $template, $template);
+<a name="line68"></a>        }
+<a name="line69"></a>        // 记录视图信息
+<a name="line70"></a>        App::$debug && Log::record('[ VIEW ] ' . $template . ' [ ' . var_export(array_keys($data), true) . ' ]', 'info');
+<a name="line71"></a>        if (isset($data['template'])) {
+<a name="line72"></a>            $__template__ = $template;
+<a name="line73"></a>            extract($data, EXTR_OVERWRITE);
+<a name="line74"></a>            include $__template__;
+<a name="line75"></a>        } else {
+<a name="line76"></a>            extract($data, EXTR_OVERWRITE);
+<a name="line77"></a>            include $template;
+<a name="line78"></a>        }
+<a name="line79"></a>    }
+<a name="line80"></a>
+<a name="line81"></a>    /**
+<a name="line82"></a>     * 渲染模板内容
+<a name="line83"></a>     * @access public
+<a name="line84"></a>     * @param string    $content 模板内容
+<a name="line85"></a>     * @param array     $data 模板变量
+<a name="line86"></a>     * @return void
+<a name="line87"></a>     */
+<a name="line88"></a>    public function display($content, $data = [])
+<a name="line89"></a>    {
+<a name="line90"></a>        if (isset($data['content'])) {
+<a name="line91"></a>            $__content__ = $content;
+<a name="line92"></a>            extract($data, EXTR_OVERWRITE);
+<a name="line93"></a>            eval('?>' . $__content__);
+<a name="line94"></a>        } else {
+<a name="line95"></a>            extract($data, EXTR_OVERWRITE);
+<a name="line96"></a>            eval('?>' . $content);
+<a name="line97"></a>        }
+<a name="line98"></a>    }
+<a name="line99"></a>
+<a name="line100"></a>    /**
+<a name="line101"></a>     * 自动定位模板文件
+<a name="line102"></a>     * @access private
+<a name="line103"></a>     * @param string $template 模板文件规则
+<a name="line104"></a>     * @return string
+<a name="line105"></a>     */
+<a name="line106"></a>    private function parseTemplate($template)
+<a name="line107"></a>    {
+<a name="line108"></a>        if (empty($this->config['view_path'])) {
+<a name="line109"></a>            $this->config['view_path'] = App::$modulePath . 'view' . DS;
+<a name="line110"></a>        }
+<a name="line111"></a>
+<a name="line112"></a>        if (strpos($template, '@')) {
+<a name="line113"></a>            list($module, $template) = explode('@', $template);
+<a name="line114"></a>            $path                    = APP_PATH . $module . DS . 'view' . DS;
+<a name="line115"></a>        } else {
+<a name="line116"></a>            $path = $this->config['view_path'];
+<a name="line117"></a>        }
+<a name="line118"></a>
+<a name="line119"></a>        // 分析模板文件规则
+<a name="line120"></a>        $request    = Request::instance();
+<a name="line121"></a>        $controller = Loader::parseName($request->controller());
+<a name="line122"></a>        if ($controller && 0 !== strpos($template, '/')) {
+<a name="line123"></a>            $depr     = $this->config['view_depr'];
+<a name="line124"></a>            $template = str_replace(['/', ':'], $depr, $template);
+<a name="line125"></a>            if ('' == $template) {
+<a name="line126"></a>                // 如果模板文件名为空 按照默认规则定位
+<a name="line127"></a>                $template = str_replace('.', DS, $controller) . $depr . $request->action();
+<a name="line128"></a>            } elseif (false === strpos($template, $depr)) {
+<a name="line129"></a>                $template = str_replace('.', DS, $controller) . $depr . $template;
+<a name="line130"></a>            }
+<a name="line131"></a>        }
+<a name="line132"></a>        return $path . ltrim($template, '/') . '.' . ltrim($this->config['view_suffix'], '.');
+<a name="line133"></a>    }
+<a name="line134"></a>
+<a name="line135"></a>    /**
+<a name="line136"></a>     * 配置模板引擎
+<a name="line137"></a>     * @access private
+<a name="line138"></a>     * @param string|array  $name 参数名
+<a name="line139"></a>     * @param mixed         $value 参数值
+<a name="line140"></a>     * @return void
+<a name="line141"></a>     */
+<a name="line142"></a>    public function config($name, $value = null)
+<a name="line143"></a>    {
+<a name="line144"></a>        if (is_array($name)) {
+<a name="line145"></a>            $this->config = array_merge($this->config, $name);
+<a name="line146"></a>        } elseif (is_null($value)) {
+<a name="line147"></a>            return isset($this->config[$name]) ? $this->config[$name] : null;
+<a name="line148"></a>        } else {
+<a name="line149"></a>            $this->config[$name] = $value;
+<a name="line150"></a>        }
+<a name="line151"></a>    }
+<a name="line152"></a>
+<a name="line153"></a>}
+<a name="line154"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\view\driver\php.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

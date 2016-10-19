@@ -1,0 +1,135 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:06 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\process\Utils.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\process\utils.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\process\Utils.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | TopThink [ WE CAN DO IT JUST THINK IT ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2015 http://www.topthink.com All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Author: zhangyajun <448901948@qq.com>
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>
+<a name="line10"></a>namespace think\process;
+<a name="line11"></a>
+<a name="line12"></a>class Utils
+<a name="line13"></a>{
+<a name="line14"></a>
+<a name="line15"></a>    /**
+<a name="line16"></a>     * 转义字符串
+<a name="line17"></a>     * @param string $argument
+<a name="line18"></a>     * @return string
+<a name="line19"></a>     */
+<a name="line20"></a>    public static function escapeArgument($argument)
+<a name="line21"></a>    {
+<a name="line22"></a>
+<a name="line23"></a>        if ('' === $argument) {
+<a name="line24"></a>            return escapeshellarg($argument);
+<a name="line25"></a>        }
+<a name="line26"></a>        $escapedArgument = '';
+<a name="line27"></a>        $quote           = false;
+<a name="line28"></a>        foreach (preg_split('/(")/i', $argument, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE) as $part) {
+<a name="line29"></a>            if ('"' === $part) {
+<a name="line30"></a>                $escapedArgument .= '\\"';
+<a name="line31"></a>            } elseif (self::isSurroundedBy($part, '%')) {
+<a name="line32"></a>                // Avoid environment variable expansion
+<a name="line33"></a>                $escapedArgument .= '^%"' . substr($part, 1, -1) . '"^%';
+<a name="line34"></a>            } else {
+<a name="line35"></a>                // escape trailing backslash
+<a name="line36"></a>                if ('\\' === substr($part, -1)) {
+<a name="line37"></a>                    $part .= '\\';
+<a name="line38"></a>                }
+<a name="line39"></a>                $quote = true;
+<a name="line40"></a>                $escapedArgument .= $part;
+<a name="line41"></a>            }
+<a name="line42"></a>        }
+<a name="line43"></a>        if ($quote) {
+<a name="line44"></a>            $escapedArgument = '"' . $escapedArgument . '"';
+<a name="line45"></a>        }
+<a name="line46"></a>        return $escapedArgument;
+<a name="line47"></a>    }
+<a name="line48"></a>
+<a name="line49"></a>    /**
+<a name="line50"></a>     * 验证并进行规范化Process输入。
+<a name="line51"></a>     * @param string $caller
+<a name="line52"></a>     * @param mixed  $input
+<a name="line53"></a>     * @return string
+<a name="line54"></a>     * @throws \InvalidArgumentException
+<a name="line55"></a>     */
+<a name="line56"></a>    public static function validateInput($caller, $input)
+<a name="line57"></a>    {
+<a name="line58"></a>        if (null !== $input) {
+<a name="line59"></a>            if (is_resource($input)) {
+<a name="line60"></a>                return $input;
+<a name="line61"></a>            }
+<a name="line62"></a>            if (is_scalar($input)) {
+<a name="line63"></a>                return (string)$input;
+<a name="line64"></a>            }
+<a name="line65"></a>            throw new \InvalidArgumentException(sprintf('%s only accepts strings or stream resources.', $caller));
+<a name="line66"></a>        }
+<a name="line67"></a>        return $input;
+<a name="line68"></a>    }
+<a name="line69"></a>
+<a name="line70"></a>    private static function isSurroundedBy($arg, $char)
+<a name="line71"></a>    {
+<a name="line72"></a>        return 2 < strlen($arg) && $char === $arg[0] && $char === $arg[strlen($arg) - 1];
+<a name="line73"></a>    }
+<a name="line74"></a>
+<a name="line75"></a>}</pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\process\utils.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

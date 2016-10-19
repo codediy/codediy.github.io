@@ -1,0 +1,436 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\console\input\Definition.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\console\input\definition.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\console\input\Definition.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2015 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: yunwuxin <448901948@qq.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think\console\input;
+<a name="line13"></a>
+<a name="line14"></a>class Definition
+<a name="line15"></a>{
+<a name="line16"></a>
+<a name="line17"></a>    /**
+<a name="line18"></a>     * @var Argument[]
+<a name="line19"></a>     */
+<a name="line20"></a>    private $arguments;
+<a name="line21"></a>
+<a name="line22"></a>    private $requiredCount;
+<a name="line23"></a>    private $hasAnArrayArgument = false;
+<a name="line24"></a>    private $hasOptional;
+<a name="line25"></a>
+<a name="line26"></a>    /**
+<a name="line27"></a>     * @var Option[]
+<a name="line28"></a>     */
+<a name="line29"></a>    private $options;
+<a name="line30"></a>    private $shortcuts;
+<a name="line31"></a>
+<a name="line32"></a>    /**
+<a name="line33"></a>     * 构造方法
+<a name="line34"></a>     * @param array $definition
+<a name="line35"></a>     * @api
+<a name="line36"></a>     */
+<a name="line37"></a>    public function __construct(array $definition = [])
+<a name="line38"></a>    {
+<a name="line39"></a>        $this->setDefinition($definition);
+<a name="line40"></a>    }
+<a name="line41"></a>
+<a name="line42"></a>    /**
+<a name="line43"></a>     * 设置指令的定义
+<a name="line44"></a>     * @param array $definition 定义的数组
+<a name="line45"></a>     */
+<a name="line46"></a>    public function setDefinition(array $definition)
+<a name="line47"></a>    {
+<a name="line48"></a>        $arguments = [];
+<a name="line49"></a>        $options   = [];
+<a name="line50"></a>        foreach ($definition as $item) {
+<a name="line51"></a>            if ($item instanceof Option) {
+<a name="line52"></a>                $options[] = $item;
+<a name="line53"></a>            } else {
+<a name="line54"></a>                $arguments[] = $item;
+<a name="line55"></a>            }
+<a name="line56"></a>        }
+<a name="line57"></a>
+<a name="line58"></a>        $this->setArguments($arguments);
+<a name="line59"></a>        $this->setOptions($options);
+<a name="line60"></a>    }
+<a name="line61"></a>
+<a name="line62"></a>    /**
+<a name="line63"></a>     * 设置参数
+<a name="line64"></a>     * @param Argument[] $arguments 参数数组
+<a name="line65"></a>     */
+<a name="line66"></a>    public function setArguments($arguments = [])
+<a name="line67"></a>    {
+<a name="line68"></a>        $this->arguments          = [];
+<a name="line69"></a>        $this->requiredCount      = 0;
+<a name="line70"></a>        $this->hasOptional        = false;
+<a name="line71"></a>        $this->hasAnArrayArgument = false;
+<a name="line72"></a>        $this->addArguments($arguments);
+<a name="line73"></a>    }
+<a name="line74"></a>
+<a name="line75"></a>    /**
+<a name="line76"></a>     * 添加参数
+<a name="line77"></a>     * @param Argument[] $arguments 参数数组
+<a name="line78"></a>     * @api
+<a name="line79"></a>     */
+<a name="line80"></a>    public function addArguments($arguments = [])
+<a name="line81"></a>    {
+<a name="line82"></a>        if (null !== $arguments) {
+<a name="line83"></a>            foreach ($arguments as $argument) {
+<a name="line84"></a>                $this->addArgument($argument);
+<a name="line85"></a>            }
+<a name="line86"></a>        }
+<a name="line87"></a>    }
+<a name="line88"></a>
+<a name="line89"></a>    /**
+<a name="line90"></a>     * 添加一个参数
+<a name="line91"></a>     * @param Argument $argument 参数
+<a name="line92"></a>     * @throws \LogicException
+<a name="line93"></a>     */
+<a name="line94"></a>    public function addArgument(Argument $argument)
+<a name="line95"></a>    {
+<a name="line96"></a>        if (isset($this->arguments[$argument->getName()])) {
+<a name="line97"></a>            throw new \LogicException(sprintf('An argument with name "%s" already exists.', $argument->getName()));
+<a name="line98"></a>        }
+<a name="line99"></a>
+<a name="line100"></a>        if ($this->hasAnArrayArgument) {
+<a name="line101"></a>            throw new \LogicException('Cannot add an argument after an array argument.');
+<a name="line102"></a>        }
+<a name="line103"></a>
+<a name="line104"></a>        if ($argument->isRequired() && $this->hasOptional) {
+<a name="line105"></a>            throw new \LogicException('Cannot add a required argument after an optional one.');
+<a name="line106"></a>        }
+<a name="line107"></a>
+<a name="line108"></a>        if ($argument->isArray()) {
+<a name="line109"></a>            $this->hasAnArrayArgument = true;
+<a name="line110"></a>        }
+<a name="line111"></a>
+<a name="line112"></a>        if ($argument->isRequired()) {
+<a name="line113"></a>            ++$this->requiredCount;
+<a name="line114"></a>        } else {
+<a name="line115"></a>            $this->hasOptional = true;
+<a name="line116"></a>        }
+<a name="line117"></a>
+<a name="line118"></a>        $this->arguments[$argument->getName()] = $argument;
+<a name="line119"></a>    }
+<a name="line120"></a>
+<a name="line121"></a>    /**
+<a name="line122"></a>     * 根据名称或者位置获取参数
+<a name="line123"></a>     * @param string|int $name 参数名或者位置
+<a name="line124"></a>     * @return Argument 参数
+<a name="line125"></a>     * @throws \InvalidArgumentException
+<a name="line126"></a>     */
+<a name="line127"></a>    public function getArgument($name)
+<a name="line128"></a>    {
+<a name="line129"></a>        if (!$this->hasArgument($name)) {
+<a name="line130"></a>            throw new \InvalidArgumentException(sprintf('The "%s" argument does not exist.', $name));
+<a name="line131"></a>        }
+<a name="line132"></a>
+<a name="line133"></a>        $arguments = is_int($name) ? array_values($this->arguments) : $this->arguments;
+<a name="line134"></a>
+<a name="line135"></a>        return $arguments[$name];
+<a name="line136"></a>    }
+<a name="line137"></a>
+<a name="line138"></a>    /**
+<a name="line139"></a>     * 根据名称或位置检查是否具有某个参数
+<a name="line140"></a>     * @param string|int $name 参数名或者位置
+<a name="line141"></a>     * @return bool
+<a name="line142"></a>     * @api
+<a name="line143"></a>     */
+<a name="line144"></a>    public function hasArgument($name)
+<a name="line145"></a>    {
+<a name="line146"></a>        $arguments = is_int($name) ? array_values($this->arguments) : $this->arguments;
+<a name="line147"></a>
+<a name="line148"></a>        return isset($arguments[$name]);
+<a name="line149"></a>    }
+<a name="line150"></a>
+<a name="line151"></a>    /**
+<a name="line152"></a>     * 获取所有的参数
+<a name="line153"></a>     * @return Argument[] 参数数组
+<a name="line154"></a>     */
+<a name="line155"></a>    public function getArguments()
+<a name="line156"></a>    {
+<a name="line157"></a>        return $this->arguments;
+<a name="line158"></a>    }
+<a name="line159"></a>
+<a name="line160"></a>    /**
+<a name="line161"></a>     * 获取参数数量
+<a name="line162"></a>     * @return int
+<a name="line163"></a>     */
+<a name="line164"></a>    public function getArgumentCount()
+<a name="line165"></a>    {
+<a name="line166"></a>        return $this->hasAnArrayArgument ? PHP_INT_MAX : count($this->arguments);
+<a name="line167"></a>    }
+<a name="line168"></a>
+<a name="line169"></a>    /**
+<a name="line170"></a>     * 获取必填的参数的数量
+<a name="line171"></a>     * @return int
+<a name="line172"></a>     */
+<a name="line173"></a>    public function getArgumentRequiredCount()
+<a name="line174"></a>    {
+<a name="line175"></a>        return $this->requiredCount;
+<a name="line176"></a>    }
+<a name="line177"></a>
+<a name="line178"></a>    /**
+<a name="line179"></a>     * 获取参数默认值
+<a name="line180"></a>     * @return array
+<a name="line181"></a>     */
+<a name="line182"></a>    public function getArgumentDefaults()
+<a name="line183"></a>    {
+<a name="line184"></a>        $values = [];
+<a name="line185"></a>        foreach ($this->arguments as $argument) {
+<a name="line186"></a>            $values[$argument->getName()] = $argument->getDefault();
+<a name="line187"></a>        }
+<a name="line188"></a>
+<a name="line189"></a>        return $values;
+<a name="line190"></a>    }
+<a name="line191"></a>
+<a name="line192"></a>    /**
+<a name="line193"></a>     * 设置选项
+<a name="line194"></a>     * @param Option[] $options 选项数组
+<a name="line195"></a>     */
+<a name="line196"></a>    public function setOptions($options = [])
+<a name="line197"></a>    {
+<a name="line198"></a>        $this->options   = [];
+<a name="line199"></a>        $this->shortcuts = [];
+<a name="line200"></a>        $this->addOptions($options);
+<a name="line201"></a>    }
+<a name="line202"></a>
+<a name="line203"></a>    /**
+<a name="line204"></a>     * 添加选项
+<a name="line205"></a>     * @param Option[] $options 选项数组
+<a name="line206"></a>     * @api
+<a name="line207"></a>     */
+<a name="line208"></a>    public function addOptions($options = [])
+<a name="line209"></a>    {
+<a name="line210"></a>        foreach ($options as $option) {
+<a name="line211"></a>            $this->addOption($option);
+<a name="line212"></a>        }
+<a name="line213"></a>    }
+<a name="line214"></a>
+<a name="line215"></a>    /**
+<a name="line216"></a>     * 添加一个选项
+<a name="line217"></a>     * @param Option $option 选项
+<a name="line218"></a>     * @throws \LogicException
+<a name="line219"></a>     * @api
+<a name="line220"></a>     */
+<a name="line221"></a>    public function addOption(Option $option)
+<a name="line222"></a>    {
+<a name="line223"></a>        if (isset($this->options[$option->getName()]) && !$option->equals($this->options[$option->getName()])) {
+<a name="line224"></a>            throw new \LogicException(sprintf('An option named "%s" already exists.', $option->getName()));
+<a name="line225"></a>        }
+<a name="line226"></a>
+<a name="line227"></a>        if ($option->getShortcut()) {
+<a name="line228"></a>            foreach (explode('|', $option->getShortcut()) as $shortcut) {
+<a name="line229"></a>                if (isset($this->shortcuts[$shortcut])
+<a name="line230"></a>                    && !$option->equals($this->options[$this->shortcuts[$shortcut]])
+<a name="line231"></a>                ) {
+<a name="line232"></a>                    throw new \LogicException(sprintf('An option with shortcut "%s" already exists.', $shortcut));
+<a name="line233"></a>                }
+<a name="line234"></a>            }
+<a name="line235"></a>        }
+<a name="line236"></a>
+<a name="line237"></a>        $this->options[$option->getName()] = $option;
+<a name="line238"></a>        if ($option->getShortcut()) {
+<a name="line239"></a>            foreach (explode('|', $option->getShortcut()) as $shortcut) {
+<a name="line240"></a>                $this->shortcuts[$shortcut] = $option->getName();
+<a name="line241"></a>            }
+<a name="line242"></a>        }
+<a name="line243"></a>    }
+<a name="line244"></a>
+<a name="line245"></a>    /**
+<a name="line246"></a>     * 根据名称获取选项
+<a name="line247"></a>     * @param string $name 选项名
+<a name="line248"></a>     * @return Option
+<a name="line249"></a>     * @throws \InvalidArgumentException
+<a name="line250"></a>     * @api
+<a name="line251"></a>     */
+<a name="line252"></a>    public function getOption($name)
+<a name="line253"></a>    {
+<a name="line254"></a>        if (!$this->hasOption($name)) {
+<a name="line255"></a>            throw new \InvalidArgumentException(sprintf('The "--%s" option does not exist.', $name));
+<a name="line256"></a>        }
+<a name="line257"></a>
+<a name="line258"></a>        return $this->options[$name];
+<a name="line259"></a>    }
+<a name="line260"></a>
+<a name="line261"></a>    /**
+<a name="line262"></a>     * 根据名称检查是否有这个选项
+<a name="line263"></a>     * @param string $name 选项名
+<a name="line264"></a>     * @return bool
+<a name="line265"></a>     * @api
+<a name="line266"></a>     */
+<a name="line267"></a>    public function hasOption($name)
+<a name="line268"></a>    {
+<a name="line269"></a>        return isset($this->options[$name]);
+<a name="line270"></a>    }
+<a name="line271"></a>
+<a name="line272"></a>    /**
+<a name="line273"></a>     * 获取所有选项
+<a name="line274"></a>     * @return Option[]
+<a name="line275"></a>     * @api
+<a name="line276"></a>     */
+<a name="line277"></a>    public function getOptions()
+<a name="line278"></a>    {
+<a name="line279"></a>        return $this->options;
+<a name="line280"></a>    }
+<a name="line281"></a>
+<a name="line282"></a>    /**
+<a name="line283"></a>     * 根据名称检查某个选项是否有短名称
+<a name="line284"></a>     * @param string $name 短名称
+<a name="line285"></a>     * @return bool
+<a name="line286"></a>     */
+<a name="line287"></a>    public function hasShortcut($name)
+<a name="line288"></a>    {
+<a name="line289"></a>        return isset($this->shortcuts[$name]);
+<a name="line290"></a>    }
+<a name="line291"></a>
+<a name="line292"></a>    /**
+<a name="line293"></a>     * 根据短名称获取选项
+<a name="line294"></a>     * @param string $shortcut 短名称
+<a name="line295"></a>     * @return Option
+<a name="line296"></a>     */
+<a name="line297"></a>    public function getOptionForShortcut($shortcut)
+<a name="line298"></a>    {
+<a name="line299"></a>        return $this->getOption($this->shortcutToName($shortcut));
+<a name="line300"></a>    }
+<a name="line301"></a>
+<a name="line302"></a>    /**
+<a name="line303"></a>     * 获取所有选项的默认值
+<a name="line304"></a>     * @return array
+<a name="line305"></a>     */
+<a name="line306"></a>    public function getOptionDefaults()
+<a name="line307"></a>    {
+<a name="line308"></a>        $values = [];
+<a name="line309"></a>        foreach ($this->options as $option) {
+<a name="line310"></a>            $values[$option->getName()] = $option->getDefault();
+<a name="line311"></a>        }
+<a name="line312"></a>
+<a name="line313"></a>        return $values;
+<a name="line314"></a>    }
+<a name="line315"></a>
+<a name="line316"></a>    /**
+<a name="line317"></a>     * 根据短名称获取选项名
+<a name="line318"></a>     * @param string $shortcut 短名称
+<a name="line319"></a>     * @return string
+<a name="line320"></a>     * @throws \InvalidArgumentException
+<a name="line321"></a>     */
+<a name="line322"></a>    private function shortcutToName($shortcut)
+<a name="line323"></a>    {
+<a name="line324"></a>        if (!isset($this->shortcuts[$shortcut])) {
+<a name="line325"></a>            throw new \InvalidArgumentException(sprintf('The "-%s" option does not exist.', $shortcut));
+<a name="line326"></a>        }
+<a name="line327"></a>
+<a name="line328"></a>        return $this->shortcuts[$shortcut];
+<a name="line329"></a>    }
+<a name="line330"></a>
+<a name="line331"></a>    /**
+<a name="line332"></a>     * 获取该指令的介绍
+<a name="line333"></a>     * @param bool $short 是否简洁介绍
+<a name="line334"></a>     * @return string
+<a name="line335"></a>     */
+<a name="line336"></a>    public function getSynopsis($short = false)
+<a name="line337"></a>    {
+<a name="line338"></a>        $elements = [];
+<a name="line339"></a>
+<a name="line340"></a>        if ($short && $this->getOptions()) {
+<a name="line341"></a>            $elements[] = '[options]';
+<a name="line342"></a>        } elseif (!$short) {
+<a name="line343"></a>            foreach ($this->getOptions() as $option) {
+<a name="line344"></a>                $value = '';
+<a name="line345"></a>                if ($option->acceptValue()) {
+<a name="line346"></a>                    $value = sprintf(' %s%s%s', $option->isValueOptional() ? '[' : '', strtoupper($option->getName()), $option->isValueOptional() ? ']' : '');
+<a name="line347"></a>                }
+<a name="line348"></a>
+<a name="line349"></a>                $shortcut   = $option->getShortcut() ? sprintf('-%s|', $option->getShortcut()) : '';
+<a name="line350"></a>                $elements[] = sprintf('[%s--%s%s]', $shortcut, $option->getName(), $value);
+<a name="line351"></a>            }
+<a name="line352"></a>        }
+<a name="line353"></a>
+<a name="line354"></a>        if (count($elements) && $this->getArguments()) {
+<a name="line355"></a>            $elements[] = '[--]';
+<a name="line356"></a>        }
+<a name="line357"></a>
+<a name="line358"></a>        foreach ($this->getArguments() as $argument) {
+<a name="line359"></a>            $element = '<' . $argument->getName() . '>';
+<a name="line360"></a>            if (!$argument->isRequired()) {
+<a name="line361"></a>                $element = '[' . $element . ']';
+<a name="line362"></a>            } elseif ($argument->isArray()) {
+<a name="line363"></a>                $element .= ' (' . $element . ')';
+<a name="line364"></a>            }
+<a name="line365"></a>
+<a name="line366"></a>            if ($argument->isArray()) {
+<a name="line367"></a>                $element .= '...';
+<a name="line368"></a>            }
+<a name="line369"></a>
+<a name="line370"></a>            $elements[] = $element;
+<a name="line371"></a>        }
+<a name="line372"></a>
+<a name="line373"></a>        return implode(' ', $elements);
+<a name="line374"></a>    }
+<a name="line375"></a>}
+<a name="line376"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\console\input\definition.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

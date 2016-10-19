@@ -1,0 +1,1584 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\Route.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\route.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\Route.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: liu21st <liu21st@gmail.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think;
+<a name="line13"></a>
+<a name="line14"></a>use think\App;
+<a name="line15"></a>use think\Config;
+<a name="line16"></a>use think\exception\HttpException;
+<a name="line17"></a>use think\Hook;
+<a name="line18"></a>use think\Loader;
+<a name="line19"></a>use think\Log;
+<a name="line20"></a>use think\Request;
+<a name="line21"></a>use think\Response;
+<a name="line22"></a>
+<a name="line23"></a>class Route
+<a name="line24"></a>{
+<a name="line25"></a>    // 路由规则
+<a name="line26"></a>    private static $rules = [
+<a name="line27"></a>        'GET'     => [],
+<a name="line28"></a>        'POST'    => [],
+<a name="line29"></a>        'PUT'     => [],
+<a name="line30"></a>        'DELETE'  => [],
+<a name="line31"></a>        'PATCH'   => [],
+<a name="line32"></a>        'HEAD'    => [],
+<a name="line33"></a>        'OPTIONS' => [],
+<a name="line34"></a>        '*'       => [],
+<a name="line35"></a>        'alias'   => [],
+<a name="line36"></a>        'domain'  => [],
+<a name="line37"></a>        'pattern' => [],
+<a name="line38"></a>        'name'    => [],
+<a name="line39"></a>    ];
+<a name="line40"></a>
+<a name="line41"></a>    // REST路由操作方法定义
+<a name="line42"></a>    private static $rest = [
+<a name="line43"></a>        'index'  => ['GET', '', 'index'],
+<a name="line44"></a>        'create' => ['GET', '/create', 'create'],
+<a name="line45"></a>        'edit'   => ['GET', '/:id/edit', 'edit'],
+<a name="line46"></a>        'read'   => ['GET', '/:id', 'read'],
+<a name="line47"></a>        'save'   => ['POST', '', 'save'],
+<a name="line48"></a>        'update' => ['PUT', '/:id', 'update'],
+<a name="line49"></a>        'delete' => ['DELETE', '/:id', 'delete'],
+<a name="line50"></a>    ];
+<a name="line51"></a>
+<a name="line52"></a>    // 不同请求类型的方法前缀
+<a name="line53"></a>    private static $methodPrefix = [
+<a name="line54"></a>        'GET'    => 'get',
+<a name="line55"></a>        'POST'   => 'post',
+<a name="line56"></a>        'PUT'    => 'put',
+<a name="line57"></a>        'DELETE' => 'delete',
+<a name="line58"></a>    ];
+<a name="line59"></a>
+<a name="line60"></a>    // 子域名
+<a name="line61"></a>    private static $subDomain = '';
+<a name="line62"></a>    // 域名绑定
+<a name="line63"></a>    private static $bind = [];
+<a name="line64"></a>    // 当前分组信息
+<a name="line65"></a>    private static $group = [];
+<a name="line66"></a>    // 当前子域名绑定
+<a name="line67"></a>    private static $domainBind;
+<a name="line68"></a>    private static $domainRule;
+<a name="line69"></a>    // 当前域名
+<a name="line70"></a>    private static $domain;
+<a name="line71"></a>
+<a name="line72"></a>    /**
+<a name="line73"></a>     * 注册变量规则
+<a name="line74"></a>     * @access public
+<a name="line75"></a>     * @param string|array  $name 变量名
+<a name="line76"></a>     * @param string        $rule 变量规则
+<a name="line77"></a>     * @return void
+<a name="line78"></a>     */
+<a name="line79"></a>    public static function pattern($name = null, $rule = '')
+<a name="line80"></a>    {
+<a name="line81"></a>        if (is_array($name)) {
+<a name="line82"></a>            self::$rules['pattern'] = array_merge(self::$rules['pattern'], $name);
+<a name="line83"></a>        } else {
+<a name="line84"></a>            self::$rules['pattern'][$name] = $rule;
+<a name="line85"></a>        }
+<a name="line86"></a>    }
+<a name="line87"></a>
+<a name="line88"></a>    /**
+<a name="line89"></a>     * 注册子域名部署规则
+<a name="line90"></a>     * @access public
+<a name="line91"></a>     * @param string|array  $domain 子域名
+<a name="line92"></a>     * @param mixed         $rule 路由规则
+<a name="line93"></a>     * @param array         $option 路由参数
+<a name="line94"></a>     * @param array         $pattern 变量规则
+<a name="line95"></a>     * @return void
+<a name="line96"></a>     */
+<a name="line97"></a>    public static function domain($domain, $rule = '', $option = [], $pattern = [])
+<a name="line98"></a>    {
+<a name="line99"></a>        if (is_array($domain)) {
+<a name="line100"></a>            foreach ($domain as $key => $item) {
+<a name="line101"></a>                self::domain($key, $item, $option, $pattern);
+<a name="line102"></a>            }
+<a name="line103"></a>        } elseif ($rule instanceof \Closure) {
+<a name="line104"></a>            // 执行闭包
+<a name="line105"></a>            self::setDomain($domain);
+<a name="line106"></a>            call_user_func_array($rule, []);
+<a name="line107"></a>            self::setDomain(null);
+<a name="line108"></a>        } elseif (is_array($rule)) {
+<a name="line109"></a>            self::setDomain($domain);
+<a name="line110"></a>            self::group('', function () use ($rule) {
+<a name="line111"></a>                // 动态注册域名的路由规则
+<a name="line112"></a>                self::registerRules($rule);
+<a name="line113"></a>            }, $option, $pattern);
+<a name="line114"></a>            self::setDomain(null);
+<a name="line115"></a>        } else {
+<a name="line116"></a>            self::$rules['domain'][$domain]['[bind]'] = [$rule, $option, $pattern];
+<a name="line117"></a>        }
+<a name="line118"></a>    }
+<a name="line119"></a>
+<a name="line120"></a>    private static function setDomain($domain)
+<a name="line121"></a>    {
+<a name="line122"></a>        self::$domain = $domain;
+<a name="line123"></a>    }
+<a name="line124"></a>
+<a name="line125"></a>    /**
+<a name="line126"></a>     * 设置路由绑定
+<a name="line127"></a>     * @access public
+<a name="line128"></a>     * @param mixed     $bind 绑定信息
+<a name="line129"></a>     * @param string    $type 绑定类型 默认为module 支持 namespace class
+<a name="line130"></a>     * @return mixed
+<a name="line131"></a>     */
+<a name="line132"></a>    public static function bind($bind, $type = 'module')
+<a name="line133"></a>    {
+<a name="line134"></a>        self::$bind = ['type' => $type, $type => $bind];
+<a name="line135"></a>    }
+<a name="line136"></a>
+<a name="line137"></a>    /**
+<a name="line138"></a>     * 设置或者获取路由标识
+<a name="line139"></a>     * @access public
+<a name="line140"></a>     * @param string|array     $name 路由命名标识 数组表示批量设置
+<a name="line141"></a>     * @param array            $value 路由地址及变量信息
+<a name="line142"></a>     * @return array
+<a name="line143"></a>     */
+<a name="line144"></a>    public static function name($name = '', $value = null)
+<a name="line145"></a>    {
+<a name="line146"></a>        if (is_array($name)) {
+<a name="line147"></a>            return self::$rules['name'] = $name;
+<a name="line148"></a>        } elseif ('' === $name) {
+<a name="line149"></a>            return self::$rules['name'];
+<a name="line150"></a>        } elseif (!is_null($value)) {
+<a name="line151"></a>            self::$rules['name'][$name][] = $value;
+<a name="line152"></a>        } else {
+<a name="line153"></a>            return isset(self::$rules['name'][$name]) ? self::$rules['name'][$name] : null;
+<a name="line154"></a>        }
+<a name="line155"></a>    }
+<a name="line156"></a>
+<a name="line157"></a>    /**
+<a name="line158"></a>     * 读取路由绑定
+<a name="line159"></a>     * @access public
+<a name="line160"></a>     * @param string    $type 绑定类型
+<a name="line161"></a>     * @return mixed
+<a name="line162"></a>     */
+<a name="line163"></a>    public static function getBind($type)
+<a name="line164"></a>    {
+<a name="line165"></a>        return isset(self::$bind[$type]) ? self::$bind[$type] : null;
+<a name="line166"></a>    }
+<a name="line167"></a>
+<a name="line168"></a>    /**
+<a name="line169"></a>     * 导入配置文件的路由规则
+<a name="line170"></a>     * @access public
+<a name="line171"></a>     * @param array     $rule 路由规则
+<a name="line172"></a>     * @param string    $type 请求类型
+<a name="line173"></a>     * @return void
+<a name="line174"></a>     */
+<a name="line175"></a>    public static function import(array $rule, $type = '*')
+<a name="line176"></a>    {
+<a name="line177"></a>        // 检查域名部署
+<a name="line178"></a>        if (isset($rule['__domain__'])) {
+<a name="line179"></a>            self::domain($rule['__domain__']);
+<a name="line180"></a>            unset($rule['__domain__']);
+<a name="line181"></a>        }
+<a name="line182"></a>
+<a name="line183"></a>        // 检查变量规则
+<a name="line184"></a>        if (isset($rule['__pattern__'])) {
+<a name="line185"></a>            self::pattern($rule['__pattern__']);
+<a name="line186"></a>            unset($rule['__pattern__']);
+<a name="line187"></a>        }
+<a name="line188"></a>
+<a name="line189"></a>        // 检查路由别名
+<a name="line190"></a>        if (isset($rule['__alias__'])) {
+<a name="line191"></a>            self::alias($rule['__alias__']);
+<a name="line192"></a>            unset($rule['__alias__']);
+<a name="line193"></a>        }
+<a name="line194"></a>
+<a name="line195"></a>        // 检查资源路由
+<a name="line196"></a>        if (isset($rule['__rest__'])) {
+<a name="line197"></a>            self::resource($rule['__rest__']);
+<a name="line198"></a>            unset($rule['__rest__']);
+<a name="line199"></a>        }
+<a name="line200"></a>
+<a name="line201"></a>        self::registerRules($rule, strtoupper($type));
+<a name="line202"></a>    }
+<a name="line203"></a>
+<a name="line204"></a>    // 批量注册路由
+<a name="line205"></a>    protected static function registerRules($rules, $type = '*')
+<a name="line206"></a>    {
+<a name="line207"></a>        foreach ($rules as $key => $val) {
+<a name="line208"></a>            if (is_numeric($key)) {
+<a name="line209"></a>                $key = array_shift($val);
+<a name="line210"></a>            }
+<a name="line211"></a>            if (empty($val)) {
+<a name="line212"></a>                continue;
+<a name="line213"></a>            }
+<a name="line214"></a>            if (is_string($key) && 0 === strpos($key, '[')) {
+<a name="line215"></a>                $key = substr($key, 1, -1);
+<a name="line216"></a>                self::group($key, $val);
+<a name="line217"></a>            } elseif (is_array($val)) {
+<a name="line218"></a>                self::setRule($key, $val[0], $type, $val[1], isset($val[2]) ? $val[2] : []);
+<a name="line219"></a>            } else {
+<a name="line220"></a>                self::setRule($key, $val, $type);
+<a name="line221"></a>            }
+<a name="line222"></a>        }
+<a name="line223"></a>    }
+<a name="line224"></a>
+<a name="line225"></a>    /**
+<a name="line226"></a>     * 注册路由规则
+<a name="line227"></a>     * @access public
+<a name="line228"></a>     * @param string    $rule 路由规则
+<a name="line229"></a>     * @param string    $route 路由地址
+<a name="line230"></a>     * @param string    $type 请求类型
+<a name="line231"></a>     * @param array     $option 路由参数
+<a name="line232"></a>     * @param array     $pattern 变量规则
+<a name="line233"></a>     * @return void
+<a name="line234"></a>     */
+<a name="line235"></a>    public static function rule($rule, $route = '', $type = '*', $option = [], $pattern = [])
+<a name="line236"></a>    {
+<a name="line237"></a>        $group = self::getGroup('name');
+<a name="line238"></a>        if (!is_null($group)) {
+<a name="line239"></a>            // 路由分组
+<a name="line240"></a>            $option  = array_merge(self::getGroup('option'), $option);
+<a name="line241"></a>            $pattern = array_merge(self::getGroup('pattern'), $pattern);
+<a name="line242"></a>        }
+<a name="line243"></a>
+<a name="line244"></a>        $type = strtoupper($type);
+<a name="line245"></a>
+<a name="line246"></a>        if (strpos($type, '|')) {
+<a name="line247"></a>            $option['method'] = $type;
+<a name="line248"></a>            $type             = '*';
+<a name="line249"></a>        }
+<a name="line250"></a>        if (is_array($rule) && empty($route)) {
+<a name="line251"></a>            foreach ($rule as $key => $val) {
+<a name="line252"></a>                if (is_numeric($key)) {
+<a name="line253"></a>                    $key = array_shift($val);
+<a name="line254"></a>                }
+<a name="line255"></a>                if (is_array($val)) {
+<a name="line256"></a>                    $route    = $val[0];
+<a name="line257"></a>                    $option1  = array_merge($option, $val[1]);
+<a name="line258"></a>                    $pattern1 = array_merge($pattern, isset($val[2]) ? $val[2] : []);
+<a name="line259"></a>                } else {
+<a name="line260"></a>                    $route = $val;
+<a name="line261"></a>                }
+<a name="line262"></a>                self::setRule($key, $route, $type, isset($option1) ? $option1 : $option, isset($pattern1) ? $pattern1 : $pattern, $group);
+<a name="line263"></a>            }
+<a name="line264"></a>        } else {
+<a name="line265"></a>            self::setRule($rule, $route, $type, $option, $pattern, $group);
+<a name="line266"></a>        }
+<a name="line267"></a>
+<a name="line268"></a>    }
+<a name="line269"></a>
+<a name="line270"></a>    /**
+<a name="line271"></a>     * 设置路由规则
+<a name="line272"></a>     * @access public
+<a name="line273"></a>     * @param string    $rule 路由规则
+<a name="line274"></a>     * @param string    $route 路由地址
+<a name="line275"></a>     * @param string    $type 请求类型
+<a name="line276"></a>     * @param array     $option 路由参数
+<a name="line277"></a>     * @param array     $pattern 变量规则
+<a name="line278"></a>     * @param string    $group 所属分组
+<a name="line279"></a>     * @return void
+<a name="line280"></a>     */
+<a name="line281"></a>    protected static function setRule($rule, $route, $type = '*', $option = [], $pattern = [], $group = '')
+<a name="line282"></a>    {
+<a name="line283"></a>        if (is_array($rule)) {
+<a name="line284"></a>            $name = $rule[0];
+<a name="line285"></a>            $rule = $rule[1];
+<a name="line286"></a>        } elseif (is_string($route)) {
+<a name="line287"></a>            $name = $route;
+<a name="line288"></a>        }
+<a name="line289"></a>        if (!isset($option['complete_match'])) {
+<a name="line290"></a>            if (Config::get('route_complete_match')) {
+<a name="line291"></a>                $option['complete_match'] = true;
+<a name="line292"></a>            } elseif ('$' == substr($rule, -1, 1)) {
+<a name="line293"></a>                // 是否完整匹配
+<a name="line294"></a>                $option['complete_match'] = true;
+<a name="line295"></a>                $rule                     = substr($rule, 0, -1);
+<a name="line296"></a>            }
+<a name="line297"></a>        } elseif (empty($option['complete_match']) && '$' == substr($rule, -1, 1)) {
+<a name="line298"></a>            // 是否完整匹配
+<a name="line299"></a>            $option['complete_match'] = true;
+<a name="line300"></a>            $rule                     = substr($rule, 0, -1);
+<a name="line301"></a>        }
+<a name="line302"></a>
+<a name="line303"></a>        if ('/' != $rule) {
+<a name="line304"></a>            $rule = trim($rule, '/');
+<a name="line305"></a>        }
+<a name="line306"></a>        $vars = self::parseVar($rule);
+<a name="line307"></a>        if (isset($name)) {
+<a name="line308"></a>            $key = $group ? $group . '/' . $rule : $rule;
+<a name="line309"></a>            self::name($name, [$key, $vars, self::$domain]);
+<a name="line310"></a>        }
+<a name="line311"></a>        if ($group) {
+<a name="line312"></a>            if ('*' != $type) {
+<a name="line313"></a>                $option['method'] = $type;
+<a name="line314"></a>            }
+<a name="line315"></a>            if (self::$domain) {
+<a name="line316"></a>                self::$rules['domain'][self::$domain]['*'][$group]['rule'][] = ['rule' => $rule, 'route' => $route, 'var' => $vars, 'option' => $option, 'pattern' => $pattern];
+<a name="line317"></a>            } else {
+<a name="line318"></a>                self::$rules['*'][$group]['rule'][] = ['rule' => $rule, 'route' => $route, 'var' => $vars, 'option' => $option, 'pattern' => $pattern];
+<a name="line319"></a>            }
+<a name="line320"></a>        } else {
+<a name="line321"></a>            if ('*' != $type && isset(self::$rules['*'][$rule])) {
+<a name="line322"></a>                unset(self::$rules['*'][$rule]);
+<a name="line323"></a>            }
+<a name="line324"></a>            if (self::$domain) {
+<a name="line325"></a>                self::$rules['domain'][self::$domain][$type][$rule] = ['rule' => $rule, 'route' => $route, 'var' => $vars, 'option' => $option, 'pattern' => $pattern];
+<a name="line326"></a>            } else {
+<a name="line327"></a>                self::$rules[$type][$rule] = ['rule' => $rule, 'route' => $route, 'var' => $vars, 'option' => $option, 'pattern' => $pattern];
+<a name="line328"></a>            }
+<a name="line329"></a>            if ('*' == $type) {
+<a name="line330"></a>                // 注册路由快捷方式
+<a name="line331"></a>                foreach (['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'] as $method) {
+<a name="line332"></a>                    if (self::$domain) {
+<a name="line333"></a>                        self::$rules['domain'][self::$domain][$method][$rule] = true;
+<a name="line334"></a>                    } else {
+<a name="line335"></a>                        self::$rules[$method][$rule] = true;
+<a name="line336"></a>                    }
+<a name="line337"></a>                }
+<a name="line338"></a>            }
+<a name="line339"></a>        }
+<a name="line340"></a>    }
+<a name="line341"></a>
+<a name="line342"></a>    /**
+<a name="line343"></a>     * 获取当前的分组信息
+<a name="line344"></a>     * @access public
+<a name="line345"></a>     * @param string    $type 分组信息名称 name option pattern
+<a name="line346"></a>     * @return mixed
+<a name="line347"></a>     */
+<a name="line348"></a>    public static function getGroup($type)
+<a name="line349"></a>    {
+<a name="line350"></a>        if (isset(self::$group[$type])) {
+<a name="line351"></a>            return self::$group[$type];
+<a name="line352"></a>        } else {
+<a name="line353"></a>            return 'name' == $type ? null : [];
+<a name="line354"></a>        }
+<a name="line355"></a>    }
+<a name="line356"></a>
+<a name="line357"></a>    /**
+<a name="line358"></a>     * 设置当前的路由分组
+<a name="line359"></a>     * @access public
+<a name="line360"></a>     * @param string    $name 分组名称
+<a name="line361"></a>     * @param array     $option 分组路由参数
+<a name="line362"></a>     * @param array     $pattern 分组变量规则
+<a name="line363"></a>     * @return void
+<a name="line364"></a>     */
+<a name="line365"></a>    public static function setGroup($name, $option = [], $pattern = [])
+<a name="line366"></a>    {
+<a name="line367"></a>        self::$group['name']    = $name;
+<a name="line368"></a>        self::$group['option']  = $option ?: [];
+<a name="line369"></a>        self::$group['pattern'] = $pattern ?: [];
+<a name="line370"></a>    }
+<a name="line371"></a>
+<a name="line372"></a>    /**
+<a name="line373"></a>     * 注册路由分组
+<a name="line374"></a>     * @access public
+<a name="line375"></a>     * @param string|array      $name 分组名称或者参数
+<a name="line376"></a>     * @param array|\Closure    $routes 路由地址
+<a name="line377"></a>     * @param array             $option 路由参数
+<a name="line378"></a>     * @param array             $pattern 变量规则
+<a name="line379"></a>     * @return void
+<a name="line380"></a>     */
+<a name="line381"></a>    public static function group($name, $routes, $option = [], $pattern = [])
+<a name="line382"></a>    {
+<a name="line383"></a>        if (is_array($name)) {
+<a name="line384"></a>            $option = $name;
+<a name="line385"></a>            $name   = isset($option['name']) ? $option['name'] : '';
+<a name="line386"></a>        }
+<a name="line387"></a>        // 分组
+<a name="line388"></a>        $currentGroup = self::getGroup('name');
+<a name="line389"></a>        if ($currentGroup) {
+<a name="line390"></a>            $name = $currentGroup . ($name ? '/' . ltrim($name, '/') : '');
+<a name="line391"></a>        }
+<a name="line392"></a>        if (!empty($name)) {
+<a name="line393"></a>            if ($routes instanceof \Closure) {
+<a name="line394"></a>                $currentOption  = self::getGroup('option');
+<a name="line395"></a>                $currentPattern = self::getGroup('pattern');
+<a name="line396"></a>                self::setGroup($name, array_merge($currentOption, $option), array_merge($currentPattern, $pattern));
+<a name="line397"></a>                call_user_func_array($routes, []);
+<a name="line398"></a>                self::setGroup($currentGroup, $currentOption, $currentPattern);
+<a name="line399"></a>                if ($currentGroup != $name) {
+<a name="line400"></a>                    self::$rules['*'][$name]['route']   = '';
+<a name="line401"></a>                    self::$rules['*'][$name]['var']     = self::parseVar($name);
+<a name="line402"></a>                    self::$rules['*'][$name]['option']  = $option;
+<a name="line403"></a>                    self::$rules['*'][$name]['pattern'] = $pattern;
+<a name="line404"></a>                }
+<a name="line405"></a>            } else {
+<a name="line406"></a>                $item = [];
+<a name="line407"></a>                foreach ($routes as $key => $val) {
+<a name="line408"></a>                    if (is_numeric($key)) {
+<a name="line409"></a>                        $key = array_shift($val);
+<a name="line410"></a>                    }
+<a name="line411"></a>                    if (is_array($val)) {
+<a name="line412"></a>                        $route    = $val[0];
+<a name="line413"></a>                        $option1  = array_merge($option, isset($val[1]) ? $val[1] : []);
+<a name="line414"></a>                        $pattern1 = array_merge($pattern, isset($val[2]) ? $val[2] : []);
+<a name="line415"></a>                    } else {
+<a name="line416"></a>                        $route = $val;
+<a name="line417"></a>                    }
+<a name="line418"></a>
+<a name="line419"></a>                    $options  = isset($option1) ? $option1 : $option;
+<a name="line420"></a>                    $patterns = isset($pattern1) ? $pattern1 : $pattern;
+<a name="line421"></a>                    if ('$' == substr($key, -1, 1)) {
+<a name="line422"></a>                        // 是否完整匹配
+<a name="line423"></a>                        $options['complete_match'] = true;
+<a name="line424"></a>                        $key                       = substr($key, 0, -1);
+<a name="line425"></a>                    }
+<a name="line426"></a>                    $vars   = self::parseVar($key);
+<a name="line427"></a>                    $item[] = ['rule' => $key, 'route' => $route, 'var' => $vars, 'option' => $options, 'pattern' => $patterns];
+<a name="line428"></a>                    // 设置路由标识
+<a name="line429"></a>                    self::name($route, [$name . '/' . $key, $vars, self::$domain]);
+<a name="line430"></a>                }
+<a name="line431"></a>                self::$rules['*'][$name] = ['rule' => $item, 'route' => '', 'var' => [], 'option' => $option, 'pattern' => $pattern];
+<a name="line432"></a>            }
+<a name="line433"></a>
+<a name="line434"></a>            foreach (['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'] as $method) {
+<a name="line435"></a>                if (!isset(self::$rules[$method][$name])) {
+<a name="line436"></a>                    self::$rules[$method][$name] = true;
+<a name="line437"></a>                } elseif (is_array(self::$rules[$method][$name])) {
+<a name="line438"></a>                    self::$rules[$method][$name] = array_merge(self::$rules['*'][$name], self::$rules[$method][$name]);
+<a name="line439"></a>                }
+<a name="line440"></a>            }
+<a name="line441"></a>
+<a name="line442"></a>        } elseif ($routes instanceof \Closure) {
+<a name="line443"></a>            // 闭包注册
+<a name="line444"></a>            $currentOption  = self::getGroup('option');
+<a name="line445"></a>            $currentPattern = self::getGroup('pattern');
+<a name="line446"></a>            self::setGroup('', array_merge($currentOption, $option), array_merge($currentPattern, $pattern));
+<a name="line447"></a>            call_user_func_array($routes, []);
+<a name="line448"></a>            self::setGroup($currentGroup, $currentOption, $currentPattern);
+<a name="line449"></a>        } else {
+<a name="line450"></a>            // 批量注册路由
+<a name="line451"></a>            self::rule($routes, '', '*', $option, $pattern);
+<a name="line452"></a>        }
+<a name="line453"></a>    }
+<a name="line454"></a>
+<a name="line455"></a>    /**
+<a name="line456"></a>     * 注册路由
+<a name="line457"></a>     * @access public
+<a name="line458"></a>     * @param string    $rule 路由规则
+<a name="line459"></a>     * @param string    $route 路由地址
+<a name="line460"></a>     * @param array     $option 路由参数
+<a name="line461"></a>     * @param array     $pattern 变量规则
+<a name="line462"></a>     * @return void
+<a name="line463"></a>     */
+<a name="line464"></a>    public static function any($rule, $route = '', $option = [], $pattern = [])
+<a name="line465"></a>    {
+<a name="line466"></a>        self::rule($rule, $route, '*', $option, $pattern);
+<a name="line467"></a>    }
+<a name="line468"></a>
+<a name="line469"></a>    /**
+<a name="line470"></a>     * 注册GET路由
+<a name="line471"></a>     * @access public
+<a name="line472"></a>     * @param string    $rule 路由规则
+<a name="line473"></a>     * @param string    $route 路由地址
+<a name="line474"></a>     * @param array     $option 路由参数
+<a name="line475"></a>     * @param array     $pattern 变量规则
+<a name="line476"></a>     * @return void
+<a name="line477"></a>     */
+<a name="line478"></a>    public static function get($rule, $route = '', $option = [], $pattern = [])
+<a name="line479"></a>    {
+<a name="line480"></a>        self::rule($rule, $route, 'GET', $option, $pattern);
+<a name="line481"></a>    }
+<a name="line482"></a>
+<a name="line483"></a>    /**
+<a name="line484"></a>     * 注册POST路由
+<a name="line485"></a>     * @access public
+<a name="line486"></a>     * @param string    $rule 路由规则
+<a name="line487"></a>     * @param string    $route 路由地址
+<a name="line488"></a>     * @param array     $option 路由参数
+<a name="line489"></a>     * @param array     $pattern 变量规则
+<a name="line490"></a>     * @return void
+<a name="line491"></a>     */
+<a name="line492"></a>    public static function post($rule, $route = '', $option = [], $pattern = [])
+<a name="line493"></a>    {
+<a name="line494"></a>        self::rule($rule, $route, 'POST', $option, $pattern);
+<a name="line495"></a>    }
+<a name="line496"></a>
+<a name="line497"></a>    /**
+<a name="line498"></a>     * 注册PUT路由
+<a name="line499"></a>     * @access public
+<a name="line500"></a>     * @param string    $rule 路由规则
+<a name="line501"></a>     * @param string    $route 路由地址
+<a name="line502"></a>     * @param array     $option 路由参数
+<a name="line503"></a>     * @param array     $pattern 变量规则
+<a name="line504"></a>     * @return void
+<a name="line505"></a>     */
+<a name="line506"></a>    public static function put($rule, $route = '', $option = [], $pattern = [])
+<a name="line507"></a>    {
+<a name="line508"></a>        self::rule($rule, $route, 'PUT', $option, $pattern);
+<a name="line509"></a>    }
+<a name="line510"></a>
+<a name="line511"></a>    /**
+<a name="line512"></a>     * 注册DELETE路由
+<a name="line513"></a>     * @access public
+<a name="line514"></a>     * @param string    $rule 路由规则
+<a name="line515"></a>     * @param string    $route 路由地址
+<a name="line516"></a>     * @param array     $option 路由参数
+<a name="line517"></a>     * @param array     $pattern 变量规则
+<a name="line518"></a>     * @return void
+<a name="line519"></a>     */
+<a name="line520"></a>    public static function delete($rule, $route = '', $option = [], $pattern = [])
+<a name="line521"></a>    {
+<a name="line522"></a>        self::rule($rule, $route, 'DELETE', $option, $pattern);
+<a name="line523"></a>    }
+<a name="line524"></a>
+<a name="line525"></a>    /**
+<a name="line526"></a>     * 注册PATCH路由
+<a name="line527"></a>     * @access public
+<a name="line528"></a>     * @param string    $rule 路由规则
+<a name="line529"></a>     * @param string    $route 路由地址
+<a name="line530"></a>     * @param array     $option 路由参数
+<a name="line531"></a>     * @param array     $pattern 变量规则
+<a name="line532"></a>     * @return void
+<a name="line533"></a>     */
+<a name="line534"></a>    public static function patch($rule, $route = '', $option = [], $pattern = [])
+<a name="line535"></a>    {
+<a name="line536"></a>        self::rule($rule, $route, 'PATCH', $option, $pattern);
+<a name="line537"></a>    }
+<a name="line538"></a>
+<a name="line539"></a>    /**
+<a name="line540"></a>     * 注册资源路由
+<a name="line541"></a>     * @access public
+<a name="line542"></a>     * @param string    $rule 路由规则
+<a name="line543"></a>     * @param string    $route 路由地址
+<a name="line544"></a>     * @param array     $option 路由参数
+<a name="line545"></a>     * @param array     $pattern 变量规则
+<a name="line546"></a>     * @return void
+<a name="line547"></a>     */
+<a name="line548"></a>    public static function resource($rule, $route = '', $option = [], $pattern = [])
+<a name="line549"></a>    {
+<a name="line550"></a>        if (is_array($rule)) {
+<a name="line551"></a>            foreach ($rule as $key => $val) {
+<a name="line552"></a>                if (is_array($val)) {
+<a name="line553"></a>                    list($val, $option, $pattern) = array_pad($val, 3, []);
+<a name="line554"></a>                }
+<a name="line555"></a>                self::resource($key, $val, $option, $pattern);
+<a name="line556"></a>            }
+<a name="line557"></a>        } else {
+<a name="line558"></a>            if (strpos($rule, '.')) {
+<a name="line559"></a>                // 注册嵌套资源路由
+<a name="line560"></a>                $array = explode('.', $rule);
+<a name="line561"></a>                $last  = array_pop($array);
+<a name="line562"></a>                $item  = [];
+<a name="line563"></a>                foreach ($array as $val) {
+<a name="line564"></a>                    $item[] = $val . '/:' . (isset($option['var'][$val]) ? $option['var'][$val] : $val . '_id');
+<a name="line565"></a>                }
+<a name="line566"></a>                $rule = implode('/', $item) . '/' . $last;
+<a name="line567"></a>            }
+<a name="line568"></a>            // 注册资源路由
+<a name="line569"></a>            foreach (self::$rest as $key => $val) {
+<a name="line570"></a>                if ((isset($option['only']) && !in_array($key, $option['only']))
+<a name="line571"></a>                    || (isset($option['except']) && in_array($key, $option['except']))) {
+<a name="line572"></a>                    continue;
+<a name="line573"></a>                }
+<a name="line574"></a>                if (isset($last) && strpos($val[1], ':id') && isset($option['var'][$last])) {
+<a name="line575"></a>                    $val[1] = str_replace(':id', ':' . $option['var'][$last], $val[1]);
+<a name="line576"></a>                } elseif (strpos($val[1], ':id') && isset($option['var'][$rule])) {
+<a name="line577"></a>                    $val[1] = str_replace(':id', ':' . $option['var'][$rule], $val[1]);
+<a name="line578"></a>                }
+<a name="line579"></a>                $item = ltrim($rule . $val[1], '/');
+<a name="line580"></a>                self::rule($item . '$', $route . '/' . $val[2], $val[0], $option, $pattern);
+<a name="line581"></a>            }
+<a name="line582"></a>        }
+<a name="line583"></a>    }
+<a name="line584"></a>
+<a name="line585"></a>    /**
+<a name="line586"></a>     * 注册控制器路由 操作方法对应不同的请求后缀
+<a name="line587"></a>     * @access public
+<a name="line588"></a>     * @param string    $rule 路由规则
+<a name="line589"></a>     * @param string    $route 路由地址
+<a name="line590"></a>     * @param array     $option 路由参数
+<a name="line591"></a>     * @param array     $pattern 变量规则
+<a name="line592"></a>     * @return void
+<a name="line593"></a>     */
+<a name="line594"></a>    public static function controller($rule, $route = '', $option = [], $pattern = [])
+<a name="line595"></a>    {
+<a name="line596"></a>        foreach (self::$methodPrefix as $type => $val) {
+<a name="line597"></a>            self::$type($rule . '/:action', $route . '/' . $val . ':action', $option, $pattern);
+<a name="line598"></a>        }
+<a name="line599"></a>    }
+<a name="line600"></a>
+<a name="line601"></a>    /**
+<a name="line602"></a>     * 注册别名路由
+<a name="line603"></a>     * @access public
+<a name="line604"></a>     * @param string|array  $rule 路由别名
+<a name="line605"></a>     * @param string        $route 路由地址
+<a name="line606"></a>     * @param array         $option 路由参数
+<a name="line607"></a>     * @return void
+<a name="line608"></a>     */
+<a name="line609"></a>    public static function alias($rule = null, $route = '', $option = [])
+<a name="line610"></a>    {
+<a name="line611"></a>        if (is_array($rule)) {
+<a name="line612"></a>            self::$rules['alias'] = array_merge(self::$rules['alias'], $rule);
+<a name="line613"></a>        } else {
+<a name="line614"></a>            self::$rules['alias'][$rule] = $option ? [$route, $option] : $route;
+<a name="line615"></a>        }
+<a name="line616"></a>    }
+<a name="line617"></a>
+<a name="line618"></a>    /**
+<a name="line619"></a>     * 设置不同请求类型下面的方法前缀
+<a name="line620"></a>     * @access public
+<a name="line621"></a>     * @param string    $method 请求类型
+<a name="line622"></a>     * @param string    $prefix 类型前缀
+<a name="line623"></a>     * @return void
+<a name="line624"></a>     */
+<a name="line625"></a>    public static function setMethodPrefix($method, $prefix = '')
+<a name="line626"></a>    {
+<a name="line627"></a>        if (is_array($method)) {
+<a name="line628"></a>            self::$methodPrefix = array_merge(self::$methodPrefix, array_change_key_case($method, CASE_UPPER));
+<a name="line629"></a>        } else {
+<a name="line630"></a>            self::$methodPrefix[strtoupper($method)] = $prefix;
+<a name="line631"></a>        }
+<a name="line632"></a>    }
+<a name="line633"></a>
+<a name="line634"></a>    /**
+<a name="line635"></a>     * rest方法定义和修改
+<a name="line636"></a>     * @access public
+<a name="line637"></a>     * @param string    $name 方法名称
+<a name="line638"></a>     * @param array     $resourece 资源
+<a name="line639"></a>     * @return void
+<a name="line640"></a>     */
+<a name="line641"></a>    public static function rest($name, $resource = [])
+<a name="line642"></a>    {
+<a name="line643"></a>        if (is_array($name)) {
+<a name="line644"></a>            self::$rest = array_merge(self::$rest, $name);
+<a name="line645"></a>        } else {
+<a name="line646"></a>            self::$rest[$name] = $resource;
+<a name="line647"></a>        }
+<a name="line648"></a>    }
+<a name="line649"></a>
+<a name="line650"></a>    /**
+<a name="line651"></a>     * 注册未匹配路由规则后的处理
+<a name="line652"></a>     * @access public
+<a name="line653"></a>     * @param string    $route 路由地址
+<a name="line654"></a>     * @param string    $method 请求类型
+<a name="line655"></a>     * @param array     $option 路由参数
+<a name="line656"></a>     * @return void
+<a name="line657"></a>     */
+<a name="line658"></a>    public static function miss($route, $method = '*', $option = [])
+<a name="line659"></a>    {
+<a name="line660"></a>        self::rule('__miss__', $route, $method, $option, []);
+<a name="line661"></a>    }
+<a name="line662"></a>
+<a name="line663"></a>    /**
+<a name="line664"></a>     * 注册一个自动解析的URL路由
+<a name="line665"></a>     * @access public
+<a name="line666"></a>     * @param string    $route 路由地址
+<a name="line667"></a>     * @return void
+<a name="line668"></a>     */
+<a name="line669"></a>    public static function auto($route)
+<a name="line670"></a>    {
+<a name="line671"></a>        self::rule('__auto__', $route, '*', [], []);
+<a name="line672"></a>    }
+<a name="line673"></a>
+<a name="line674"></a>    /**
+<a name="line675"></a>     * 获取或者批量设置路由定义
+<a name="line676"></a>     * @access public
+<a name="line677"></a>     * @param mixed $rules 请求类型或者路由定义数组
+<a name="line678"></a>     * @return array
+<a name="line679"></a>     */
+<a name="line680"></a>    public static function rules($rules = '')
+<a name="line681"></a>    {
+<a name="line682"></a>        if (is_array($rules)) {
+<a name="line683"></a>            self::$rules = $rules;
+<a name="line684"></a>        } elseif ($rules) {
+<a name="line685"></a>            return true === $rules ? self::$rules : self::$rules[$rules];
+<a name="line686"></a>        } else {
+<a name="line687"></a>            $rules = self::$rules;
+<a name="line688"></a>            unset($rules['pattern'], $rules['alias'], $rules['domain'], $rules['name']);
+<a name="line689"></a>            return $rules;
+<a name="line690"></a>        }
+<a name="line691"></a>    }
+<a name="line692"></a>
+<a name="line693"></a>    /**
+<a name="line694"></a>     * 检测子域名部署
+<a name="line695"></a>     * @access public
+<a name="line696"></a>     * @param Request   $request Request请求对象
+<a name="line697"></a>     * @param array     $currentRules 当前路由规则
+<a name="line698"></a>     * @param string    $method 请求类型
+<a name="line699"></a>     * @return void
+<a name="line700"></a>     */
+<a name="line701"></a>    public static function checkDomain($request, &$currentRules, $method = 'GET')
+<a name="line702"></a>    {
+<a name="line703"></a>        // 域名规则
+<a name="line704"></a>        $rules = self::$rules['domain'];
+<a name="line705"></a>        // 开启子域名部署 支持二级和三级域名
+<a name="line706"></a>        if (!empty($rules)) {
+<a name="line707"></a>            $host = $request->host();
+<a name="line708"></a>            if (isset($rules[$host])) {
+<a name="line709"></a>                // 完整域名或者IP配置
+<a name="line710"></a>                $item = $rules[$host];
+<a name="line711"></a>            } else {
+<a name="line712"></a>                $rootDomain = Config::get('url_domain_root');
+<a name="line713"></a>                if ($rootDomain) {
+<a name="line714"></a>                    // 配置域名根 例如 thinkphp.cn 163.com.cn 如果是国家级域名 com.cn net.cn 之类的域名需要配置
+<a name="line715"></a>                    $domain = explode('.', rtrim(stristr($host, $rootDomain, true), '.'));
+<a name="line716"></a>                } else {
+<a name="line717"></a>                    $domain = explode('.', $host, -2);
+<a name="line718"></a>                }
+<a name="line719"></a>                // 子域名配置
+<a name="line720"></a>                if (!empty($domain)) {
+<a name="line721"></a>                    // 当前子域名
+<a name="line722"></a>                    $subDomain       = implode('.', $domain);
+<a name="line723"></a>                    self::$subDomain = $subDomain;
+<a name="line724"></a>                    $domain2         = array_pop($domain);
+<a name="line725"></a>                    if ($domain) {
+<a name="line726"></a>                        // 存在三级域名
+<a name="line727"></a>                        $domain3 = array_pop($domain);
+<a name="line728"></a>                    }
+<a name="line729"></a>                    if ($subDomain && isset($rules[$subDomain])) {
+<a name="line730"></a>                        // 子域名配置
+<a name="line731"></a>                        $item = $rules[$subDomain];
+<a name="line732"></a>                    } elseif (isset($rules['*.' . $domain2]) && !empty($domain3)) {
+<a name="line733"></a>                        // 泛三级域名
+<a name="line734"></a>                        $item      = $rules['*.' . $domain2];
+<a name="line735"></a>                        $panDomain = $domain3;
+<a name="line736"></a>                    } elseif (isset($rules['*']) && !empty($domain2)) {
+<a name="line737"></a>                        // 泛二级域名
+<a name="line738"></a>                        if ('www' != $domain2) {
+<a name="line739"></a>                            $item      = $rules['*'];
+<a name="line740"></a>                            $panDomain = $domain2;
+<a name="line741"></a>                        }
+<a name="line742"></a>                    }
+<a name="line743"></a>                }
+<a name="line744"></a>            }
+<a name="line745"></a>            if (!empty($item)) {
+<a name="line746"></a>                if (isset($item['[bind]'])) {
+<a name="line747"></a>                    // 解析子域名部署规则
+<a name="line748"></a>                    list($rule, $option, $pattern) = $item['[bind]'];
+<a name="line749"></a>                    if (!empty($option['https']) && !$request->isSsl()) {
+<a name="line750"></a>                        // https检测
+<a name="line751"></a>                        throw new HttpException(404, 'must use https request:' . $host);
+<a name="line752"></a>                    }
+<a name="line753"></a>
+<a name="line754"></a>                    if (strpos($rule, '?')) {
+<a name="line755"></a>                        // 传入其它参数
+<a name="line756"></a>                        $array  = parse_url($rule);
+<a name="line757"></a>                        $result = $array['path'];
+<a name="line758"></a>                        parse_str($array['query'], $params);
+<a name="line759"></a>                        if (isset($panDomain)) {
+<a name="line760"></a>                            $pos = array_search('*', $params);
+<a name="line761"></a>                            if (false !== $pos) {
+<a name="line762"></a>                                // 泛域名作为参数
+<a name="line763"></a>                                $params[$pos] = $panDomain;
+<a name="line764"></a>                            }
+<a name="line765"></a>                        }
+<a name="line766"></a>                        $_GET = array_merge($_GET, $params);
+<a name="line767"></a>                    } else {
+<a name="line768"></a>                        $result = $rule;
+<a name="line769"></a>                    }
+<a name="line770"></a>
+<a name="line771"></a>                    if (0 === strpos($result, '\\')) {
+<a name="line772"></a>                        // 绑定到命名空间 例如 \app\index\behavior
+<a name="line773"></a>                        self::$bind = ['type' => 'namespace', 'namespace' => $result];
+<a name="line774"></a>                    } elseif (0 === strpos($result, '@')) {
+<a name="line775"></a>                        // 绑定到类 例如 @app\index\controller\User
+<a name="line776"></a>                        self::$bind = ['type' => 'class', 'class' => substr($result, 1)];
+<a name="line777"></a>                    } else {
+<a name="line778"></a>                        // 绑定到模块/控制器 例如 index/user
+<a name="line779"></a>                        self::$bind = ['type' => 'module', 'module' => $result];
+<a name="line780"></a>                    }
+<a name="line781"></a>                    self::$domainBind = true;
+<a name="line782"></a>                } else {
+<a name="line783"></a>                    self::$domainRule = $item;
+<a name="line784"></a>                    $currentRules     = isset($item[$method]) ? $item[$method] : $item['*'];
+<a name="line785"></a>                }
+<a name="line786"></a>            }
+<a name="line787"></a>        }
+<a name="line788"></a>    }
+<a name="line789"></a>
+<a name="line790"></a>    /**
+<a name="line791"></a>     * 检测URL路由
+<a name="line792"></a>     * @access public
+<a name="line793"></a>     * @param Request   $request Request请求对象
+<a name="line794"></a>     * @param string    $url URL地址
+<a name="line795"></a>     * @param string    $depr URL分隔符
+<a name="line796"></a>     * @param bool      $checkDomain 是否检测域名规则
+<a name="line797"></a>     * @return false|array
+<a name="line798"></a>     */
+<a name="line799"></a>    public static function check($request, $url, $depr = '/', $checkDomain = false)
+<a name="line800"></a>    {
+<a name="line801"></a>        // 分隔符替换 确保路由定义使用统一的分隔符
+<a name="line802"></a>        $url = str_replace($depr, '|', $url);
+<a name="line803"></a>
+<a name="line804"></a>        if (strpos($url, '|') && isset(self::$rules['alias'][strstr($url, '|', true)])) {
+<a name="line805"></a>            // 检测路由别名
+<a name="line806"></a>            $result = self::checkRouteAlias($request, $url, $depr);
+<a name="line807"></a>            if (false !== $result) {
+<a name="line808"></a>                return $result;
+<a name="line809"></a>            }
+<a name="line810"></a>        }
+<a name="line811"></a>        $method = $request->method();
+<a name="line812"></a>        // 获取当前请求类型的路由规则
+<a name="line813"></a>        $rules = self::$rules[$method];
+<a name="line814"></a>        // 检测域名部署
+<a name="line815"></a>        if ($checkDomain) {
+<a name="line816"></a>            self::checkDomain($request, $rules, $method);
+<a name="line817"></a>        }
+<a name="line818"></a>        // 检测URL绑定
+<a name="line819"></a>        $return = self::checkUrlBind($url, $rules, $depr);
+<a name="line820"></a>        if (false !== $return) {
+<a name="line821"></a>            return $return;
+<a name="line822"></a>        }
+<a name="line823"></a>        if ('|' != $url) {
+<a name="line824"></a>            $url = rtrim($url, '|');
+<a name="line825"></a>        }
+<a name="line826"></a>        if (isset($rules[$url])) {
+<a name="line827"></a>            // 静态路由规则检测
+<a name="line828"></a>            $rule = $rules[$url];
+<a name="line829"></a>            if (true === $rule) {
+<a name="line830"></a>                $rule = self::getRouteExpress($url);
+<a name="line831"></a>            }
+<a name="line832"></a>            if (!empty($rule['route']) && self::checkOption($rule['option'], $request)) {
+<a name="line833"></a>                return self::parseRule($url, $rule['route'], $url, $rule['option']);
+<a name="line834"></a>            }
+<a name="line835"></a>        }
+<a name="line836"></a>
+<a name="line837"></a>        // 路由规则检测
+<a name="line838"></a>        if (!empty($rules)) {
+<a name="line839"></a>            return self::checkRoute($request, $rules, $url, $depr);
+<a name="line840"></a>        }
+<a name="line841"></a>        return false;
+<a name="line842"></a>    }
+<a name="line843"></a>
+<a name="line844"></a>    private static function getRouteExpress($key)
+<a name="line845"></a>    {
+<a name="line846"></a>        return self::$domainRule ? self::$domainRule['*'][$key] : self::$rules['*'][$key];
+<a name="line847"></a>    }
+<a name="line848"></a>
+<a name="line849"></a>    /**
+<a name="line850"></a>     * 检测路由规则
+<a name="line851"></a>     * @access private
+<a name="line852"></a>     * @param Request   $request
+<a name="line853"></a>     * @param array     $rules 路由规则
+<a name="line854"></a>     * @param string    $url URL地址
+<a name="line855"></a>     * @param string    $depr URL分割符
+<a name="line856"></a>     * @param string    $group 路由分组名
+<a name="line857"></a>     * @param array     $options 路由参数（分组）
+<a name="line858"></a>     * @return mixed
+<a name="line859"></a>     */
+<a name="line860"></a>    private static function checkRoute($request, $rules, $url, $depr = '/', $group = '', $options = [])
+<a name="line861"></a>    {
+<a name="line862"></a>        foreach ($rules as $key => $item) {
+<a name="line863"></a>            if (true === $item) {
+<a name="line864"></a>                $item = self::getRouteExpress($key);
+<a name="line865"></a>            }
+<a name="line866"></a>            if (!isset($item['rule'])) {
+<a name="line867"></a>                continue;
+<a name="line868"></a>            }
+<a name="line869"></a>            $rule    = $item['rule'];
+<a name="line870"></a>            $route   = $item['route'];
+<a name="line871"></a>            $vars    = $item['var'];
+<a name="line872"></a>            $option  = $item['option'];
+<a name="line873"></a>            $pattern = $item['pattern'];
+<a name="line874"></a>
+<a name="line875"></a>            // 检查参数有效性
+<a name="line876"></a>            if (!self::checkOption($option, $request)) {
+<a name="line877"></a>                continue;
+<a name="line878"></a>            }
+<a name="line879"></a>
+<a name="line880"></a>            if (isset($option['ext'])) {
+<a name="line881"></a>                // 路由ext参数 优先于系统配置的URL伪静态后缀参数
+<a name="line882"></a>                $url = preg_replace('/\.' . $request->ext() . '$/i', '', $url);
+<a name="line883"></a>            }
+<a name="line884"></a>
+<a name="line885"></a>            if (is_array($rule)) {
+<a name="line886"></a>                // 分组路由
+<a name="line887"></a>                $pos = strpos(str_replace('<', ':', $key), ':');
+<a name="line888"></a>                if (false !== $pos) {
+<a name="line889"></a>                    $str = substr($key, 0, $pos);
+<a name="line890"></a>                } else {
+<a name="line891"></a>                    $str = $key;
+<a name="line892"></a>                }
+<a name="line893"></a>                if (is_string($str) && $str && 0 !== strpos(str_replace('|', '/', $url), $str)) {
+<a name="line894"></a>                    continue;
+<a name="line895"></a>                }
+<a name="line896"></a>
+<a name="line897"></a>                $result = self::checkRoute($request, $rule, $url, $depr, $key, $option);
+<a name="line898"></a>                if (false !== $result) {
+<a name="line899"></a>                    return $result;
+<a name="line900"></a>                }
+<a name="line901"></a>            } elseif ($route) {
+<a name="line902"></a>                if ('__miss__' == $rule || '__auto__' == $rule) {
+<a name="line903"></a>                    // 指定特殊路由
+<a name="line904"></a>                    $var    = trim($rule, '__');
+<a name="line905"></a>                    ${$var} = $item;
+<a name="line906"></a>                    continue;
+<a name="line907"></a>                }
+<a name="line908"></a>                if ($group) {
+<a name="line909"></a>                    $rule = $group . ($rule ? '/' . ltrim($rule, '/') : '');
+<a name="line910"></a>                }
+<a name="line911"></a>                if (isset($options['bind_model']) && isset($option['bind_model'])) {
+<a name="line912"></a>                    $option['bind_model'] = array_merge($options['bind_model'], $option['bind_model']);
+<a name="line913"></a>                }
+<a name="line914"></a>                $result = self::checkRule($rule, $route, $url, $pattern, $option, $depr);
+<a name="line915"></a>                if (false !== $result) {
+<a name="line916"></a>                    return $result;
+<a name="line917"></a>                }
+<a name="line918"></a>            }
+<a name="line919"></a>        }
+<a name="line920"></a>        if (isset($auto)) {
+<a name="line921"></a>            // 自动解析URL地址
+<a name="line922"></a>            return self::parseUrl($auto['route'] . '/' . $url, $depr);
+<a name="line923"></a>        } elseif (isset($miss)) {
+<a name="line924"></a>            // 未匹配所有路由的路由规则处理
+<a name="line925"></a>            return self::parseRule('', $miss['route'], $url, $miss['option']);
+<a name="line926"></a>        }
+<a name="line927"></a>        return false;
+<a name="line928"></a>    }
+<a name="line929"></a>
+<a name="line930"></a>    /**
+<a name="line931"></a>     * 检测路由别名
+<a name="line932"></a>     * @access private
+<a name="line933"></a>     * @param Request   $request
+<a name="line934"></a>     * @param string    $url URL地址
+<a name="line935"></a>     * @param string    $depr URL分隔符
+<a name="line936"></a>     * @return mixed
+<a name="line937"></a>     */
+<a name="line938"></a>    private static function checkRouteAlias($request, $url, $depr)
+<a name="line939"></a>    {
+<a name="line940"></a>        $array = explode('|', $url);
+<a name="line941"></a>        $alias = array_shift($array);
+<a name="line942"></a>        $item  = self::$rules['alias'][$alias];
+<a name="line943"></a>
+<a name="line944"></a>        if (is_array($item)) {
+<a name="line945"></a>            list($rule, $option) = $item;
+<a name="line946"></a>            $action              = $array[0];
+<a name="line947"></a>            if (isset($option['allow']) && !in_array($action, explode(',', $option['allow']))) {
+<a name="line948"></a>                // 允许操作
+<a name="line949"></a>                return false;
+<a name="line950"></a>            } elseif (isset($option['except']) && in_array($action, explode(',', $option['except']))) {
+<a name="line951"></a>                // 排除操作
+<a name="line952"></a>                return false;
+<a name="line953"></a>            }
+<a name="line954"></a>            if (isset($option['method'][$action])) {
+<a name="line955"></a>                $option['method'] = $option['method'][$action];
+<a name="line956"></a>            }
+<a name="line957"></a>        } else {
+<a name="line958"></a>            $rule = $item;
+<a name="line959"></a>        }
+<a name="line960"></a>        $bind = implode('|', $array);
+<a name="line961"></a>        // 参数有效性检查
+<a name="line962"></a>        if (isset($option) && !self::checkOption($option, $request)) {
+<a name="line963"></a>            // 路由不匹配
+<a name="line964"></a>            return false;
+<a name="line965"></a>        } elseif (0 === strpos($rule, '\\')) {
+<a name="line966"></a>            // 路由到类
+<a name="line967"></a>            return self::bindToClass($bind, substr($rule, 1), $depr);
+<a name="line968"></a>        } elseif (0 === strpos($rule, '@')) {
+<a name="line969"></a>            // 路由到控制器类
+<a name="line970"></a>            return self::bindToController($bind, substr($rule, 1), $depr);
+<a name="line971"></a>        } else {
+<a name="line972"></a>            // 路由到模块/控制器
+<a name="line973"></a>            return self::bindToModule($bind, $rule, $depr);
+<a name="line974"></a>        }
+<a name="line975"></a>    }
+<a name="line976"></a>
+<a name="line977"></a>    /**
+<a name="line978"></a>     * 检测URL绑定
+<a name="line979"></a>     * @access private
+<a name="line980"></a>     * @param string    $url URL地址
+<a name="line981"></a>     * @param array     $rules 路由规则
+<a name="line982"></a>     * @param string    $depr URL分隔符
+<a name="line983"></a>     * @return mixed
+<a name="line984"></a>     */
+<a name="line985"></a>    private static function checkUrlBind(&$url, &$rules, $depr = '/')
+<a name="line986"></a>    {
+<a name="line987"></a>        if (!empty(self::$bind)) {
+<a name="line988"></a>            $type = self::$bind['type'];
+<a name="line989"></a>            $bind = self::$bind[$type];
+<a name="line990"></a>            // 记录绑定信息
+<a name="line991"></a>            App::$debug && Log::record('[ BIND ] ' . var_export($bind, true), 'info');
+<a name="line992"></a>            // 如果有URL绑定 则进行绑定检测
+<a name="line993"></a>            switch ($type) {
+<a name="line994"></a>                case 'class':
+<a name="line995"></a>                    // 绑定到类
+<a name="line996"></a>                    return self::bindToClass($url, $bind, $depr);
+<a name="line997"></a>                case 'namespace':
+<a name="line998"></a>                    // 绑定到命名空间
+<a name="line999"></a>                    return self::bindToNamespace($url, $bind, $depr);
+<a name="line1000"></a>            }
+<a name="line1001"></a>        }
+<a name="line1002"></a>        return false;
+<a name="line1003"></a>    }
+<a name="line1004"></a>
+<a name="line1005"></a>    /**
+<a name="line1006"></a>     * 绑定到类
+<a name="line1007"></a>     * @access public
+<a name="line1008"></a>     * @param string    $url URL地址
+<a name="line1009"></a>     * @param string    $class 类名（带命名空间）
+<a name="line1010"></a>     * @param string    $depr URL分隔符
+<a name="line1011"></a>     * @return array
+<a name="line1012"></a>     */
+<a name="line1013"></a>    public static function bindToClass($url, $class, $depr = '/')
+<a name="line1014"></a>    {
+<a name="line1015"></a>        $url    = str_replace($depr, '|', $url);
+<a name="line1016"></a>        $array  = explode('|', $url, 2);
+<a name="line1017"></a>        $action = !empty($array[0]) ? $array[0] : Config::get('default_action');
+<a name="line1018"></a>        if (!empty($array[1])) {
+<a name="line1019"></a>            self::parseUrlParams($array[1]);
+<a name="line1020"></a>        }
+<a name="line1021"></a>        return ['type' => 'method', 'method' => [$class, $action]];
+<a name="line1022"></a>    }
+<a name="line1023"></a>
+<a name="line1024"></a>    /**
+<a name="line1025"></a>     * 绑定到命名空间
+<a name="line1026"></a>     * @access public
+<a name="line1027"></a>     * @param string    $url URL地址
+<a name="line1028"></a>     * @param string    $namespace 命名空间
+<a name="line1029"></a>     * @param string    $depr URL分隔符
+<a name="line1030"></a>     * @return array
+<a name="line1031"></a>     */
+<a name="line1032"></a>    public static function bindToNamespace($url, $namespace, $depr = '/')
+<a name="line1033"></a>    {
+<a name="line1034"></a>        $url    = str_replace($depr, '|', $url);
+<a name="line1035"></a>        $array  = explode('|', $url, 3);
+<a name="line1036"></a>        $class  = !empty($array[0]) ? $array[0] : Config::get('default_controller');
+<a name="line1037"></a>        $method = !empty($array[1]) ? $array[1] : Config::get('default_action');
+<a name="line1038"></a>        if (!empty($array[2])) {
+<a name="line1039"></a>            self::parseUrlParams($array[2]);
+<a name="line1040"></a>        }
+<a name="line1041"></a>        return ['type' => 'method', 'method' => [$namespace . '\\' . $class, $method]];
+<a name="line1042"></a>    }
+<a name="line1043"></a>
+<a name="line1044"></a>    /**
+<a name="line1045"></a>     * 绑定到控制器类
+<a name="line1046"></a>     * @access public
+<a name="line1047"></a>     * @param string    $url URL地址
+<a name="line1048"></a>     * @param string    $controller 控制器名 （支持带模块名 index/user ）
+<a name="line1049"></a>     * @param string    $depr URL分隔符
+<a name="line1050"></a>     * @return array
+<a name="line1051"></a>     */
+<a name="line1052"></a>    public static function bindToController($url, $controller, $depr = '/')
+<a name="line1053"></a>    {
+<a name="line1054"></a>        $url    = str_replace($depr, '|', $url);
+<a name="line1055"></a>        $array  = explode('|', $url, 2);
+<a name="line1056"></a>        $action = !empty($array[0]) ? $array[0] : Config::get('default_action');
+<a name="line1057"></a>        if (!empty($array[1])) {
+<a name="line1058"></a>            self::parseUrlParams($array[1]);
+<a name="line1059"></a>        }
+<a name="line1060"></a>        return ['type' => 'controller', 'controller' => $controller . '/' . $action];
+<a name="line1061"></a>    }
+<a name="line1062"></a>
+<a name="line1063"></a>    /**
+<a name="line1064"></a>     * 绑定到模块/控制器
+<a name="line1065"></a>     * @access public
+<a name="line1066"></a>     * @param string    $url URL地址
+<a name="line1067"></a>     * @param string    $class 控制器类名（带命名空间）
+<a name="line1068"></a>     * @param string    $depr URL分隔符
+<a name="line1069"></a>     * @return array
+<a name="line1070"></a>     */
+<a name="line1071"></a>    public static function bindToModule($url, $controller, $depr = '/')
+<a name="line1072"></a>    {
+<a name="line1073"></a>        $url    = str_replace($depr, '|', $url);
+<a name="line1074"></a>        $array  = explode('|', $url, 2);
+<a name="line1075"></a>        $action = !empty($array[0]) ? $array[0] : Config::get('default_action');
+<a name="line1076"></a>        if (!empty($array[1])) {
+<a name="line1077"></a>            self::parseUrlParams($array[1]);
+<a name="line1078"></a>        }
+<a name="line1079"></a>        return ['type' => 'module', 'module' => $controller . '/' . $action];
+<a name="line1080"></a>    }
+<a name="line1081"></a>
+<a name="line1082"></a>    /**
+<a name="line1083"></a>     * 路由参数有效性检查
+<a name="line1084"></a>     * @access private
+<a name="line1085"></a>     * @param array     $option 路由参数
+<a name="line1086"></a>     * @param Request   $request Request对象
+<a name="line1087"></a>     * @return bool
+<a name="line1088"></a>     */
+<a name="line1089"></a>    private static function checkOption($option, $request)
+<a name="line1090"></a>    {
+<a name="line1091"></a>        // 请求类型检测
+<a name="line1092"></a>        if ((isset($option['method']) && is_string($option['method']) && false === stripos($option['method'], $request->method()))
+<a name="line1093"></a>            || (isset($option['ext']) && false === stripos($option['ext'], $request->ext())) // 伪静态后缀检测
+<a name="line1094"></a>             || (isset($option['deny_ext']) && false !== stripos($option['deny_ext'], $request->ext()))
+<a name="line1095"></a>            || (isset($option['domain']) && !in_array($option['domain'], [$_SERVER['HTTP_HOST'], self::$subDomain])) // 域名检测
+<a name="line1096"></a>             || (!empty($option['https']) && !$request->isSsl()) // https检测
+<a name="line1097"></a>             || (!empty($option['before_behavior']) && false === Hook::exec($option['before_behavior'])) // 行为检测
+<a name="line1098"></a>             || (!empty($option['callback']) && is_callable($option['callback']) && false === call_user_func($option['callback'])) // 自定义检测
+<a name="line1099"></a>        ) {
+<a name="line1100"></a>            return false;
+<a name="line1101"></a>        }
+<a name="line1102"></a>        return true;
+<a name="line1103"></a>    }
+<a name="line1104"></a>
+<a name="line1105"></a>    /**
+<a name="line1106"></a>     * 检测路由规则
+<a name="line1107"></a>     * @access private
+<a name="line1108"></a>     * @param string    $rule 路由规则
+<a name="line1109"></a>     * @param string    $route 路由地址
+<a name="line1110"></a>     * @param string    $url URL地址
+<a name="line1111"></a>     * @param array     $pattern 变量规则
+<a name="line1112"></a>     * @param array     $option 路由参数
+<a name="line1113"></a>     * @param string    $depr URL分隔符（全局）
+<a name="line1114"></a>     * @return array|false
+<a name="line1115"></a>     */
+<a name="line1116"></a>    private static function checkRule($rule, $route, $url, $pattern, $option, $depr)
+<a name="line1117"></a>    {
+<a name="line1118"></a>        // 检查完整规则定义
+<a name="line1119"></a>        if (isset($pattern['__url__']) && !preg_match('/^' . $pattern['__url__'] . '/', str_replace('|', $depr, $url))) {
+<a name="line1120"></a>            return false;
+<a name="line1121"></a>        }
+<a name="line1122"></a>        // 检查路由的参数分隔符
+<a name="line1123"></a>        if (isset($option['param_depr'])) {
+<a name="line1124"></a>            $url = str_replace(['|', $option['param_depr']], [$depr, '|'], $url);
+<a name="line1125"></a>        }
+<a name="line1126"></a>
+<a name="line1127"></a>        $len1 = substr_count($url, '|');
+<a name="line1128"></a>        $len2 = substr_count($rule, '/');
+<a name="line1129"></a>        // 多余参数是否合并
+<a name="line1130"></a>        $merge = !empty($option['merge_extra_vars']) ? true : false;
+<a name="line1131"></a>        if ($merge && $len1 > $len2) {
+<a name="line1132"></a>            $url = str_replace('|', $depr, $url);
+<a name="line1133"></a>            $url = implode('|', explode($depr, $url, $len2 + 1));
+<a name="line1134"></a>        }
+<a name="line1135"></a>
+<a name="line1136"></a>        if ($len1 >= $len2 || strpos($rule, '[')) {
+<a name="line1137"></a>            if (!empty($option['complete_match'])) {
+<a name="line1138"></a>                // 完整匹配
+<a name="line1139"></a>                if (!$merge && $len1 != $len2 && (false === strpos($rule, '[') || $len1 > $len2 || $len1 < $len2 - substr_count($rule, '['))) {
+<a name="line1140"></a>                    return false;
+<a name="line1141"></a>                }
+<a name="line1142"></a>            }
+<a name="line1143"></a>            $pattern = array_merge(self::$rules['pattern'], $pattern);
+<a name="line1144"></a>            if (false !== $match = self::match($url, $rule, $pattern, $merge)) {
+<a name="line1145"></a>                // 匹配到路由规则
+<a name="line1146"></a>                return self::parseRule($rule, $route, $url, $option, $match, $merge);
+<a name="line1147"></a>            }
+<a name="line1148"></a>        }
+<a name="line1149"></a>        return false;
+<a name="line1150"></a>    }
+<a name="line1151"></a>
+<a name="line1152"></a>    /**
+<a name="line1153"></a>     * 解析模块的URL地址 [模块/控制器/操作?]参数1=值1&参数2=值2...
+<a name="line1154"></a>     * @access public
+<a name="line1155"></a>     * @param string    $url URL地址
+<a name="line1156"></a>     * @param string    $depr URL分隔符
+<a name="line1157"></a>     * @param bool      $autoSearch 是否自动深度搜索控制器
+<a name="line1158"></a>     * @return array
+<a name="line1159"></a>     */
+<a name="line1160"></a>    public static function parseUrl($url, $depr = '/', $autoSearch = false)
+<a name="line1161"></a>    {
+<a name="line1162"></a>
+<a name="line1163"></a>        if (isset(self::$bind['module'])) {
+<a name="line1164"></a>            // 如果有模块/控制器绑定
+<a name="line1165"></a>            $url = self::$bind['module'] . '/' . ltrim($url, '/');
+<a name="line1166"></a>        }
+<a name="line1167"></a>        $url              = str_replace($depr, '|', $url);
+<a name="line1168"></a>        list($path, $var) = self::parseUrlPath($url);
+<a name="line1169"></a>        $route            = [null, null, null];
+<a name="line1170"></a>        if (isset($path)) {
+<a name="line1171"></a>            // 解析模块
+<a name="line1172"></a>            $module = Config::get('app_multi_module') ? array_shift($path) : null;
+<a name="line1173"></a>            if ($autoSearch) {
+<a name="line1174"></a>                // 自动搜索控制器
+<a name="line1175"></a>                $dir    = APP_PATH . ($module ? $module . DS : '') . Config::get('url_controller_layer');
+<a name="line1176"></a>                $suffix = App::$suffix || Config::get('controller_suffix') ? ucfirst(Config::get('url_controller_layer')) : '';
+<a name="line1177"></a>                $item   = [];
+<a name="line1178"></a>                foreach ($path as $val) {
+<a name="line1179"></a>                    $item[] = array_shift($path);
+<a name="line1180"></a>                    if (is_file($dir . DS . $val . $suffix . EXT)) {
+<a name="line1181"></a>                        break;
+<a name="line1182"></a>                    } else {
+<a name="line1183"></a>                        $dir .= DS . $val;
+<a name="line1184"></a>                    }
+<a name="line1185"></a>                }
+<a name="line1186"></a>                $controller = implode('.', $item);
+<a name="line1187"></a>            } else {
+<a name="line1188"></a>                // 解析控制器
+<a name="line1189"></a>                $controller = !empty($path) ? array_shift($path) : null;
+<a name="line1190"></a>            }
+<a name="line1191"></a>            // 解析操作
+<a name="line1192"></a>            $action = !empty($path) ? array_shift($path) : null;
+<a name="line1193"></a>            // 解析额外参数
+<a name="line1194"></a>            self::parseUrlParams(empty($path) ? '' : implode('|', $path));
+<a name="line1195"></a>            // 封装路由
+<a name="line1196"></a>            $route = [$module, $controller, $action];
+<a name="line1197"></a>            if (isset(self::$rules['name'][implode($depr, $route)])) {
+<a name="line1198"></a>                throw new HttpException(404, 'invalid request:' . $url);
+<a name="line1199"></a>            }
+<a name="line1200"></a>        }
+<a name="line1201"></a>        return ['type' => 'module', 'module' => $route];
+<a name="line1202"></a>    }
+<a name="line1203"></a>
+<a name="line1204"></a>    /**
+<a name="line1205"></a>     * 解析URL的pathinfo参数和变量
+<a name="line1206"></a>     * @access private
+<a name="line1207"></a>     * @param string    $url URL地址
+<a name="line1208"></a>     * @return array
+<a name="line1209"></a>     */
+<a name="line1210"></a>    private static function parseUrlPath($url)
+<a name="line1211"></a>    {
+<a name="line1212"></a>        // 分隔符替换 确保路由定义使用统一的分隔符
+<a name="line1213"></a>        $url = str_replace('|', '/', $url);
+<a name="line1214"></a>        $url = trim($url, '/');
+<a name="line1215"></a>        $var = [];
+<a name="line1216"></a>        if (false !== strpos($url, '?')) {
+<a name="line1217"></a>            // [模块/控制器/操作?]参数1=值1&参数2=值2...
+<a name="line1218"></a>            $info = parse_url($url);
+<a name="line1219"></a>            $path = explode('/', $info['path']);
+<a name="line1220"></a>            parse_str($info['query'], $var);
+<a name="line1221"></a>        } elseif (strpos($url, '/')) {
+<a name="line1222"></a>            // [模块/控制器/操作]
+<a name="line1223"></a>            $path = explode('/', $url);
+<a name="line1224"></a>        } elseif (false !== strpos($url, '=')) {
+<a name="line1225"></a>            // 参数1=值1&参数2=值2...
+<a name="line1226"></a>            parse_str($url, $var);
+<a name="line1227"></a>        } else {
+<a name="line1228"></a>            $path = [$url];
+<a name="line1229"></a>        }
+<a name="line1230"></a>        return [$path, $var];
+<a name="line1231"></a>    }
+<a name="line1232"></a>
+<a name="line1233"></a>    /**
+<a name="line1234"></a>     * 检测URL和规则路由是否匹配
+<a name="line1235"></a>     * @access private
+<a name="line1236"></a>     * @param string    $url URL地址
+<a name="line1237"></a>     * @param string    $rule 路由规则
+<a name="line1238"></a>     * @param array     $pattern 变量规则
+<a name="line1239"></a>     * @return array|false
+<a name="line1240"></a>     */
+<a name="line1241"></a>    private static function match($url, $rule, $pattern)
+<a name="line1242"></a>    {
+<a name="line1243"></a>        $m2 = explode('/', $rule);
+<a name="line1244"></a>        $m1 = explode('|', $url);
+<a name="line1245"></a>
+<a name="line1246"></a>        $var = [];
+<a name="line1247"></a>        foreach ($m2 as $key => $val) {
+<a name="line1248"></a>            // val中定义了多个变量 <id><name>
+<a name="line1249"></a>            if (false !== strpos($val, '<') && preg_match_all('/<(\w+(\??))>/', $val, $matches)) {
+<a name="line1250"></a>                $value   = [];
+<a name="line1251"></a>                $replace = [];
+<a name="line1252"></a>                foreach ($matches[1] as $name) {
+<a name="line1253"></a>                    if (strpos($name, '?')) {
+<a name="line1254"></a>                        $name      = substr($name, 0, -1);
+<a name="line1255"></a>                        $replace[] = '(' . (isset($pattern[$name]) ? $pattern[$name] : '\w+') . ')?';
+<a name="line1256"></a>                    } else {
+<a name="line1257"></a>                        $replace[] = '(' . (isset($pattern[$name]) ? $pattern[$name] : '\w+') . ')';
+<a name="line1258"></a>                    }
+<a name="line1259"></a>                    $value[] = $name;
+<a name="line1260"></a>                }
+<a name="line1261"></a>                $val = str_replace($matches[0], $replace, $val);
+<a name="line1262"></a>                if (preg_match('/^' . $val . '$/', isset($m1[$key]) ? $m1[$key] : '', $match)) {
+<a name="line1263"></a>                    array_shift($match);
+<a name="line1264"></a>                    foreach ($value as $k => $name) {
+<a name="line1265"></a>                        if (isset($match[$k])) {
+<a name="line1266"></a>                            $var[$name] = $match[$k];
+<a name="line1267"></a>                        }
+<a name="line1268"></a>                    }
+<a name="line1269"></a>                    continue;
+<a name="line1270"></a>                } else {
+<a name="line1271"></a>                    return false;
+<a name="line1272"></a>                }
+<a name="line1273"></a>            }
+<a name="line1274"></a>
+<a name="line1275"></a>            if (0 === strpos($val, '[:')) {
+<a name="line1276"></a>                // 可选参数
+<a name="line1277"></a>                $val      = substr($val, 1, -1);
+<a name="line1278"></a>                $optional = true;
+<a name="line1279"></a>            } else {
+<a name="line1280"></a>                $optional = false;
+<a name="line1281"></a>            }
+<a name="line1282"></a>            if (0 === strpos($val, ':')) {
+<a name="line1283"></a>                // URL变量
+<a name="line1284"></a>                $name = substr($val, 1);
+<a name="line1285"></a>                if (!$optional && !isset($m1[$key])) {
+<a name="line1286"></a>                    return false;
+<a name="line1287"></a>                }
+<a name="line1288"></a>                if (isset($m1[$key]) && isset($pattern[$name]) && !preg_match('/^' . $pattern[$name] . '$/', $m1[$key])) {
+<a name="line1289"></a>                    // 检查变量规则
+<a name="line1290"></a>                    return false;
+<a name="line1291"></a>                }
+<a name="line1292"></a>                $var[$name] = isset($m1[$key]) ? $m1[$key] : '';
+<a name="line1293"></a>            } elseif (!isset($m1[$key]) || 0 !== strcasecmp($val, $m1[$key])) {
+<a name="line1294"></a>                return false;
+<a name="line1295"></a>            }
+<a name="line1296"></a>        }
+<a name="line1297"></a>        // 成功匹配后返回URL中的动态变量数组
+<a name="line1298"></a>        return $var;
+<a name="line1299"></a>    }
+<a name="line1300"></a>
+<a name="line1301"></a>    /**
+<a name="line1302"></a>     * 解析规则路由
+<a name="line1303"></a>     * @access private
+<a name="line1304"></a>     * @param string    $rule 路由规则
+<a name="line1305"></a>     * @param string    $route 路由地址
+<a name="line1306"></a>     * @param string    $pathinfo URL地址
+<a name="line1307"></a>     * @param array     $option 路由参数
+<a name="line1308"></a>     * @param array     $matches 匹配的变量
+<a name="line1309"></a>     * @return array
+<a name="line1310"></a>     */
+<a name="line1311"></a>    private static function parseRule($rule, $route, $pathinfo, $option = [], $matches = [])
+<a name="line1312"></a>    {
+<a name="line1313"></a>        $request = Request::instance();
+<a name="line1314"></a>        // 解析路由规则
+<a name="line1315"></a>        if ($rule) {
+<a name="line1316"></a>            $rule = explode('/', $rule);
+<a name="line1317"></a>            // 获取URL地址中的参数
+<a name="line1318"></a>            $paths = explode('|', $pathinfo);
+<a name="line1319"></a>            foreach ($rule as $item) {
+<a name="line1320"></a>                $fun = '';
+<a name="line1321"></a>                if (0 === strpos($item, '[:')) {
+<a name="line1322"></a>                    $item = substr($item, 1, -1);
+<a name="line1323"></a>                }
+<a name="line1324"></a>                if (0 === strpos($item, ':')) {
+<a name="line1325"></a>                    $var           = substr($item, 1);
+<a name="line1326"></a>                    $matches[$var] = array_shift($paths);
+<a name="line1327"></a>                } else {
+<a name="line1328"></a>                    // 过滤URL中的静态变量
+<a name="line1329"></a>                    array_shift($paths);
+<a name="line1330"></a>                }
+<a name="line1331"></a>            }
+<a name="line1332"></a>        } else {
+<a name="line1333"></a>            $paths = explode('|', $pathinfo);
+<a name="line1334"></a>        }
+<a name="line1335"></a>
+<a name="line1336"></a>        // 获取路由地址规则
+<a name="line1337"></a>        if (is_string($route) && isset($option['prefix'])) {
+<a name="line1338"></a>            // 路由地址前缀
+<a name="line1339"></a>            $route = $option['prefix'] . $route;
+<a name="line1340"></a>        }
+<a name="line1341"></a>        // 替换路由地址中的变量
+<a name="line1342"></a>        if (is_string($route) && !empty($matches)) {
+<a name="line1343"></a>            foreach ($matches as $key => $val) {
+<a name="line1344"></a>                if (false !== strpos($route, ':' . $key)) {
+<a name="line1345"></a>                    $route = str_replace(':' . $key, $val, $route);
+<a name="line1346"></a>                    unset($matches[$key]);
+<a name="line1347"></a>                }
+<a name="line1348"></a>            }
+<a name="line1349"></a>        }
+<a name="line1350"></a>
+<a name="line1351"></a>        // 绑定模型数据
+<a name="line1352"></a>        if (isset($option['bind_model'])) {
+<a name="line1353"></a>            $bind = [];
+<a name="line1354"></a>            foreach ($option['bind_model'] as $key => $val) {
+<a name="line1355"></a>                if ($val instanceof \Closure) {
+<a name="line1356"></a>                    $result = call_user_func_array($val, [$matches]);
+<a name="line1357"></a>                } else {
+<a name="line1358"></a>                    if (is_array($val)) {
+<a name="line1359"></a>                        $fields    = explode('&', $val[1]);
+<a name="line1360"></a>                        $model     = $val[0];
+<a name="line1361"></a>                        $exception = isset($val[2]) ? $val[2] : true;
+<a name="line1362"></a>                    } else {
+<a name="line1363"></a>                        $fields    = ['id'];
+<a name="line1364"></a>                        $model     = $val;
+<a name="line1365"></a>                        $exception = true;
+<a name="line1366"></a>                    }
+<a name="line1367"></a>                    $where = [];
+<a name="line1368"></a>                    $match = true;
+<a name="line1369"></a>                    foreach ($fields as $field) {
+<a name="line1370"></a>                        if (!isset($matches[$field])) {
+<a name="line1371"></a>                            $match = false;
+<a name="line1372"></a>                            break;
+<a name="line1373"></a>                        } else {
+<a name="line1374"></a>                            $where[$field] = $matches[$field];
+<a name="line1375"></a>                        }
+<a name="line1376"></a>                    }
+<a name="line1377"></a>                    if ($match) {
+<a name="line1378"></a>                        $query  = strpos($model, '\\') ? $model::where($where) : Loader::model($model)->where($where);
+<a name="line1379"></a>                        $result = $query->failException($exception)->find();
+<a name="line1380"></a>                    }
+<a name="line1381"></a>                }
+<a name="line1382"></a>                if (!empty($result)) {
+<a name="line1383"></a>                    $bind[$key] = $result;
+<a name="line1384"></a>                }
+<a name="line1385"></a>            }
+<a name="line1386"></a>            $request->bind($bind);
+<a name="line1387"></a>        }
+<a name="line1388"></a>
+<a name="line1389"></a>        // 解析额外参数
+<a name="line1390"></a>        self::parseUrlParams(empty($paths) ? '' : implode('|', $paths), $matches);
+<a name="line1391"></a>        // 记录匹配的路由信息
+<a name="line1392"></a>        $request->routeInfo(['rule' => $rule, 'route' => $route, 'option' => $option, 'var' => $matches]);
+<a name="line1393"></a>
+<a name="line1394"></a>        // 检测路由after行为
+<a name="line1395"></a>        if (!empty($option['after_behavior'])) {
+<a name="line1396"></a>            if ($option['after_behavior'] instanceof \Closure) {
+<a name="line1397"></a>                $result = call_user_func_array($option['after_behavior'], []);
+<a name="line1398"></a>            } else {
+<a name="line1399"></a>                foreach ((array) $option['after_behavior'] as $behavior) {
+<a name="line1400"></a>                    $result = Hook::exec($behavior, '');
+<a name="line1401"></a>                    if (!is_null($result)) {
+<a name="line1402"></a>                        break;
+<a name="line1403"></a>                    }
+<a name="line1404"></a>                }
+<a name="line1405"></a>            }
+<a name="line1406"></a>            // 路由规则重定向
+<a name="line1407"></a>            if ($result instanceof Response) {
+<a name="line1408"></a>                return ['type' => 'response', 'response' => $result];
+<a name="line1409"></a>            } elseif (is_array($result)) {
+<a name="line1410"></a>                return $result;
+<a name="line1411"></a>            }
+<a name="line1412"></a>        }
+<a name="line1413"></a>
+<a name="line1414"></a>        if ($route instanceof \Closure) {
+<a name="line1415"></a>            // 执行闭包
+<a name="line1416"></a>            $result = ['type' => 'function', 'function' => $route];
+<a name="line1417"></a>        } elseif (0 === strpos($route, '/') || strpos($route, '://')) {
+<a name="line1418"></a>            // 路由到重定向地址
+<a name="line1419"></a>            $result = ['type' => 'redirect', 'url' => $route, 'status' => isset($option['status']) ? $option['status'] : 301];
+<a name="line1420"></a>        } elseif (false !== strpos($route, '\\')) {
+<a name="line1421"></a>            // 路由到方法
+<a name="line1422"></a>            $route  = str_replace('/', '@', $route);
+<a name="line1423"></a>            $method = strpos($route, '@') ? explode('@', $route) : $route;
+<a name="line1424"></a>            $result = ['type' => 'method', 'method' => $method];
+<a name="line1425"></a>        } elseif (0 === strpos($route, '@')) {
+<a name="line1426"></a>            // 路由到控制器
+<a name="line1427"></a>            $result = ['type' => 'controller', 'controller' => substr($route, 1)];
+<a name="line1428"></a>        } else {
+<a name="line1429"></a>            // 路由到模块/控制器/操作
+<a name="line1430"></a>            $result = self::parseModule($route);
+<a name="line1431"></a>        }
+<a name="line1432"></a>        // 开启请求缓存
+<a name="line1433"></a>        if ($request->isGet() && !empty($option['cache'])) {
+<a name="line1434"></a>            $cache = $option['cache'];
+<a name="line1435"></a>            if (is_array($cache)) {
+<a name="line1436"></a>                list($key, $expire) = $cache;
+<a name="line1437"></a>            } else {
+<a name="line1438"></a>                $key    = $pathinfo;
+<a name="line1439"></a>                $expire = $cache;
+<a name="line1440"></a>            }
+<a name="line1441"></a>            $request->cache($key, $expire);
+<a name="line1442"></a>        }
+<a name="line1443"></a>        return $result;
+<a name="line1444"></a>    }
+<a name="line1445"></a>
+<a name="line1446"></a>    /**
+<a name="line1447"></a>     * 解析URL地址为 模块/控制器/操作
+<a name="line1448"></a>     * @access private
+<a name="line1449"></a>     * @param string    $url URL地址
+<a name="line1450"></a>     * @return array
+<a name="line1451"></a>     */
+<a name="line1452"></a>    private static function parseModule($url)
+<a name="line1453"></a>    {
+<a name="line1454"></a>        list($path, $var) = self::parseUrlPath($url);
+<a name="line1455"></a>        $action           = array_pop($path);
+<a name="line1456"></a>        $controller       = !empty($path) ? array_pop($path) : null;
+<a name="line1457"></a>        $module           = Config::get('app_multi_module') && !empty($path) ? array_pop($path) : null;
+<a name="line1458"></a>        $method           = Request::instance()->method();
+<a name="line1459"></a>        if (Config::get('use_action_prefix') && !empty(self::$methodPrefix[$method])) {
+<a name="line1460"></a>            // 操作方法前缀支持
+<a name="line1461"></a>            $action = 0 !== strpos($action, self::$methodPrefix[$method]) ? self::$methodPrefix[$method] . $action : $action;
+<a name="line1462"></a>        }
+<a name="line1463"></a>        // 设置当前请求的路由变量
+<a name="line1464"></a>        Request::instance()->route($var);
+<a name="line1465"></a>        // 路由到模块/控制器/操作
+<a name="line1466"></a>        return ['type' => 'module', 'module' => [$module, $controller, $action], 'convert' => false];
+<a name="line1467"></a>    }
+<a name="line1468"></a>
+<a name="line1469"></a>    /**
+<a name="line1470"></a>     * 解析URL地址中的参数Request对象
+<a name="line1471"></a>     * @access private
+<a name="line1472"></a>     * @param string    $rule 路由规则
+<a name="line1473"></a>     * @param array     $var 变量
+<a name="line1474"></a>     * @return void
+<a name="line1475"></a>     */
+<a name="line1476"></a>    private static function parseUrlParams($url, &$var = [])
+<a name="line1477"></a>    {
+<a name="line1478"></a>        if ($url) {
+<a name="line1479"></a>            if (Config::get('url_param_type')) {
+<a name="line1480"></a>                $var += explode('|', $url);
+<a name="line1481"></a>            } else {
+<a name="line1482"></a>                preg_replace_callback('/(\w+)\|([^\|]+)/', function ($match) use (&$var) {
+<a name="line1483"></a>                    $var[$match[1]] = strip_tags($match[2]);
+<a name="line1484"></a>                }, $url);
+<a name="line1485"></a>            }
+<a name="line1486"></a>        }
+<a name="line1487"></a>        // 设置当前请求的参数
+<a name="line1488"></a>        Request::instance()->route($var);
+<a name="line1489"></a>    }
+<a name="line1490"></a>
+<a name="line1491"></a>    // 分析路由规则中的变量
+<a name="line1492"></a>    private static function parseVar($rule)
+<a name="line1493"></a>    {
+<a name="line1494"></a>        // 提取路由规则中的变量
+<a name="line1495"></a>        $var = [];
+<a name="line1496"></a>        foreach (explode('/', $rule) as $val) {
+<a name="line1497"></a>            $optional = false;
+<a name="line1498"></a>            if (false !== strpos($val, '<') && preg_match_all('/<(\w+(\??))>/', $val, $matches)) {
+<a name="line1499"></a>                foreach ($matches[1] as $name) {
+<a name="line1500"></a>                    if (strpos($name, '?')) {
+<a name="line1501"></a>                        $name     = substr($name, 0, -1);
+<a name="line1502"></a>                        $optional = true;
+<a name="line1503"></a>                    } else {
+<a name="line1504"></a>                        $optional = false;
+<a name="line1505"></a>                    }
+<a name="line1506"></a>                    $var[$name] = $optional ? 2 : 1;
+<a name="line1507"></a>                }
+<a name="line1508"></a>            }
+<a name="line1509"></a>
+<a name="line1510"></a>            if (0 === strpos($val, '[:')) {
+<a name="line1511"></a>                // 可选参数
+<a name="line1512"></a>                $optional = true;
+<a name="line1513"></a>                $val      = substr($val, 1, -1);
+<a name="line1514"></a>            }
+<a name="line1515"></a>            if (0 === strpos($val, ':')) {
+<a name="line1516"></a>                // URL变量
+<a name="line1517"></a>                $name       = substr($val, 1);
+<a name="line1518"></a>                $var[$name] = $optional ? 2 : 1;
+<a name="line1519"></a>            }
+<a name="line1520"></a>        }
+<a name="line1521"></a>        return $var;
+<a name="line1522"></a>    }
+<a name="line1523"></a>}
+<a name="line1524"></a></pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\route.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

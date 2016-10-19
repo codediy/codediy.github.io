@@ -1,0 +1,1031 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:04 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>Process (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\process.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\Process</div>
+<a href="../source/library/think/process.php.html#line21" class="location">library\think\Process.php at line 21</a>
+
+<h1>Class Process</h1>
+
+<pre class="tree"><strong>Process</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>Process</strong></p>
+
+<hr>
+
+<table id="summary_field">
+<tr><th colspan="2">Constant Summary</th></tr>
+<tr>
+<td class="type">final static  str</td>
+<td class="description"><p class="name"><a href="#ERR">ERR</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  str</td>
+<td class="description"><p class="name"><a href="#OUT">OUT</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  str</td>
+<td class="description"><p class="name"><a href="#STATUS_READY">STATUS_READY</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  str</td>
+<td class="description"><p class="name"><a href="#STATUS_STARTED">STATUS_STARTED</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  str</td>
+<td class="description"><p class="name"><a href="#STATUS_TERMINATED">STATUS_TERMINATED</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  int</td>
+<td class="description"><p class="name"><a href="#STDERR">STDERR</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  int</td>
+<td class="description"><p class="name"><a href="#STDIN">STDIN</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  int</td>
+<td class="description"><p class="name"><a href="#STDOUT">STDOUT</a></p></td>
+</tr>
+<tr>
+<td class="type">final static  int</td>
+<td class="description"><p class="name"><a href="#TIMEOUT_PRECISION">TIMEOUT_PRECISION</a></p></td>
+</tr>
+</table>
+
+<table id="summary_field">
+<tr><th colspan="2">Field Summary</th></tr>
+<tr>
+<td class="type">static  array</td>
+<td class="description"><p class="name"><a href="#exitCodes">$exitCodes</a></p><p class="description"></p></td>
+</tr>
+</table>
+
+<table id="summary_constructor">
+<tr><th colspan="2">Constructor Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#__construct()">__construct</a>(string commandline, string|null cwd, array|null env, string|null input, int|float|null timeout, array options)</p><p class="description">构造方法</p></td>
+</tr>
+</table>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type"> int</td>
+<td class="description"><p class="name"><a href="#run()">run</a>(callback|null callback)</p><p class="description">运行指令</p></td>
+</tr>
+<tr>
+<td class="type"> self</td>
+<td class="description"><p class="name"><a href="#mustRun()">mustRun</a>(callable|null callback)</p><p class="description">运行指令</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#start()">start</a>(callable|null callback)</p><p class="description">启动进程并写到 STDIN 输入后返回。</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/process.html">Process</a></td>
+<td class="description"><p class="name"><a href="#restart()">restart</a>(callable|null callback)</p><p class="description">重启进程</p></td>
+</tr>
+<tr>
+<td class="type"> int</td>
+<td class="description"><p class="name"><a href="#wait()">wait</a>(callable|null callback)</p><p class="description">等待要终止的进程</p></td>
+</tr>
+<tr>
+<td class="type"> int|null</td>
+<td class="description"><p class="name"><a href="#getPid()">getPid</a>()</p><p class="description">获取PID</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/process.html">Process</a></td>
+<td class="description"><p class="name"><a href="#signal()">signal</a>(int signal)</p><p class="description">将一个 POSIX 信号发送到进程中</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/process.html">Process</a></td>
+<td class="description"><p class="name"><a href="#disableOutput()">disableOutput</a>()</p><p class="description">禁用从底层过程获取输出和错误输出。</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/process.html">Process</a></td>
+<td class="description"><p class="name"><a href="#enableOutput()">enableOutput</a>()</p><p class="description">开启从底层过程获取输出和错误输出。</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#isOutputDisabled()">isOutputDisabled</a>()</p><p class="description">输出是否禁用</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getOutput()">getOutput</a>()</p><p class="description">获取当前的输出管道</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getIncrementalOutput()">getIncrementalOutput</a>()</p><p class="description">以增量方式返回的输出结果。</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/process.html">Process</a></td>
+<td class="description"><p class="name"><a href="#clearOutput()">clearOutput</a>()</p><p class="description">清空输出</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getErrorOutput()">getErrorOutput</a>()</p><p class="description">返回当前的错误输出的过程 (STDERR)。</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getIncrementalErrorOutput()">getIncrementalErrorOutput</a>()</p><p class="description">以增量方式返回 errorOutput</p></td>
+</tr>
+<tr>
+<td class="type"> <a href="../think/process.html">Process</a></td>
+<td class="description"><p class="name"><a href="#clearErrorOutput()">clearErrorOutput</a>()</p><p class="description">清空 errorOutput</p></td>
+</tr>
+<tr>
+<td class="type"> null|int</td>
+<td class="description"><p class="name"><a href="#getExitCode()">getExitCode</a>()</p><p class="description">获取退出码</p></td>
+</tr>
+<tr>
+<td class="type"> null|string</td>
+<td class="description"><p class="name"><a href="#getExitCodeText()">getExitCodeText</a>()</p><p class="description">获取退出文本</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#isSuccessful()">isSuccessful</a>()</p><p class="description">检查是否成功</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#hasBeenSignaled()">hasBeenSignaled</a>()</p><p class="description">是否未捕获的信号已被终止子进程</p></td>
+</tr>
+<tr>
+<td class="type"> int</td>
+<td class="description"><p class="name"><a href="#getTermSignal()">getTermSignal</a>()</p><p class="description">返回导致子进程终止其执行的数。</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#hasBeenStopped()">hasBeenStopped</a>()</p><p class="description">检查子进程信号是否已停止</p></td>
+</tr>
+<tr>
+<td class="type"> int</td>
+<td class="description"><p class="name"><a href="#getStopSignal()">getStopSignal</a>()</p><p class="description">返回导致子进程停止其执行的数。</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#isRunning()">isRunning</a>()</p><p class="description">检查是否正在运行</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#isStarted()">isStarted</a>()</p><p class="description">检查是否已开始</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#isTerminated()">isTerminated</a>()</p><p class="description">检查是否已终止</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getStatus()">getStatus</a>()</p><p class="description">获取当前的状态</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#stop()">stop</a>()</p><p class="description">终止进程</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#addOutput()">addOutput</a>(string line)</p><p class="description">添加一行输出</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#addErrorOutput()">addErrorOutput</a>(string line)</p><p class="description">添加一行错误输出</p></td>
+</tr>
+<tr>
+<td class="type"> string</td>
+<td class="description"><p class="name"><a href="#getCommandLine()">getCommandLine</a>()</p><p class="description">获取被执行的指令</p></td>
+</tr>
+<tr>
+<td class="type"> self</td>
+<td class="description"><p class="name"><a href="#setCommandLine()">setCommandLine</a>(string commandline)</p><p class="description">设置指令</p></td>
+</tr>
+<tr>
+<td class="type"> float|null</td>
+<td class="description"><p class="name"><a href="#getTimeout()">getTimeout</a>()</p><p class="description">获取超时时间</p></td>
+</tr>
+<tr>
+<td class="type"> float|null</td>
+<td class="description"><p class="name"><a href="#getIdleTimeout()">getIdleTimeout</a>()</p><p class="description">获取idle超时时间</p></td>
+</tr>
+<tr>
+<td class="type"> self</td>
+<td class="description"><p class="name"><a href="#setTimeout()">setTimeout</a>(int|float|null timeout)</p><p class="description">设置超时时间</p></td>
+</tr>
+<tr>
+<td class="type"> self</td>
+<td class="description"><p class="name"><a href="#setIdleTimeout()">setIdleTimeout</a>(int|float|null timeout)</p><p class="description">设置idle超时时间</p></td>
+</tr>
+<tr>
+<td class="type"> self</td>
+<td class="description"><p class="name"><a href="#setTty()">setTty</a>(bool tty)</p><p class="description">设置TTY</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#isTty()">isTty</a>()</p><p class="description">检查是否是tty模式</p></td>
+</tr>
+<tr>
+<td class="type"> self</td>
+<td class="description"><p class="name"><a href="#setPty()">setPty</a>(bool bool)</p><p class="description">设置pty模式</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#isPty()">isPty</a>()</p><p class="description">是否是pty模式</p></td>
+</tr>
+<tr>
+<td class="type"> string|null</td>
+<td class="description"><p class="name"><a href="#getWorkingDirectory()">getWorkingDirectory</a>()</p><p class="description">获取工作目录</p></td>
+</tr>
+<tr>
+<td class="type"> self</td>
+<td class="description"><p class="name"><a href="#setWorkingDirectory()">setWorkingDirectory</a>(string cwd)</p><p class="description">设置工作目录</p></td>
+</tr>
+<tr>
+<td class="type"> array</td>
+<td class="description"><p class="name"><a href="#getEnv()">getEnv</a>()</p><p class="description">获取环境变量</p></td>
+</tr>
+<tr>
+<td class="type"> self</td>
+<td class="description"><p class="name"><a href="#setEnv()">setEnv</a>(array env)</p><p class="description">设置环境变量</p></td>
+</tr>
+<tr>
+<td class="type"> null|string</td>
+<td class="description"><p class="name"><a href="#getInput()">getInput</a>()</p><p class="description">获取输入</p></td>
+</tr>
+<tr>
+<td class="type"> self</td>
+<td class="description"><p class="name"><a href="#setInput()">setInput</a>(mixed input)</p><p class="description">设置输入</p></td>
+</tr>
+<tr>
+<td class="type"> array</td>
+<td class="description"><p class="name"><a href="#getOptions()">getOptions</a>()</p><p class="description">获取proc_open的选项</p></td>
+</tr>
+<tr>
+<td class="type"> self</td>
+<td class="description"><p class="name"><a href="#setOptions()">setOptions</a>(array options)</p><p class="description">设置proc_open的选项</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#getEnhanceWindowsCompatibility()">getEnhanceWindowsCompatibility</a>()</p><p class="description">是否兼容windows</p></td>
+</tr>
+<tr>
+<td class="type"> self</td>
+<td class="description"><p class="name"><a href="#setEnhanceWindowsCompatibility()">setEnhanceWindowsCompatibility</a>(bool enhance)</p><p class="description">设置是否兼容windows</p></td>
+</tr>
+<tr>
+<td class="type"> bool</td>
+<td class="description"><p class="name"><a href="#getEnhanceSigchildCompatibility()">getEnhanceSigchildCompatibility</a>()</p><p class="description">返回是否 sigchild 兼容模式激活</p></td>
+</tr>
+<tr>
+<td class="type"> self</td>
+<td class="description"><p class="name"><a href="#setEnhanceSigchildCompatibility()">setEnhanceSigchildCompatibility</a>(bool enhance)</p><p class="description">激活 sigchild 兼容性模式。</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#checkTimeout()">checkTimeout</a>()</p><p class="description">是否超时</p></td>
+</tr>
+<tr>
+<td class="type">static  bool</td>
+<td class="description"><p class="name"><a href="#isPtySupported()">isPtySupported</a>()</p><p class="description">是否支持pty</p></td>
+</tr>
+<tr>
+<td class="type">protected  callable</td>
+<td class="description"><p class="name"><a href="#buildCallback()">buildCallback</a>(callable|null callback)</p><p class="description">建立 wait () 使用的回调。</p></td>
+</tr>
+<tr>
+<td class="type">protected  void</td>
+<td class="description"><p class="name"><a href="#updateStatus()">updateStatus</a>(bool blocking)</p><p class="description">更新状态</p></td>
+</tr>
+<tr>
+<td class="type">protected  bool</td>
+<td class="description"><p class="name"><a href="#isSigchildEnabled()">isSigchildEnabled</a>()</p><p class="description">是否开启 '--enable-sigchild'</p></td>
+</tr>
+</table>
+
+<h2 id="detail_field">Constant Detail</h2>
+<a href="../source/library/think/process.php.html#line24" class="location">library\think\Process.php at line 24</a>
+
+<h3 id="ERR">ERR</h3>
+<code class="signature">public final static  str <strong>ERR</strong> = 'err'</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line25" class="location">library\think\Process.php at line 25</a>
+
+<h3 id="OUT">OUT</h3>
+<code class="signature">public final static  str <strong>OUT</strong> = 'out'</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line27" class="location">library\think\Process.php at line 27</a>
+
+<h3 id="STATUS_READY">STATUS_READY</h3>
+<code class="signature">public final static  str <strong>STATUS_READY</strong> = 'ready'</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line28" class="location">library\think\Process.php at line 28</a>
+
+<h3 id="STATUS_STARTED">STATUS_STARTED</h3>
+<code class="signature">public final static  str <strong>STATUS_STARTED</strong> = 'started'</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line29" class="location">library\think\Process.php at line 29</a>
+
+<h3 id="STATUS_TERMINATED">STATUS_TERMINATED</h3>
+<code class="signature">public final static  str <strong>STATUS_TERMINATED</strong> = 'terminated'</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line33" class="location">library\think\Process.php at line 33</a>
+
+<h3 id="STDERR">STDERR</h3>
+<code class="signature">public final static  int <strong>STDERR</strong> = 2</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line31" class="location">library\think\Process.php at line 31</a>
+
+<h3 id="STDIN">STDIN</h3>
+<code class="signature">public final static  int <strong>STDIN</strong> = 0</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line32" class="location">library\think\Process.php at line 32</a>
+
+<h3 id="STDOUT">STDOUT</h3>
+<code class="signature">public final static  int <strong>STDOUT</strong> = 1</code>
+<div class="details">
+</div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line35" class="location">library\think\Process.php at line 35</a>
+
+<h3 id="TIMEOUT_PRECISION">TIMEOUT_PRECISION</h3>
+<code class="signature">public final static  int <strong>TIMEOUT_PRECISION</strong> = 0.2</code>
+<div class="details">
+</div>
+
+<hr>
+
+<h2 id="detail_field">Field Detail</h2>
+<a href="../source/library/think/process.php.html#line74" class="location">library\think\Process.php at line 74</a>
+
+<h3 id="exitCodes">exitCodes</h3>
+<code class="signature">public static  array <strong>$exitCodes</strong> = [
+        0   =&gt; 'OK'</code>
+<div class="details">
+<p></p></div>
+
+<hr>
+
+<h2 id="detail_method">Constructor Detail</h2>
+<a href="../source/library/think/process.php.html#line87" class="location">library\think\Process.php at line 87</a>
+
+<h3 id="__construct()">__construct</h3>
+<code class="signature">public  void <strong>__construct</strong>(string commandline, string|null cwd, array|null env, string|null input, int|float|null timeout, array options)</code>
+<div class="details">
+<p>构造方法</p><dl>
+<dt>Parameters:</dt>
+<dd>commandline - 指令</dd>
+<dd>cwd - 工作目录</dd>
+<dd>env - 环境变量</dd>
+<dd>input - 输入</dd>
+<dd>timeout - 超时时间</dd>
+<dd>options - proc_open的选项</dd>
+<dt>Throws:</dt>
+<dd>\RuntimeException</dd>
+<dt>Api.</dt>
+</dl>
+</div>
+
+<hr>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../source/library/think/process.php.html#line130" class="location">library\think\Process.php at line 130</a>
+
+<h3 id="run()">run</h3>
+<code class="signature">public  int <strong>run</strong>(callback|null callback)</code>
+<div class="details">
+<p>运行指令</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line144" class="location">library\think\Process.php at line 144</a>
+
+<h3 id="mustRun()">mustRun</h3>
+<code class="signature">public  self <strong>mustRun</strong>(callable|null callback)</code>
+<div class="details">
+<p>运行指令</p><dl>
+<dt>Throws:</dt>
+<dd>\RuntimeException</dd>
+<dd>ProcessFailedException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line164" class="location">library\think\Process.php at line 164</a>
+
+<h3 id="start()">start</h3>
+<code class="signature">public  void <strong>start</strong>(callable|null callback)</code>
+<div class="details">
+<p>启动进程并写到 STDIN 输入后返回。</p><dl>
+<dt>Throws:</dt>
+<dd>\RuntimeException</dd>
+<dd>\RuntimeException</dd>
+<dd>\LogicException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line214" class="location">library\think\Process.php at line 214</a>
+
+<h3 id="restart()">restart</h3>
+<code class="signature">public  <a href="../think/process.html">Process</a> <strong>restart</strong>(callable|null callback)</code>
+<div class="details">
+<p>重启进程</p><dl>
+<dt>Throws:</dt>
+<dd>\RuntimeException</dd>
+<dd>\RuntimeException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line231" class="location">library\think\Process.php at line 231</a>
+
+<h3 id="wait()">wait</h3>
+<code class="signature">public  int <strong>wait</strong>(callable|null callback)</code>
+<div class="details">
+<p>等待要终止的进程</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line263" class="location">library\think\Process.php at line 263</a>
+
+<h3 id="getPid()">getPid</h3>
+<code class="signature">public  int|null <strong>getPid</strong>()</code>
+<div class="details">
+<p>获取PID</p><dl>
+<dt>Throws:</dt>
+<dd>\RuntimeException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line279" class="location">library\think\Process.php at line 279</a>
+
+<h3 id="signal()">signal</h3>
+<code class="signature">public  <a href="../think/process.html">Process</a> <strong>signal</strong>(int signal)</code>
+<div class="details">
+<p>将一个 POSIX 信号发送到进程中</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line290" class="location">library\think\Process.php at line 290</a>
+
+<h3 id="disableOutput()">disableOutput</h3>
+<code class="signature">public  <a href="../think/process.html">Process</a> <strong>disableOutput</strong>()</code>
+<div class="details">
+<p>禁用从底层过程获取输出和错误输出。</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line309" class="location">library\think\Process.php at line 309</a>
+
+<h3 id="enableOutput()">enableOutput</h3>
+<code class="signature">public  <a href="../think/process.html">Process</a> <strong>enableOutput</strong>()</code>
+<div class="details">
+<p>开启从底层过程获取输出和错误输出。</p><dl>
+<dt>Throws:</dt>
+<dd>\RuntimeException</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line324" class="location">library\think\Process.php at line 324</a>
+
+<h3 id="isOutputDisabled()">isOutputDisabled</h3>
+<code class="signature">public  bool <strong>isOutputDisabled</strong>()</code>
+<div class="details">
+<p>输出是否禁用</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line336" class="location">library\think\Process.php at line 336</a>
+
+<h3 id="getOutput()">getOutput</h3>
+<code class="signature">public  string <strong>getOutput</strong>()</code>
+<div class="details">
+<p>获取当前的输出管道</p><dl>
+<dt>Throws:</dt>
+<dd>\LogicException</dd>
+<dd>\LogicException</dd>
+<dt>Api.</dt>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line353" class="location">library\think\Process.php at line 353</a>
+
+<h3 id="getIncrementalOutput()">getIncrementalOutput</h3>
+<code class="signature">public  string <strong>getIncrementalOutput</strong>()</code>
+<div class="details">
+<p>以增量方式返回的输出结果。</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line374" class="location">library\think\Process.php at line 374</a>
+
+<h3 id="clearOutput()">clearOutput</h3>
+<code class="signature">public  <a href="../think/process.html">Process</a> <strong>clearOutput</strong>()</code>
+<div class="details">
+<p>清空输出</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line386" class="location">library\think\Process.php at line 386</a>
+
+<h3 id="getErrorOutput()">getErrorOutput</h3>
+<code class="signature">public  string <strong>getErrorOutput</strong>()</code>
+<div class="details">
+<p>返回当前的错误输出的过程 (STDERR)。</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line403" class="location">library\think\Process.php at line 403</a>
+
+<h3 id="getIncrementalErrorOutput()">getIncrementalErrorOutput</h3>
+<code class="signature">public  string <strong>getIncrementalErrorOutput</strong>()</code>
+<div class="details">
+<p>以增量方式返回 errorOutput</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line424" class="location">library\think\Process.php at line 424</a>
+
+<h3 id="clearErrorOutput()">clearErrorOutput</h3>
+<code class="signature">public  <a href="../think/process.html">Process</a> <strong>clearErrorOutput</strong>()</code>
+<div class="details">
+<p>清空 errorOutput</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line436" class="location">library\think\Process.php at line 436</a>
+
+<h3 id="getExitCode()">getExitCode</h3>
+<code class="signature">public  null|int <strong>getExitCode</strong>()</code>
+<div class="details">
+<p>获取退出码</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line451" class="location">library\think\Process.php at line 451</a>
+
+<h3 id="getExitCodeText()">getExitCodeText</h3>
+<code class="signature">public  null|string <strong>getExitCodeText</strong>()</code>
+<div class="details">
+<p>获取退出文本</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line464" class="location">library\think\Process.php at line 464</a>
+
+<h3 id="isSuccessful()">isSuccessful</h3>
+<code class="signature">public  bool <strong>isSuccessful</strong>()</code>
+<div class="details">
+<p>检查是否成功</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line473" class="location">library\think\Process.php at line 473</a>
+
+<h3 id="hasBeenSignaled()">hasBeenSignaled</h3>
+<code class="signature">public  bool <strong>hasBeenSignaled</strong>()</code>
+<div class="details">
+<p>是否未捕获的信号已被终止子进程</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line490" class="location">library\think\Process.php at line 490</a>
+
+<h3 id="getTermSignal()">getTermSignal</h3>
+<code class="signature">public  int <strong>getTermSignal</strong>()</code>
+<div class="details">
+<p>返回导致子进程终止其执行的数。</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line507" class="location">library\think\Process.php at line 507</a>
+
+<h3 id="hasBeenStopped()">hasBeenStopped</h3>
+<code class="signature">public  bool <strong>hasBeenStopped</strong>()</code>
+<div class="details">
+<p>检查子进程信号是否已停止</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line520" class="location">library\think\Process.php at line 520</a>
+
+<h3 id="getStopSignal()">getStopSignal</h3>
+<code class="signature">public  int <strong>getStopSignal</strong>()</code>
+<div class="details">
+<p>返回导致子进程停止其执行的数。</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line533" class="location">library\think\Process.php at line 533</a>
+
+<h3 id="isRunning()">isRunning</h3>
+<code class="signature">public  bool <strong>isRunning</strong>()</code>
+<div class="details">
+<p>检查是否正在运行</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line548" class="location">library\think\Process.php at line 548</a>
+
+<h3 id="isStarted()">isStarted</h3>
+<code class="signature">public  bool <strong>isStarted</strong>()</code>
+<div class="details">
+<p>检查是否已开始</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line557" class="location">library\think\Process.php at line 557</a>
+
+<h3 id="isTerminated()">isTerminated</h3>
+<code class="signature">public  bool <strong>isTerminated</strong>()</code>
+<div class="details">
+<p>检查是否已终止</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line568" class="location">library\think\Process.php at line 568</a>
+
+<h3 id="getStatus()">getStatus</h3>
+<code class="signature">public  string <strong>getStatus</strong>()</code>
+<div class="details">
+<p>获取当前的状态</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line578" class="location">library\think\Process.php at line 578</a>
+
+<h3 id="stop()">stop</h3>
+<code class="signature">public  void <strong>stop</strong>()</code>
+<div class="details">
+<p>终止进程</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line608" class="location">library\think\Process.php at line 608</a>
+
+<h3 id="addOutput()">addOutput</h3>
+<code class="signature">public  void <strong>addOutput</strong>(string line)</code>
+<div class="details">
+<p>添加一行输出</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line618" class="location">library\think\Process.php at line 618</a>
+
+<h3 id="addErrorOutput()">addErrorOutput</h3>
+<code class="signature">public  void <strong>addErrorOutput</strong>(string line)</code>
+<div class="details">
+<p>添加一行错误输出</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line628" class="location">library\think\Process.php at line 628</a>
+
+<h3 id="getCommandLine()">getCommandLine</h3>
+<code class="signature">public  string <strong>getCommandLine</strong>()</code>
+<div class="details">
+<p>获取被执行的指令</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line638" class="location">library\think\Process.php at line 638</a>
+
+<h3 id="setCommandLine()">setCommandLine</h3>
+<code class="signature">public  self <strong>setCommandLine</strong>(string commandline)</code>
+<div class="details">
+<p>设置指令</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line649" class="location">library\think\Process.php at line 649</a>
+
+<h3 id="getTimeout()">getTimeout</h3>
+<code class="signature">public  float|null <strong>getTimeout</strong>()</code>
+<div class="details">
+<p>获取超时时间</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line658" class="location">library\think\Process.php at line 658</a>
+
+<h3 id="getIdleTimeout()">getIdleTimeout</h3>
+<code class="signature">public  float|null <strong>getIdleTimeout</strong>()</code>
+<div class="details">
+<p>获取idle超时时间</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line668" class="location">library\think\Process.php at line 668</a>
+
+<h3 id="setTimeout()">setTimeout</h3>
+<code class="signature">public  self <strong>setTimeout</strong>(int|float|null timeout)</code>
+<div class="details">
+<p>设置超时时间</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line680" class="location">library\think\Process.php at line 680</a>
+
+<h3 id="setIdleTimeout()">setIdleTimeout</h3>
+<code class="signature">public  self <strong>setIdleTimeout</strong>(int|float|null timeout)</code>
+<div class="details">
+<p>设置idle超时时间</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line696" class="location">library\think\Process.php at line 696</a>
+
+<h3 id="setTty()">setTty</h3>
+<code class="signature">public  self <strong>setTty</strong>(bool tty)</code>
+<div class="details">
+<p>设置TTY</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line714" class="location">library\think\Process.php at line 714</a>
+
+<h3 id="isTty()">isTty</h3>
+<code class="signature">public  bool <strong>isTty</strong>()</code>
+<div class="details">
+<p>检查是否是tty模式</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line724" class="location">library\think\Process.php at line 724</a>
+
+<h3 id="setPty()">setPty</h3>
+<code class="signature">public  self <strong>setPty</strong>(bool bool)</code>
+<div class="details">
+<p>设置pty模式</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line735" class="location">library\think\Process.php at line 735</a>
+
+<h3 id="isPty()">isPty</h3>
+<code class="signature">public  bool <strong>isPty</strong>()</code>
+<div class="details">
+<p>是否是pty模式</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line744" class="location">library\think\Process.php at line 744</a>
+
+<h3 id="getWorkingDirectory()">getWorkingDirectory</h3>
+<code class="signature">public  string|null <strong>getWorkingDirectory</strong>()</code>
+<div class="details">
+<p>获取工作目录</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line758" class="location">library\think\Process.php at line 758</a>
+
+<h3 id="setWorkingDirectory()">setWorkingDirectory</h3>
+<code class="signature">public  self <strong>setWorkingDirectory</strong>(string cwd)</code>
+<div class="details">
+<p>设置工作目录</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line769" class="location">library\think\Process.php at line 769</a>
+
+<h3 id="getEnv()">getEnv</h3>
+<code class="signature">public  array <strong>getEnv</strong>()</code>
+<div class="details">
+<p>获取环境变量</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line779" class="location">library\think\Process.php at line 779</a>
+
+<h3 id="setEnv()">setEnv</h3>
+<code class="signature">public  self <strong>setEnv</strong>(array env)</code>
+<div class="details">
+<p>设置环境变量</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line797" class="location">library\think\Process.php at line 797</a>
+
+<h3 id="getInput()">getInput</h3>
+<code class="signature">public  null|string <strong>getInput</strong>()</code>
+<div class="details">
+<p>获取输入</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line807" class="location">library\think\Process.php at line 807</a>
+
+<h3 id="setInput()">setInput</h3>
+<code class="signature">public  self <strong>setInput</strong>(mixed input)</code>
+<div class="details">
+<p>设置输入</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line822" class="location">library\think\Process.php at line 822</a>
+
+<h3 id="getOptions()">getOptions</h3>
+<code class="signature">public  array <strong>getOptions</strong>()</code>
+<div class="details">
+<p>获取proc_open的选项</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line832" class="location">library\think\Process.php at line 832</a>
+
+<h3 id="setOptions()">setOptions</h3>
+<code class="signature">public  self <strong>setOptions</strong>(array options)</code>
+<div class="details">
+<p>设置proc_open的选项</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line843" class="location">library\think\Process.php at line 843</a>
+
+<h3 id="getEnhanceWindowsCompatibility()">getEnhanceWindowsCompatibility</h3>
+<code class="signature">public  bool <strong>getEnhanceWindowsCompatibility</strong>()</code>
+<div class="details">
+<p>是否兼容windows</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line853" class="location">library\think\Process.php at line 853</a>
+
+<h3 id="setEnhanceWindowsCompatibility()">setEnhanceWindowsCompatibility</h3>
+<code class="signature">public  self <strong>setEnhanceWindowsCompatibility</strong>(bool enhance)</code>
+<div class="details">
+<p>设置是否兼容windows</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line864" class="location">library\think\Process.php at line 864</a>
+
+<h3 id="getEnhanceSigchildCompatibility()">getEnhanceSigchildCompatibility</h3>
+<code class="signature">public  bool <strong>getEnhanceSigchildCompatibility</strong>()</code>
+<div class="details">
+<p>返回是否 sigchild 兼容模式激活</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line874" class="location">library\think\Process.php at line 874</a>
+
+<h3 id="setEnhanceSigchildCompatibility()">setEnhanceSigchildCompatibility</h3>
+<code class="signature">public  self <strong>setEnhanceSigchildCompatibility</strong>(bool enhance)</code>
+<div class="details">
+<p>激活 sigchild 兼容性模式。</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line884" class="location">library\think\Process.php at line 884</a>
+
+<h3 id="checkTimeout()">checkTimeout</h3>
+<code class="signature">public  void <strong>checkTimeout</strong>()</code>
+<div class="details">
+<p>是否超时</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line907" class="location">library\think\Process.php at line 907</a>
+
+<h3 id="isPtySupported()">isPtySupported</h3>
+<code class="signature">public static  bool <strong>isPtySupported</strong>()</code>
+<div class="details">
+<p>是否支持pty</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line957" class="location">library\think\Process.php at line 957</a>
+
+<h3 id="buildCallback()">buildCallback</h3>
+<code class="signature">protected  callable <strong>buildCallback</strong>(callable|null callback)</code>
+<div class="details">
+<p>建立 wait () 使用的回调。</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line979" class="location">library\think\Process.php at line 979</a>
+
+<h3 id="updateStatus()">updateStatus</h3>
+<code class="signature">protected  void <strong>updateStatus</strong>(bool blocking)</code>
+<div class="details">
+<p>更新状态</p></div>
+
+<hr>
+
+<a href="../source/library/think/process.php.html#line999" class="location">library\think\Process.php at line 999</a>
+
+<h3 id="isSigchildEnabled()">isSigchildEnabled</h3>
+<code class="signature">protected  bool <strong>isSigchildEnabled</strong>()</code>
+<div class="details">
+<p>是否开启 '--enable-sigchild'</p></div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\process.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

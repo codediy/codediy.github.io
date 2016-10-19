@@ -1,0 +1,340 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:04 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>Template (ThinkPHP5)</title>
+
+</head>
+<body id="definition" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\template.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<div class="qualifiedName">think\Template</div>
+<a href="../source/library/think/template.php.html#line21" class="location">library\think\Template.php at line 21</a>
+
+<h1>Class Template</h1>
+
+<pre class="tree"><strong>Template</strong><br /></pre>
+
+<hr>
+
+<p class="signature">public  class <strong>Template</strong></p>
+
+<div class="comment" id="overview_description"><p>ThinkPHP分离出来的模板引擎
+支持XML标签和普通标签的模板解析
+编译型模板引擎 支持动态缓存</p></div>
+
+<hr>
+
+<table id="summary_constructor">
+<tr><th colspan="2">Constructor Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#__construct()">__construct</a>(mixed config)</p><p class="description">架构函数</p></td>
+</tr>
+</table>
+
+<table id="summary_method">
+<tr><th colspan="2">Method Summary</th></tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#assign()">assign</a>(mixed name, mixed value)</p><p class="description">模板变量赋值</p></td>
+</tr>
+<tr>
+<td class="type"> void|array</td>
+<td class="description"><p class="name"><a href="#config()">config</a>(array|string config)</p><p class="description">模板引擎配置项</p></td>
+</tr>
+<tr>
+<td class="type"> mixed</td>
+<td class="description"><p class="name"><a href="#get()">get</a>(string name)</p><p class="description">模板变量获取</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#fetch()">fetch</a>(string template, array vars, array config)</p><p class="description">渲染模板文件</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#display()">display</a>(string content, array vars, array config)</p><p class="description">渲染模板内容</p></td>
+</tr>
+<tr>
+<td class="type"> object</td>
+<td class="description"><p class="name"><a href="#layout()">layout</a>(mixed name, string replace)</p><p class="description">设置布局</p></td>
+</tr>
+<tr>
+<td class="type"> boolean</td>
+<td class="description"><p class="name"><a href="#isCache()">isCache</a>(string cacheId)</p><p class="description">检查编译缓存是否存在</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#parse()">parse</a>(string content)</p><p class="description">模板解析入口
+支持普通标签和TagLib解析 支持自定义标签库</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#parseTagLib()">parseTagLib</a>(string tagLib, string content, boolean hide)</p><p class="description">TagLib库解析</p></td>
+</tr>
+<tr>
+<td class="type"> array</td>
+<td class="description"><p class="name"><a href="#parseAttr()">parseAttr</a>(string str, string name)</p><p class="description">分析标签属性</p></td>
+</tr>
+<tr>
+<td class="type"> void</td>
+<td class="description"><p class="name"><a href="#parseVar()">parseVar</a>(string varStr)</p><p class="description">模板变量解析,支持使用函数
+格式： {$varname|function1|function2=arg1,arg2}</p></td>
+</tr>
+<tr>
+<td class="type">static  void</td>
+<td class="description"><p class="name"><a href="#parseVarFunction()">parseVarFunction</a>(string varStr)</p><p class="description">对模板中使用了函数的变量进行解析
+格式 {$varname|function1|function2=arg1,arg2}</p></td>
+</tr>
+<tr>
+<td class="type">static  string</td>
+<td class="description"><p class="name"><a href="#parseThinkVar()">parseThinkVar</a>(array vars)</p><p class="description">特殊模板变量解析
+格式 以 $Think. </p></td>
+</tr>
+</table>
+
+<h2 id="detail_method">Constructor Detail</h2>
+<a href="../source/library/think/template.php.html#line36" class="location">library\think\Template.php at line 36</a>
+
+<h3 id="__construct()">__construct</h3>
+<code class="signature">public  void <strong>__construct</strong>(mixed config)</code>
+<div class="details">
+<p>架构函数</p></div>
+
+<hr>
+
+<h2 id="detail_method">Method Detail</h2>
+<a href="../source/library/think/template.php.html#line72" class="location">library\think\Template.php at line 72</a>
+
+<h3 id="assign()">assign</h3>
+<code class="signature">public  void <strong>assign</strong>(mixed name, mixed value)</code>
+<div class="details">
+<p>模板变量赋值</p></div>
+
+<hr>
+
+<a href="../source/library/think/template.php.html#line98" class="location">library\think\Template.php at line 98</a>
+
+<h3 id="config()">config</h3>
+<code class="signature">public  void|array <strong>config</strong>(array|string config)</code>
+<div class="details">
+<p>模板引擎配置项</p></div>
+
+<hr>
+
+<a href="../source/library/think/template.php.html#line115" class="location">library\think\Template.php at line 115</a>
+
+<h3 id="get()">get</h3>
+<code class="signature">public  mixed <strong>get</strong>(string name)</code>
+<div class="details">
+<p>模板变量获取</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 变量名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template.php.html#line141" class="location">library\think\Template.php at line 141</a>
+
+<h3 id="fetch()">fetch</h3>
+<code class="signature">public  void <strong>fetch</strong>(string template, array vars, array config)</code>
+<div class="details">
+<p>渲染模板文件</p><dl>
+<dt>Parameters:</dt>
+<dd>template - 模板文件</dd>
+<dd>vars - 模板变量</dd>
+<dd>config - 模板参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template.php.html#line188" class="location">library\think\Template.php at line 188</a>
+
+<h3 id="display()">display</h3>
+<code class="signature">public  void <strong>display</strong>(string content, array vars, array config)</code>
+<div class="details">
+<p>渲染模板内容</p><dl>
+<dt>Parameters:</dt>
+<dd>content - 模板内容</dd>
+<dd>vars - 模板变量</dd>
+<dd>config - 模板参数</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template.php.html#line212" class="location">library\think\Template.php at line 212</a>
+
+<h3 id="layout()">layout</h3>
+<code class="signature">public  object <strong>layout</strong>(mixed name, string replace)</code>
+<div class="details">
+<p>设置布局</p><dl>
+<dt>Parameters:</dt>
+<dd>name - 布局模板名称 false 则关闭布局</dd>
+<dd>replace - 布局模板内容替换标识</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template.php.html#line278" class="location">library\think\Template.php at line 278</a>
+
+<h3 id="isCache()">isCache</h3>
+<code class="signature">public  boolean <strong>isCache</strong>(string cacheId)</code>
+<div class="details">
+<p>检查编译缓存是否存在</p><dl>
+<dt>Parameters:</dt>
+<dd>cacheId - 缓存的id</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template.php.html#line341" class="location">library\think\Template.php at line 341</a>
+
+<h3 id="parse()">parse</h3>
+<code class="signature">public  void <strong>parse</strong>(string content)</code>
+<div class="details">
+<p>模板解析入口
+支持普通标签和TagLib解析 支持自定义标签库</p><dl>
+<dt>Parameters:</dt>
+<dd>content - 要解析的模板内容</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template.php.html#line655" class="location">library\think\Template.php at line 655</a>
+
+<h3 id="parseTagLib()">parseTagLib</h3>
+<code class="signature">public  void <strong>parseTagLib</strong>(string tagLib, string content, boolean hide)</code>
+<div class="details">
+<p>TagLib库解析</p><dl>
+<dt>Parameters:</dt>
+<dd>tagLib - 要解析的标签库</dd>
+<dd>content - 要解析的模板内容</dd>
+<dd>hide - 是否隐藏标签库前缀</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template.php.html#line676" class="location">library\think\Template.php at line 676</a>
+
+<h3 id="parseAttr()">parseAttr</h3>
+<code class="signature">public  array <strong>parseAttr</strong>(string str, string name)</code>
+<div class="details">
+<p>分析标签属性</p><dl>
+<dt>Parameters:</dt>
+<dd>str - 属性字符串</dd>
+<dd>name - 不为空时返回指定的属性名</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template.php.html#line816" class="location">library\think\Template.php at line 816</a>
+
+<h3 id="parseVar()">parseVar</h3>
+<code class="signature">public  void <strong>parseVar</strong>(string varStr)</code>
+<div class="details">
+<p>模板变量解析,支持使用函数
+格式： {$varname|function1|function2=arg1,arg2}</p><dl>
+<dt>Parameters:</dt>
+<dd>varStr - 变量数据</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template.php.html#line876" class="location">library\think\Template.php at line 876</a>
+
+<h3 id="parseVarFunction()">parseVarFunction</h3>
+<code class="signature">public static  void <strong>parseVarFunction</strong>(string varStr)</code>
+<div class="details">
+<p>对模板中使用了函数的变量进行解析
+格式 {$varname|function1|function2=arg1,arg2}</p><dl>
+<dt>Parameters:</dt>
+<dd>varStr - 变量字符串</dd>
+</dl>
+</div>
+
+<hr>
+
+<a href="../source/library/think/template.php.html#line936" class="location">library\think\Template.php at line 936</a>
+
+<h3 id="parseThinkVar()">parseThinkVar</h3>
+<code class="signature">public static  string <strong>parseThinkVar</strong>(array vars)</code>
+<div class="details">
+<p>特殊模板变量解析
+格式 以 $Think. 打头的变量属于特殊模板变量</p><dl>
+<dt>Parameters:</dt>
+<dd>vars - 变量数组</dd>
+</dl>
+</div>
+
+<hr>
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li><a href="../think/package-summary.html">Namespace</a></li>
+<li class="active">Class</li>
+<li><a href="../think/package-tree.html">Tree</a></li>
+<li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../think\template.html" target="_top">No frames</a>
+</div>
+<div class="small_links">
+Summary: <a href="#summary_field">Field</a> | <a href="#summary_method">Method</a> | <a href="#summary_constr">Constr</a>
+Detail: <a href="#detail_field">Field</a> | <a href="#detail_method">Method</a> | <a href="#summary_constr">Constr</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>

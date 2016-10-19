@@ -1,0 +1,1265 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="generator" content="PHPDoctor 2.0.5 (http://peej.github.com/phpdoctor/)">
+<meta name="when" content="Wed, 19 Oct 2016 01:03:05 +0000">
+
+<link rel="stylesheet" type="text/css" href="../stylesheet.css">
+<link rel="start" href="../overview-summary.html">
+
+<title>library\think\Process.php (ThinkPHP5)</title>
+
+</head>
+<body id="file" onload="parent.document.title=document.title;">
+
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\process.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<h1>library\think\Process.php</h1>
+<hr>
+
+<a name="line1"></a><pre><?php
+<a name="line2"></a>// +----------------------------------------------------------------------
+<a name="line3"></a>// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+<a name="line4"></a>// +----------------------------------------------------------------------
+<a name="line5"></a>// | Copyright (c) 2006~2015 http://thinkphp.cn All rights reserved.
+<a name="line6"></a>// +----------------------------------------------------------------------
+<a name="line7"></a>// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+<a name="line8"></a>// +----------------------------------------------------------------------
+<a name="line9"></a>// | Author: yunwuxin <448901948@qq.com>
+<a name="line10"></a>// +----------------------------------------------------------------------
+<a name="line11"></a>
+<a name="line12"></a>namespace think;
+<a name="line13"></a>
+<a name="line14"></a>use think\process\exception\Failed as ProcessFailedException;
+<a name="line15"></a>use think\process\exception\Timeout as ProcessTimeoutException;
+<a name="line16"></a>use think\process\pipes\Pipes;
+<a name="line17"></a>use think\process\Utils;
+<a name="line18"></a>use think\process\pipes\Unix as UnixPipes;
+<a name="line19"></a>use think\process\pipes\Windows as WindowsPipes;
+<a name="line20"></a>
+<a name="line21"></a>class Process
+<a name="line22"></a>{
+<a name="line23"></a>
+<a name="line24"></a>    const ERR = 'err';
+<a name="line25"></a>    const OUT = 'out';
+<a name="line26"></a>
+<a name="line27"></a>    const STATUS_READY      = 'ready';
+<a name="line28"></a>    const STATUS_STARTED    = 'started';
+<a name="line29"></a>    const STATUS_TERMINATED = 'terminated';
+<a name="line30"></a>
+<a name="line31"></a>    const STDIN  = 0;
+<a name="line32"></a>    const STDOUT = 1;
+<a name="line33"></a>    const STDERR = 2;
+<a name="line34"></a>
+<a name="line35"></a>    const TIMEOUT_PRECISION = 0.2;
+<a name="line36"></a>
+<a name="line37"></a>    private $callback;
+<a name="line38"></a>    private $commandline;
+<a name="line39"></a>    private $cwd;
+<a name="line40"></a>    private $env;
+<a name="line41"></a>    private $input;
+<a name="line42"></a>    private $starttime;
+<a name="line43"></a>    private $lastOutputTime;
+<a name="line44"></a>    private $timeout;
+<a name="line45"></a>    private $idleTimeout;
+<a name="line46"></a>    private $options;
+<a name="line47"></a>    private $exitcode;
+<a name="line48"></a>    private $fallbackExitcode;
+<a name="line49"></a>    private $processInformation;
+<a name="line50"></a>    private $outputDisabled               = false;
+<a name="line51"></a>    private $stdout;
+<a name="line52"></a>    private $stderr;
+<a name="line53"></a>    private $enhanceWindowsCompatibility  = true;
+<a name="line54"></a>    private $enhanceSigchildCompatibility;
+<a name="line55"></a>    private $process;
+<a name="line56"></a>    private $status                       = self::STATUS_READY;
+<a name="line57"></a>    private $incrementalOutputOffset      = 0;
+<a name="line58"></a>    private $incrementalErrorOutputOffset = 0;
+<a name="line59"></a>    private $tty;
+<a name="line60"></a>    private $pty;
+<a name="line61"></a>
+<a name="line62"></a>    private $useFileHandles = false;
+<a name="line63"></a>
+<a name="line64"></a>    /** @var Pipes */
+<a name="line65"></a>    private $processPipes;
+<a name="line66"></a>
+<a name="line67"></a>    private $latestSignal;
+<a name="line68"></a>
+<a name="line69"></a>    private static $sigchild;
+<a name="line70"></a>
+<a name="line71"></a>    /**
+<a name="line72"></a>     * @var array
+<a name="line73"></a>     */
+<a name="line74"></a>    public static $exitCodes = [
+<a name="line75"></a>        0   => 'OK',
+<a name="line76"></a>        1   => 'General error',
+<a name="line77"></a>        2   => 'Misuse of shell builtins',
+<a name="line78"></a>        126 => 'Invoked command cannot execute',
+<a name="line79"></a>        127 => 'Command not found',
+<a name="line80"></a>        128 => 'Invalid exit argument',
+<a name="line81"></a>        // signals
+<a name="line82"></a>        129 => 'Hangup',
+<a name="line83"></a>        130 => 'Interrupt',
+<a name="line84"></a>        131 => 'Quit and dump core',
+<a name="line85"></a>        132 => 'Illegal instruction',
+<a name="line86"></a>        133 => 'Trace/breakpoint trap',
+<a name="line87"></a>        134 => 'Process aborted',
+<a name="line88"></a>        135 => 'Bus error: "access to undefined portion of memory object"',
+<a name="line89"></a>        136 => 'Floating point exception: "erroneous arithmetic operation"',
+<a name="line90"></a>        137 => 'Kill (terminate immediately)',
+<a name="line91"></a>        138 => 'User-defined 1',
+<a name="line92"></a>        139 => 'Segmentation violation',
+<a name="line93"></a>        140 => 'User-defined 2',
+<a name="line94"></a>        141 => 'Write to pipe with no one reading',
+<a name="line95"></a>        142 => 'Signal raised by alarm',
+<a name="line96"></a>        143 => 'Termination (request to terminate)',
+<a name="line97"></a>        // 144 - not defined
+<a name="line98"></a>        145 => 'Child process terminated, stopped (or continued*)',
+<a name="line99"></a>        146 => 'Continue if stopped',
+<a name="line100"></a>        147 => 'Stop executing temporarily',
+<a name="line101"></a>        148 => 'Terminal stop signal',
+<a name="line102"></a>        149 => 'Background process attempting to read from tty ("in")',
+<a name="line103"></a>        150 => 'Background process attempting to write to tty ("out")',
+<a name="line104"></a>        151 => 'Urgent data available on socket',
+<a name="line105"></a>        152 => 'CPU time limit exceeded',
+<a name="line106"></a>        153 => 'File size limit exceeded',
+<a name="line107"></a>        154 => 'Signal raised by timer counting virtual time: "virtual timer expired"',
+<a name="line108"></a>        155 => 'Profiling timer expired',
+<a name="line109"></a>        // 156 - not defined
+<a name="line110"></a>        157 => 'Pollable event',
+<a name="line111"></a>        // 158 - not defined
+<a name="line112"></a>        159 => 'Bad syscall',
+<a name="line113"></a>    ];
+<a name="line114"></a>
+<a name="line115"></a>    /**
+<a name="line116"></a>     * 构造方法
+<a name="line117"></a>     * @param string         $commandline 指令
+<a name="line118"></a>     * @param string|null    $cwd         工作目录
+<a name="line119"></a>     * @param array|null     $env         环境变量
+<a name="line120"></a>     * @param string|null    $input       输入
+<a name="line121"></a>     * @param int|float|null $timeout     超时时间
+<a name="line122"></a>     * @param array          $options     proc_open的选项
+<a name="line123"></a>     * @throws \RuntimeException
+<a name="line124"></a>     * @api
+<a name="line125"></a>     */
+<a name="line126"></a>    public function __construct($commandline, $cwd = null, array $env = null, $input = null, $timeout = 60, array $options = [])
+<a name="line127"></a>    {
+<a name="line128"></a>        if (!function_exists('proc_open')) {
+<a name="line129"></a>            throw new \RuntimeException('The Process class relies on proc_open, which is not available on your PHP installation.');
+<a name="line130"></a>        }
+<a name="line131"></a>
+<a name="line132"></a>        $this->commandline = $commandline;
+<a name="line133"></a>        $this->cwd         = $cwd;
+<a name="line134"></a>
+<a name="line135"></a>        if (null === $this->cwd && (defined('ZEND_THREAD_SAFE') || '\\' === DS)) {
+<a name="line136"></a>            $this->cwd = getcwd();
+<a name="line137"></a>        }
+<a name="line138"></a>        if (null !== $env) {
+<a name="line139"></a>            $this->setEnv($env);
+<a name="line140"></a>        }
+<a name="line141"></a>
+<a name="line142"></a>        $this->input = $input;
+<a name="line143"></a>        $this->setTimeout($timeout);
+<a name="line144"></a>        $this->useFileHandles               = '\\' === DS;
+<a name="line145"></a>        $this->pty                          = false;
+<a name="line146"></a>        $this->enhanceWindowsCompatibility  = true;
+<a name="line147"></a>        $this->enhanceSigchildCompatibility = '\\' !== DS && $this->isSigchildEnabled();
+<a name="line148"></a>        $this->options                      = array_replace([
+<a name="line149"></a>            'suppress_errors' => true,
+<a name="line150"></a>            'binary_pipes'    => true
+<a name="line151"></a>        ], $options);
+<a name="line152"></a>    }
+<a name="line153"></a>
+<a name="line154"></a>    public function __destruct()
+<a name="line155"></a>    {
+<a name="line156"></a>        $this->stop();
+<a name="line157"></a>    }
+<a name="line158"></a>
+<a name="line159"></a>    public function __clone()
+<a name="line160"></a>    {
+<a name="line161"></a>        $this->resetProcessData();
+<a name="line162"></a>    }
+<a name="line163"></a>
+<a name="line164"></a>    /**
+<a name="line165"></a>     * 运行指令
+<a name="line166"></a>     * @param callback|null $callback
+<a name="line167"></a>     * @return int
+<a name="line168"></a>     */
+<a name="line169"></a>    public function run($callback = null)
+<a name="line170"></a>    {
+<a name="line171"></a>        $this->start($callback);
+<a name="line172"></a>
+<a name="line173"></a>        return $this->wait();
+<a name="line174"></a>    }
+<a name="line175"></a>
+<a name="line176"></a>    /**
+<a name="line177"></a>     * 运行指令
+<a name="line178"></a>     * @param callable|null $callback
+<a name="line179"></a>     * @return self
+<a name="line180"></a>     * @throws \RuntimeException
+<a name="line181"></a>     * @throws ProcessFailedException
+<a name="line182"></a>     */
+<a name="line183"></a>    public function mustRun($callback = null)
+<a name="line184"></a>    {
+<a name="line185"></a>        if ($this->isSigchildEnabled() && !$this->enhanceSigchildCompatibility) {
+<a name="line186"></a>            throw new \RuntimeException('This PHP has been compiled with --enable-sigchild. You must use setEnhanceSigchildCompatibility() to use this method.');
+<a name="line187"></a>        }
+<a name="line188"></a>
+<a name="line189"></a>        if (0 !== $this->run($callback)) {
+<a name="line190"></a>            throw new ProcessFailedException($this);
+<a name="line191"></a>        }
+<a name="line192"></a>
+<a name="line193"></a>        return $this;
+<a name="line194"></a>    }
+<a name="line195"></a>
+<a name="line196"></a>    /**
+<a name="line197"></a>     * 启动进程并写到 STDIN 输入后返回。
+<a name="line198"></a>     * @param callable|null $callback
+<a name="line199"></a>     * @throws \RuntimeException
+<a name="line200"></a>     * @throws \RuntimeException
+<a name="line201"></a>     * @throws \LogicException
+<a name="line202"></a>     */
+<a name="line203"></a>    public function start($callback = null)
+<a name="line204"></a>    {
+<a name="line205"></a>        if ($this->isRunning()) {
+<a name="line206"></a>            throw new \RuntimeException('Process is already running');
+<a name="line207"></a>        }
+<a name="line208"></a>        if ($this->outputDisabled && null !== $callback) {
+<a name="line209"></a>            throw new \LogicException('Output has been disabled, enable it to allow the use of a callback.');
+<a name="line210"></a>        }
+<a name="line211"></a>
+<a name="line212"></a>        $this->resetProcessData();
+<a name="line213"></a>        $this->starttime = $this->lastOutputTime = microtime(true);
+<a name="line214"></a>        $this->callback  = $this->buildCallback($callback);
+<a name="line215"></a>        $descriptors     = $this->getDescriptors();
+<a name="line216"></a>
+<a name="line217"></a>        $commandline = $this->commandline;
+<a name="line218"></a>
+<a name="line219"></a>        if ('\\' === DS && $this->enhanceWindowsCompatibility) {
+<a name="line220"></a>            $commandline = 'cmd /V:ON /E:ON /C "(' . $commandline . ')';
+<a name="line221"></a>            foreach ($this->processPipes->getFiles() as $offset => $filename) {
+<a name="line222"></a>                $commandline .= ' ' . $offset . '>' . Utils::escapeArgument($filename);
+<a name="line223"></a>            }
+<a name="line224"></a>            $commandline .= '"';
+<a name="line225"></a>
+<a name="line226"></a>            if (!isset($this->options['bypass_shell'])) {
+<a name="line227"></a>                $this->options['bypass_shell'] = true;
+<a name="line228"></a>            }
+<a name="line229"></a>        }
+<a name="line230"></a>
+<a name="line231"></a>        $this->process = proc_open($commandline, $descriptors, $this->processPipes->pipes, $this->cwd, $this->env, $this->options);
+<a name="line232"></a>
+<a name="line233"></a>        if (!is_resource($this->process)) {
+<a name="line234"></a>            throw new \RuntimeException('Unable to launch a new process.');
+<a name="line235"></a>        }
+<a name="line236"></a>        $this->status = self::STATUS_STARTED;
+<a name="line237"></a>
+<a name="line238"></a>        if ($this->tty) {
+<a name="line239"></a>            return;
+<a name="line240"></a>        }
+<a name="line241"></a>
+<a name="line242"></a>        $this->updateStatus(false);
+<a name="line243"></a>        $this->checkTimeout();
+<a name="line244"></a>    }
+<a name="line245"></a>
+<a name="line246"></a>    /**
+<a name="line247"></a>     * 重启进程
+<a name="line248"></a>     * @param callable|null $callback
+<a name="line249"></a>     * @return Process
+<a name="line250"></a>     * @throws \RuntimeException
+<a name="line251"></a>     * @throws \RuntimeException
+<a name="line252"></a>     */
+<a name="line253"></a>    public function restart($callback = null)
+<a name="line254"></a>    {
+<a name="line255"></a>        if ($this->isRunning()) {
+<a name="line256"></a>            throw new \RuntimeException('Process is already running');
+<a name="line257"></a>        }
+<a name="line258"></a>
+<a name="line259"></a>        $process = clone $this;
+<a name="line260"></a>        $process->start($callback);
+<a name="line261"></a>
+<a name="line262"></a>        return $process;
+<a name="line263"></a>    }
+<a name="line264"></a>
+<a name="line265"></a>    /**
+<a name="line266"></a>     * 等待要终止的进程
+<a name="line267"></a>     * @param callable|null $callback
+<a name="line268"></a>     * @return int
+<a name="line269"></a>     */
+<a name="line270"></a>    public function wait($callback = null)
+<a name="line271"></a>    {
+<a name="line272"></a>        $this->requireProcessIsStarted(__FUNCTION__);
+<a name="line273"></a>
+<a name="line274"></a>        $this->updateStatus(false);
+<a name="line275"></a>        if (null !== $callback) {
+<a name="line276"></a>            $this->callback = $this->buildCallback($callback);
+<a name="line277"></a>        }
+<a name="line278"></a>
+<a name="line279"></a>        do {
+<a name="line280"></a>            $this->checkTimeout();
+<a name="line281"></a>            $running = '\\' === DS ? $this->isRunning() : $this->processPipes->areOpen();
+<a name="line282"></a>            $close   = '\\' !== DS || !$running;
+<a name="line283"></a>            $this->readPipes(true, $close);
+<a name="line284"></a>        } while ($running);
+<a name="line285"></a>
+<a name="line286"></a>        while ($this->isRunning()) {
+<a name="line287"></a>            usleep(1000);
+<a name="line288"></a>        }
+<a name="line289"></a>
+<a name="line290"></a>        if ($this->processInformation['signaled'] && $this->processInformation['termsig'] !== $this->latestSignal) {
+<a name="line291"></a>            throw new \RuntimeException(sprintf('The process has been signaled with signal "%s".', $this->processInformation['termsig']));
+<a name="line292"></a>        }
+<a name="line293"></a>
+<a name="line294"></a>        return $this->exitcode;
+<a name="line295"></a>    }
+<a name="line296"></a>
+<a name="line297"></a>    /**
+<a name="line298"></a>     * 获取PID
+<a name="line299"></a>     * @return int|null
+<a name="line300"></a>     * @throws \RuntimeException
+<a name="line301"></a>     */
+<a name="line302"></a>    public function getPid()
+<a name="line303"></a>    {
+<a name="line304"></a>        if ($this->isSigchildEnabled()) {
+<a name="line305"></a>            throw new \RuntimeException('This PHP has been compiled with --enable-sigchild. The process identifier can not be retrieved.');
+<a name="line306"></a>        }
+<a name="line307"></a>
+<a name="line308"></a>        $this->updateStatus(false);
+<a name="line309"></a>
+<a name="line310"></a>        return $this->isRunning() ? $this->processInformation['pid'] : null;
+<a name="line311"></a>    }
+<a name="line312"></a>
+<a name="line313"></a>    /**
+<a name="line314"></a>     * 将一个 POSIX 信号发送到进程中
+<a name="line315"></a>     * @param int $signal
+<a name="line316"></a>     * @return Process
+<a name="line317"></a>     */
+<a name="line318"></a>    public function signal($signal)
+<a name="line319"></a>    {
+<a name="line320"></a>        $this->doSignal($signal, true);
+<a name="line321"></a>
+<a name="line322"></a>        return $this;
+<a name="line323"></a>    }
+<a name="line324"></a>
+<a name="line325"></a>    /**
+<a name="line326"></a>     * 禁用从底层过程获取输出和错误输出。
+<a name="line327"></a>     * @return Process
+<a name="line328"></a>     */
+<a name="line329"></a>    public function disableOutput()
+<a name="line330"></a>    {
+<a name="line331"></a>        if ($this->isRunning()) {
+<a name="line332"></a>            throw new \RuntimeException('Disabling output while the process is running is not possible.');
+<a name="line333"></a>        }
+<a name="line334"></a>        if (null !== $this->idleTimeout) {
+<a name="line335"></a>            throw new \LogicException('Output can not be disabled while an idle timeout is set.');
+<a name="line336"></a>        }
+<a name="line337"></a>
+<a name="line338"></a>        $this->outputDisabled = true;
+<a name="line339"></a>
+<a name="line340"></a>        return $this;
+<a name="line341"></a>    }
+<a name="line342"></a>
+<a name="line343"></a>    /**
+<a name="line344"></a>     * 开启从底层过程获取输出和错误输出。
+<a name="line345"></a>     * @return Process
+<a name="line346"></a>     * @throws \RuntimeException
+<a name="line347"></a>     */
+<a name="line348"></a>    public function enableOutput()
+<a name="line349"></a>    {
+<a name="line350"></a>        if ($this->isRunning()) {
+<a name="line351"></a>            throw new \RuntimeException('Enabling output while the process is running is not possible.');
+<a name="line352"></a>        }
+<a name="line353"></a>
+<a name="line354"></a>        $this->outputDisabled = false;
+<a name="line355"></a>
+<a name="line356"></a>        return $this;
+<a name="line357"></a>    }
+<a name="line358"></a>
+<a name="line359"></a>    /**
+<a name="line360"></a>     * 输出是否禁用
+<a name="line361"></a>     * @return bool
+<a name="line362"></a>     */
+<a name="line363"></a>    public function isOutputDisabled()
+<a name="line364"></a>    {
+<a name="line365"></a>        return $this->outputDisabled;
+<a name="line366"></a>    }
+<a name="line367"></a>
+<a name="line368"></a>    /**
+<a name="line369"></a>     * 获取当前的输出管道
+<a name="line370"></a>     * @return string
+<a name="line371"></a>     * @throws \LogicException
+<a name="line372"></a>     * @throws \LogicException
+<a name="line373"></a>     * @api
+<a name="line374"></a>     */
+<a name="line375"></a>    public function getOutput()
+<a name="line376"></a>    {
+<a name="line377"></a>        if ($this->outputDisabled) {
+<a name="line378"></a>            throw new \LogicException('Output has been disabled.');
+<a name="line379"></a>        }
+<a name="line380"></a>
+<a name="line381"></a>        $this->requireProcessIsStarted(__FUNCTION__);
+<a name="line382"></a>
+<a name="line383"></a>        $this->readPipes(false, '\\' === DS ? !$this->processInformation['running'] : true);
+<a name="line384"></a>
+<a name="line385"></a>        return $this->stdout;
+<a name="line386"></a>    }
+<a name="line387"></a>
+<a name="line388"></a>    /**
+<a name="line389"></a>     * 以增量方式返回的输出结果。
+<a name="line390"></a>     * @return string
+<a name="line391"></a>     */
+<a name="line392"></a>    public function getIncrementalOutput()
+<a name="line393"></a>    {
+<a name="line394"></a>        $this->requireProcessIsStarted(__FUNCTION__);
+<a name="line395"></a>
+<a name="line396"></a>        $data = $this->getOutput();
+<a name="line397"></a>
+<a name="line398"></a>        $latest = substr($data, $this->incrementalOutputOffset);
+<a name="line399"></a>
+<a name="line400"></a>        if (false === $latest) {
+<a name="line401"></a>            return '';
+<a name="line402"></a>        }
+<a name="line403"></a>
+<a name="line404"></a>        $this->incrementalOutputOffset = strlen($data);
+<a name="line405"></a>
+<a name="line406"></a>        return $latest;
+<a name="line407"></a>    }
+<a name="line408"></a>
+<a name="line409"></a>    /**
+<a name="line410"></a>     * 清空输出
+<a name="line411"></a>     * @return Process
+<a name="line412"></a>     */
+<a name="line413"></a>    public function clearOutput()
+<a name="line414"></a>    {
+<a name="line415"></a>        $this->stdout                  = '';
+<a name="line416"></a>        $this->incrementalOutputOffset = 0;
+<a name="line417"></a>
+<a name="line418"></a>        return $this;
+<a name="line419"></a>    }
+<a name="line420"></a>
+<a name="line421"></a>    /**
+<a name="line422"></a>     * 返回当前的错误输出的过程 (STDERR)。
+<a name="line423"></a>     * @return string
+<a name="line424"></a>     */
+<a name="line425"></a>    public function getErrorOutput()
+<a name="line426"></a>    {
+<a name="line427"></a>        if ($this->outputDisabled) {
+<a name="line428"></a>            throw new \LogicException('Output has been disabled.');
+<a name="line429"></a>        }
+<a name="line430"></a>
+<a name="line431"></a>        $this->requireProcessIsStarted(__FUNCTION__);
+<a name="line432"></a>
+<a name="line433"></a>        $this->readPipes(false, '\\' === DS ? !$this->processInformation['running'] : true);
+<a name="line434"></a>
+<a name="line435"></a>        return $this->stderr;
+<a name="line436"></a>    }
+<a name="line437"></a>
+<a name="line438"></a>    /**
+<a name="line439"></a>     * 以增量方式返回 errorOutput
+<a name="line440"></a>     * @return string
+<a name="line441"></a>     */
+<a name="line442"></a>    public function getIncrementalErrorOutput()
+<a name="line443"></a>    {
+<a name="line444"></a>        $this->requireProcessIsStarted(__FUNCTION__);
+<a name="line445"></a>
+<a name="line446"></a>        $data = $this->getErrorOutput();
+<a name="line447"></a>
+<a name="line448"></a>        $latest = substr($data, $this->incrementalErrorOutputOffset);
+<a name="line449"></a>
+<a name="line450"></a>        if (false === $latest) {
+<a name="line451"></a>            return '';
+<a name="line452"></a>        }
+<a name="line453"></a>
+<a name="line454"></a>        $this->incrementalErrorOutputOffset = strlen($data);
+<a name="line455"></a>
+<a name="line456"></a>        return $latest;
+<a name="line457"></a>    }
+<a name="line458"></a>
+<a name="line459"></a>    /**
+<a name="line460"></a>     * 清空 errorOutput
+<a name="line461"></a>     * @return Process
+<a name="line462"></a>     */
+<a name="line463"></a>    public function clearErrorOutput()
+<a name="line464"></a>    {
+<a name="line465"></a>        $this->stderr                       = '';
+<a name="line466"></a>        $this->incrementalErrorOutputOffset = 0;
+<a name="line467"></a>
+<a name="line468"></a>        return $this;
+<a name="line469"></a>    }
+<a name="line470"></a>
+<a name="line471"></a>    /**
+<a name="line472"></a>     * 获取退出码
+<a name="line473"></a>     * @return null|int
+<a name="line474"></a>     */
+<a name="line475"></a>    public function getExitCode()
+<a name="line476"></a>    {
+<a name="line477"></a>        if ($this->isSigchildEnabled() && !$this->enhanceSigchildCompatibility) {
+<a name="line478"></a>            throw new \RuntimeException('This PHP has been compiled with --enable-sigchild. You must use setEnhanceSigchildCompatibility() to use this method.');
+<a name="line479"></a>        }
+<a name="line480"></a>
+<a name="line481"></a>        $this->updateStatus(false);
+<a name="line482"></a>
+<a name="line483"></a>        return $this->exitcode;
+<a name="line484"></a>    }
+<a name="line485"></a>
+<a name="line486"></a>    /**
+<a name="line487"></a>     * 获取退出文本
+<a name="line488"></a>     * @return null|string
+<a name="line489"></a>     */
+<a name="line490"></a>    public function getExitCodeText()
+<a name="line491"></a>    {
+<a name="line492"></a>        if (null === $exitcode = $this->getExitCode()) {
+<a name="line493"></a>            return null;
+<a name="line494"></a>        }
+<a name="line495"></a>
+<a name="line496"></a>        return isset(self::$exitCodes[$exitcode]) ? self::$exitCodes[$exitcode] : 'Unknown error';
+<a name="line497"></a>    }
+<a name="line498"></a>
+<a name="line499"></a>    /**
+<a name="line500"></a>     * 检查是否成功
+<a name="line501"></a>     * @return bool
+<a name="line502"></a>     */
+<a name="line503"></a>    public function isSuccessful()
+<a name="line504"></a>    {
+<a name="line505"></a>        return 0 === $this->getExitCode();
+<a name="line506"></a>    }
+<a name="line507"></a>
+<a name="line508"></a>    /**
+<a name="line509"></a>     * 是否未捕获的信号已被终止子进程
+<a name="line510"></a>     * @return bool
+<a name="line511"></a>     */
+<a name="line512"></a>    public function hasBeenSignaled()
+<a name="line513"></a>    {
+<a name="line514"></a>        $this->requireProcessIsTerminated(__FUNCTION__);
+<a name="line515"></a>
+<a name="line516"></a>        if ($this->isSigchildEnabled()) {
+<a name="line517"></a>            throw new \RuntimeException('This PHP has been compiled with --enable-sigchild. Term signal can not be retrieved.');
+<a name="line518"></a>        }
+<a name="line519"></a>
+<a name="line520"></a>        $this->updateStatus(false);
+<a name="line521"></a>
+<a name="line522"></a>        return $this->processInformation['signaled'];
+<a name="line523"></a>    }
+<a name="line524"></a>
+<a name="line525"></a>    /**
+<a name="line526"></a>     * 返回导致子进程终止其执行的数。
+<a name="line527"></a>     * @return int
+<a name="line528"></a>     */
+<a name="line529"></a>    public function getTermSignal()
+<a name="line530"></a>    {
+<a name="line531"></a>        $this->requireProcessIsTerminated(__FUNCTION__);
+<a name="line532"></a>
+<a name="line533"></a>        if ($this->isSigchildEnabled()) {
+<a name="line534"></a>            throw new \RuntimeException('This PHP has been compiled with --enable-sigchild. Term signal can not be retrieved.');
+<a name="line535"></a>        }
+<a name="line536"></a>
+<a name="line537"></a>        $this->updateStatus(false);
+<a name="line538"></a>
+<a name="line539"></a>        return $this->processInformation['termsig'];
+<a name="line540"></a>    }
+<a name="line541"></a>
+<a name="line542"></a>    /**
+<a name="line543"></a>     * 检查子进程信号是否已停止
+<a name="line544"></a>     * @return bool
+<a name="line545"></a>     */
+<a name="line546"></a>    public function hasBeenStopped()
+<a name="line547"></a>    {
+<a name="line548"></a>        $this->requireProcessIsTerminated(__FUNCTION__);
+<a name="line549"></a>
+<a name="line550"></a>        $this->updateStatus(false);
+<a name="line551"></a>
+<a name="line552"></a>        return $this->processInformation['stopped'];
+<a name="line553"></a>    }
+<a name="line554"></a>
+<a name="line555"></a>    /**
+<a name="line556"></a>     * 返回导致子进程停止其执行的数。
+<a name="line557"></a>     * @return int
+<a name="line558"></a>     */
+<a name="line559"></a>    public function getStopSignal()
+<a name="line560"></a>    {
+<a name="line561"></a>        $this->requireProcessIsTerminated(__FUNCTION__);
+<a name="line562"></a>
+<a name="line563"></a>        $this->updateStatus(false);
+<a name="line564"></a>
+<a name="line565"></a>        return $this->processInformation['stopsig'];
+<a name="line566"></a>    }
+<a name="line567"></a>
+<a name="line568"></a>    /**
+<a name="line569"></a>     * 检查是否正在运行
+<a name="line570"></a>     * @return bool
+<a name="line571"></a>     */
+<a name="line572"></a>    public function isRunning()
+<a name="line573"></a>    {
+<a name="line574"></a>        if (self::STATUS_STARTED !== $this->status) {
+<a name="line575"></a>            return false;
+<a name="line576"></a>        }
+<a name="line577"></a>
+<a name="line578"></a>        $this->updateStatus(false);
+<a name="line579"></a>
+<a name="line580"></a>        return $this->processInformation['running'];
+<a name="line581"></a>    }
+<a name="line582"></a>
+<a name="line583"></a>    /**
+<a name="line584"></a>     * 检查是否已开始
+<a name="line585"></a>     * @return bool
+<a name="line586"></a>     */
+<a name="line587"></a>    public function isStarted()
+<a name="line588"></a>    {
+<a name="line589"></a>        return $this->status != self::STATUS_READY;
+<a name="line590"></a>    }
+<a name="line591"></a>
+<a name="line592"></a>    /**
+<a name="line593"></a>     * 检查是否已终止
+<a name="line594"></a>     * @return bool
+<a name="line595"></a>     */
+<a name="line596"></a>    public function isTerminated()
+<a name="line597"></a>    {
+<a name="line598"></a>        $this->updateStatus(false);
+<a name="line599"></a>
+<a name="line600"></a>        return $this->status == self::STATUS_TERMINATED;
+<a name="line601"></a>    }
+<a name="line602"></a>
+<a name="line603"></a>    /**
+<a name="line604"></a>     * 获取当前的状态
+<a name="line605"></a>     * @return string
+<a name="line606"></a>     */
+<a name="line607"></a>    public function getStatus()
+<a name="line608"></a>    {
+<a name="line609"></a>        $this->updateStatus(false);
+<a name="line610"></a>
+<a name="line611"></a>        return $this->status;
+<a name="line612"></a>    }
+<a name="line613"></a>
+<a name="line614"></a>    /**
+<a name="line615"></a>     * 终止进程
+<a name="line616"></a>     */
+<a name="line617"></a>    public function stop()
+<a name="line618"></a>    {
+<a name="line619"></a>        if ($this->isRunning()) {
+<a name="line620"></a>            if ('\\' === DS && !$this->isSigchildEnabled()) {
+<a name="line621"></a>                exec(sprintf('taskkill /F /T /PID %d 2>&1', $this->getPid()), $output, $exitCode);
+<a name="line622"></a>                if ($exitCode > 0) {
+<a name="line623"></a>                    throw new \RuntimeException('Unable to kill the process');
+<a name="line624"></a>                }
+<a name="line625"></a>            } else {
+<a name="line626"></a>                $pids = preg_split('/\s+/', `ps -o pid --no-heading --ppid {$this->getPid()}`);
+<a name="line627"></a>                foreach ($pids as $pid) {
+<a name="line628"></a>                    if (is_numeric($pid)) {
+<a name="line629"></a>                        posix_kill($pid, 9);
+<a name="line630"></a>                    }
+<a name="line631"></a>                }
+<a name="line632"></a>            }
+<a name="line633"></a>        }
+<a name="line634"></a>
+<a name="line635"></a>        $this->updateStatus(false);
+<a name="line636"></a>        if ($this->processInformation['running']) {
+<a name="line637"></a>            $this->close();
+<a name="line638"></a>        }
+<a name="line639"></a>
+<a name="line640"></a>        return $this->exitcode;
+<a name="line641"></a>    }
+<a name="line642"></a>
+<a name="line643"></a>    /**
+<a name="line644"></a>     * 添加一行输出
+<a name="line645"></a>     * @param string $line
+<a name="line646"></a>     */
+<a name="line647"></a>    public function addOutput($line)
+<a name="line648"></a>    {
+<a name="line649"></a>        $this->lastOutputTime = microtime(true);
+<a name="line650"></a>        $this->stdout .= $line;
+<a name="line651"></a>    }
+<a name="line652"></a>
+<a name="line653"></a>    /**
+<a name="line654"></a>     * 添加一行错误输出
+<a name="line655"></a>     * @param string $line
+<a name="line656"></a>     */
+<a name="line657"></a>    public function addErrorOutput($line)
+<a name="line658"></a>    {
+<a name="line659"></a>        $this->lastOutputTime = microtime(true);
+<a name="line660"></a>        $this->stderr .= $line;
+<a name="line661"></a>    }
+<a name="line662"></a>
+<a name="line663"></a>    /**
+<a name="line664"></a>     * 获取被执行的指令
+<a name="line665"></a>     * @return string
+<a name="line666"></a>     */
+<a name="line667"></a>    public function getCommandLine()
+<a name="line668"></a>    {
+<a name="line669"></a>        return $this->commandline;
+<a name="line670"></a>    }
+<a name="line671"></a>
+<a name="line672"></a>    /**
+<a name="line673"></a>     * 设置指令
+<a name="line674"></a>     * @param string $commandline
+<a name="line675"></a>     * @return self
+<a name="line676"></a>     */
+<a name="line677"></a>    public function setCommandLine($commandline)
+<a name="line678"></a>    {
+<a name="line679"></a>        $this->commandline = $commandline;
+<a name="line680"></a>
+<a name="line681"></a>        return $this;
+<a name="line682"></a>    }
+<a name="line683"></a>
+<a name="line684"></a>    /**
+<a name="line685"></a>     * 获取超时时间
+<a name="line686"></a>     * @return float|null
+<a name="line687"></a>     */
+<a name="line688"></a>    public function getTimeout()
+<a name="line689"></a>    {
+<a name="line690"></a>        return $this->timeout;
+<a name="line691"></a>    }
+<a name="line692"></a>
+<a name="line693"></a>    /**
+<a name="line694"></a>     * 获取idle超时时间
+<a name="line695"></a>     * @return float|null
+<a name="line696"></a>     */
+<a name="line697"></a>    public function getIdleTimeout()
+<a name="line698"></a>    {
+<a name="line699"></a>        return $this->idleTimeout;
+<a name="line700"></a>    }
+<a name="line701"></a>
+<a name="line702"></a>    /**
+<a name="line703"></a>     * 设置超时时间
+<a name="line704"></a>     * @param int|float|null $timeout
+<a name="line705"></a>     * @return self
+<a name="line706"></a>     */
+<a name="line707"></a>    public function setTimeout($timeout)
+<a name="line708"></a>    {
+<a name="line709"></a>        $this->timeout = $this->validateTimeout($timeout);
+<a name="line710"></a>
+<a name="line711"></a>        return $this;
+<a name="line712"></a>    }
+<a name="line713"></a>
+<a name="line714"></a>    /**
+<a name="line715"></a>     * 设置idle超时时间
+<a name="line716"></a>     * @param int|float|null $timeout
+<a name="line717"></a>     * @return self
+<a name="line718"></a>     */
+<a name="line719"></a>    public function setIdleTimeout($timeout)
+<a name="line720"></a>    {
+<a name="line721"></a>        if (null !== $timeout && $this->outputDisabled) {
+<a name="line722"></a>            throw new \LogicException('Idle timeout can not be set while the output is disabled.');
+<a name="line723"></a>        }
+<a name="line724"></a>
+<a name="line725"></a>        $this->idleTimeout = $this->validateTimeout($timeout);
+<a name="line726"></a>
+<a name="line727"></a>        return $this;
+<a name="line728"></a>    }
+<a name="line729"></a>
+<a name="line730"></a>    /**
+<a name="line731"></a>     * 设置TTY
+<a name="line732"></a>     * @param bool $tty
+<a name="line733"></a>     * @return self
+<a name="line734"></a>     */
+<a name="line735"></a>    public function setTty($tty)
+<a name="line736"></a>    {
+<a name="line737"></a>        if ('\\' === DS && $tty) {
+<a name="line738"></a>            throw new \RuntimeException('TTY mode is not supported on Windows platform.');
+<a name="line739"></a>        }
+<a name="line740"></a>        if ($tty && (!file_exists('/dev/tty') || !is_readable('/dev/tty'))) {
+<a name="line741"></a>            throw new \RuntimeException('TTY mode requires /dev/tty to be readable.');
+<a name="line742"></a>        }
+<a name="line743"></a>
+<a name="line744"></a>        $this->tty = (bool)$tty;
+<a name="line745"></a>
+<a name="line746"></a>        return $this;
+<a name="line747"></a>    }
+<a name="line748"></a>
+<a name="line749"></a>    /**
+<a name="line750"></a>     * 检查是否是tty模式
+<a name="line751"></a>     * @return bool
+<a name="line752"></a>     */
+<a name="line753"></a>    public function isTty()
+<a name="line754"></a>    {
+<a name="line755"></a>        return $this->tty;
+<a name="line756"></a>    }
+<a name="line757"></a>
+<a name="line758"></a>    /**
+<a name="line759"></a>     * 设置pty模式
+<a name="line760"></a>     * @param bool $bool
+<a name="line761"></a>     * @return self
+<a name="line762"></a>     */
+<a name="line763"></a>    public function setPty($bool)
+<a name="line764"></a>    {
+<a name="line765"></a>        $this->pty = (bool)$bool;
+<a name="line766"></a>
+<a name="line767"></a>        return $this;
+<a name="line768"></a>    }
+<a name="line769"></a>
+<a name="line770"></a>    /**
+<a name="line771"></a>     * 是否是pty模式
+<a name="line772"></a>     * @return bool
+<a name="line773"></a>     */
+<a name="line774"></a>    public function isPty()
+<a name="line775"></a>    {
+<a name="line776"></a>        return $this->pty;
+<a name="line777"></a>    }
+<a name="line778"></a>
+<a name="line779"></a>    /**
+<a name="line780"></a>     * 获取工作目录
+<a name="line781"></a>     * @return string|null
+<a name="line782"></a>     */
+<a name="line783"></a>    public function getWorkingDirectory()
+<a name="line784"></a>    {
+<a name="line785"></a>        if (null === $this->cwd) {
+<a name="line786"></a>            return getcwd() ?: null;
+<a name="line787"></a>        }
+<a name="line788"></a>
+<a name="line789"></a>        return $this->cwd;
+<a name="line790"></a>    }
+<a name="line791"></a>
+<a name="line792"></a>    /**
+<a name="line793"></a>     * 设置工作目录
+<a name="line794"></a>     * @param string $cwd
+<a name="line795"></a>     * @return self
+<a name="line796"></a>     */
+<a name="line797"></a>    public function setWorkingDirectory($cwd)
+<a name="line798"></a>    {
+<a name="line799"></a>        $this->cwd = $cwd;
+<a name="line800"></a>
+<a name="line801"></a>        return $this;
+<a name="line802"></a>    }
+<a name="line803"></a>
+<a name="line804"></a>    /**
+<a name="line805"></a>     * 获取环境变量
+<a name="line806"></a>     * @return array
+<a name="line807"></a>     */
+<a name="line808"></a>    public function getEnv()
+<a name="line809"></a>    {
+<a name="line810"></a>        return $this->env;
+<a name="line811"></a>    }
+<a name="line812"></a>
+<a name="line813"></a>    /**
+<a name="line814"></a>     * 设置环境变量
+<a name="line815"></a>     * @param array $env
+<a name="line816"></a>     * @return self
+<a name="line817"></a>     */
+<a name="line818"></a>    public function setEnv(array $env)
+<a name="line819"></a>    {
+<a name="line820"></a>        $env = array_filter($env, function ($value) {
+<a name="line821"></a>            return !is_array($value);
+<a name="line822"></a>        });
+<a name="line823"></a>
+<a name="line824"></a>        $this->env = [];
+<a name="line825"></a>        foreach ($env as $key => $value) {
+<a name="line826"></a>            $this->env[(binary)$key] = (binary)$value;
+<a name="line827"></a>        }
+<a name="line828"></a>
+<a name="line829"></a>        return $this;
+<a name="line830"></a>    }
+<a name="line831"></a>
+<a name="line832"></a>    /**
+<a name="line833"></a>     * 获取输入
+<a name="line834"></a>     * @return null|string
+<a name="line835"></a>     */
+<a name="line836"></a>    public function getInput()
+<a name="line837"></a>    {
+<a name="line838"></a>        return $this->input;
+<a name="line839"></a>    }
+<a name="line840"></a>
+<a name="line841"></a>    /**
+<a name="line842"></a>     * 设置输入
+<a name="line843"></a>     * @param mixed $input
+<a name="line844"></a>     * @return self
+<a name="line845"></a>     */
+<a name="line846"></a>    public function setInput($input)
+<a name="line847"></a>    {
+<a name="line848"></a>        if ($this->isRunning()) {
+<a name="line849"></a>            throw new \LogicException('Input can not be set while the process is running.');
+<a name="line850"></a>        }
+<a name="line851"></a>
+<a name="line852"></a>        $this->input = Utils::validateInput(sprintf('%s::%s', __CLASS__, __FUNCTION__), $input);
+<a name="line853"></a>
+<a name="line854"></a>        return $this;
+<a name="line855"></a>    }
+<a name="line856"></a>
+<a name="line857"></a>    /**
+<a name="line858"></a>     * 获取proc_open的选项
+<a name="line859"></a>     * @return array
+<a name="line860"></a>     */
+<a name="line861"></a>    public function getOptions()
+<a name="line862"></a>    {
+<a name="line863"></a>        return $this->options;
+<a name="line864"></a>    }
+<a name="line865"></a>
+<a name="line866"></a>    /**
+<a name="line867"></a>     * 设置proc_open的选项
+<a name="line868"></a>     * @param array $options
+<a name="line869"></a>     * @return self
+<a name="line870"></a>     */
+<a name="line871"></a>    public function setOptions(array $options)
+<a name="line872"></a>    {
+<a name="line873"></a>        $this->options = $options;
+<a name="line874"></a>
+<a name="line875"></a>        return $this;
+<a name="line876"></a>    }
+<a name="line877"></a>
+<a name="line878"></a>    /**
+<a name="line879"></a>     * 是否兼容windows
+<a name="line880"></a>     * @return bool
+<a name="line881"></a>     */
+<a name="line882"></a>    public function getEnhanceWindowsCompatibility()
+<a name="line883"></a>    {
+<a name="line884"></a>        return $this->enhanceWindowsCompatibility;
+<a name="line885"></a>    }
+<a name="line886"></a>
+<a name="line887"></a>    /**
+<a name="line888"></a>     * 设置是否兼容windows
+<a name="line889"></a>     * @param bool $enhance
+<a name="line890"></a>     * @return self
+<a name="line891"></a>     */
+<a name="line892"></a>    public function setEnhanceWindowsCompatibility($enhance)
+<a name="line893"></a>    {
+<a name="line894"></a>        $this->enhanceWindowsCompatibility = (bool)$enhance;
+<a name="line895"></a>
+<a name="line896"></a>        return $this;
+<a name="line897"></a>    }
+<a name="line898"></a>
+<a name="line899"></a>    /**
+<a name="line900"></a>     * 返回是否 sigchild 兼容模式激活
+<a name="line901"></a>     * @return bool
+<a name="line902"></a>     */
+<a name="line903"></a>    public function getEnhanceSigchildCompatibility()
+<a name="line904"></a>    {
+<a name="line905"></a>        return $this->enhanceSigchildCompatibility;
+<a name="line906"></a>    }
+<a name="line907"></a>
+<a name="line908"></a>    /**
+<a name="line909"></a>     * 激活 sigchild 兼容性模式。
+<a name="line910"></a>     * @param bool $enhance
+<a name="line911"></a>     * @return self
+<a name="line912"></a>     */
+<a name="line913"></a>    public function setEnhanceSigchildCompatibility($enhance)
+<a name="line914"></a>    {
+<a name="line915"></a>        $this->enhanceSigchildCompatibility = (bool)$enhance;
+<a name="line916"></a>
+<a name="line917"></a>        return $this;
+<a name="line918"></a>    }
+<a name="line919"></a>
+<a name="line920"></a>    /**
+<a name="line921"></a>     * 是否超时
+<a name="line922"></a>     */
+<a name="line923"></a>    public function checkTimeout()
+<a name="line924"></a>    {
+<a name="line925"></a>        if ($this->status !== self::STATUS_STARTED) {
+<a name="line926"></a>            return;
+<a name="line927"></a>        }
+<a name="line928"></a>
+<a name="line929"></a>        if (null !== $this->timeout && $this->timeout < microtime(true) - $this->starttime) {
+<a name="line930"></a>            $this->stop();
+<a name="line931"></a>
+<a name="line932"></a>            throw new ProcessTimeoutException($this, ProcessTimeoutException::TYPE_GENERAL);
+<a name="line933"></a>        }
+<a name="line934"></a>
+<a name="line935"></a>        if (null !== $this->idleTimeout && $this->idleTimeout < microtime(true) - $this->lastOutputTime) {
+<a name="line936"></a>            $this->stop();
+<a name="line937"></a>
+<a name="line938"></a>            throw new ProcessTimeoutException($this, ProcessTimeoutException::TYPE_IDLE);
+<a name="line939"></a>        }
+<a name="line940"></a>    }
+<a name="line941"></a>
+<a name="line942"></a>    /**
+<a name="line943"></a>     * 是否支持pty
+<a name="line944"></a>     * @return bool
+<a name="line945"></a>     */
+<a name="line946"></a>    public static function isPtySupported()
+<a name="line947"></a>    {
+<a name="line948"></a>        static $result;
+<a name="line949"></a>
+<a name="line950"></a>        if (null !== $result) {
+<a name="line951"></a>            return $result;
+<a name="line952"></a>        }
+<a name="line953"></a>
+<a name="line954"></a>        if ('\\' === DS) {
+<a name="line955"></a>            return $result = false;
+<a name="line956"></a>        }
+<a name="line957"></a>
+<a name="line958"></a>        $proc = @proc_open('echo 1', [['pty'], ['pty'], ['pty']], $pipes);
+<a name="line959"></a>        if (is_resource($proc)) {
+<a name="line960"></a>            proc_close($proc);
+<a name="line961"></a>
+<a name="line962"></a>            return $result = true;
+<a name="line963"></a>        }
+<a name="line964"></a>
+<a name="line965"></a>        return $result = false;
+<a name="line966"></a>    }
+<a name="line967"></a>
+<a name="line968"></a>    /**
+<a name="line969"></a>     * 创建所需的 proc_open 的描述符
+<a name="line970"></a>     * @return array
+<a name="line971"></a>     */
+<a name="line972"></a>    private function getDescriptors()
+<a name="line973"></a>    {
+<a name="line974"></a>        if ('\\' === DS) {
+<a name="line975"></a>            $this->processPipes = WindowsPipes::create($this, $this->input);
+<a name="line976"></a>        } else {
+<a name="line977"></a>            $this->processPipes = UnixPipes::create($this, $this->input);
+<a name="line978"></a>        }
+<a name="line979"></a>        $descriptors = $this->processPipes->getDescriptors($this->outputDisabled);
+<a name="line980"></a>
+<a name="line981"></a>        if (!$this->useFileHandles && $this->enhanceSigchildCompatibility && $this->isSigchildEnabled()) {
+<a name="line982"></a>
+<a name="line983"></a>            $descriptors = array_merge($descriptors, [['pipe', 'w']]);
+<a name="line984"></a>
+<a name="line985"></a>            $this->commandline = '(' . $this->commandline . ') 3>/dev/null; code=$?; echo $code >&3; exit $code';
+<a name="line986"></a>        }
+<a name="line987"></a>
+<a name="line988"></a>        return $descriptors;
+<a name="line989"></a>    }
+<a name="line990"></a>
+<a name="line991"></a>    /**
+<a name="line992"></a>     * 建立 wait () 使用的回调。
+<a name="line993"></a>     * @param callable|null $callback
+<a name="line994"></a>     * @return callable
+<a name="line995"></a>     */
+<a name="line996"></a>    protected function buildCallback($callback)
+<a name="line997"></a>    {
+<a name="line998"></a>        $out      = self::OUT;
+<a name="line999"></a>        $callback = function ($type, $data) use ($callback, $out) {
+<a name="line1000"></a>            if ($out == $type) {
+<a name="line1001"></a>                $this->addOutput($data);
+<a name="line1002"></a>            } else {
+<a name="line1003"></a>                $this->addErrorOutput($data);
+<a name="line1004"></a>            }
+<a name="line1005"></a>
+<a name="line1006"></a>            if (null !== $callback) {
+<a name="line1007"></a>                call_user_func($callback, $type, $data);
+<a name="line1008"></a>            }
+<a name="line1009"></a>        };
+<a name="line1010"></a>
+<a name="line1011"></a>        return $callback;
+<a name="line1012"></a>    }
+<a name="line1013"></a>
+<a name="line1014"></a>    /**
+<a name="line1015"></a>     * 更新状态
+<a name="line1016"></a>     * @param bool $blocking
+<a name="line1017"></a>     */
+<a name="line1018"></a>    protected function updateStatus($blocking)
+<a name="line1019"></a>    {
+<a name="line1020"></a>        if (self::STATUS_STARTED !== $this->status) {
+<a name="line1021"></a>            return;
+<a name="line1022"></a>        }
+<a name="line1023"></a>
+<a name="line1024"></a>        $this->processInformation = proc_get_status($this->process);
+<a name="line1025"></a>        $this->captureExitCode();
+<a name="line1026"></a>
+<a name="line1027"></a>        $this->readPipes($blocking, '\\' === DS ? !$this->processInformation['running'] : true);
+<a name="line1028"></a>
+<a name="line1029"></a>        if (!$this->processInformation['running']) {
+<a name="line1030"></a>            $this->close();
+<a name="line1031"></a>        }
+<a name="line1032"></a>    }
+<a name="line1033"></a>
+<a name="line1034"></a>    /**
+<a name="line1035"></a>     * 是否开启 '--enable-sigchild'
+<a name="line1036"></a>     * @return bool
+<a name="line1037"></a>     */
+<a name="line1038"></a>    protected function isSigchildEnabled()
+<a name="line1039"></a>    {
+<a name="line1040"></a>        if (null !== self::$sigchild) {
+<a name="line1041"></a>            return self::$sigchild;
+<a name="line1042"></a>        }
+<a name="line1043"></a>
+<a name="line1044"></a>        if (!function_exists('phpinfo')) {
+<a name="line1045"></a>            return self::$sigchild = false;
+<a name="line1046"></a>        }
+<a name="line1047"></a>
+<a name="line1048"></a>        ob_start();
+<a name="line1049"></a>        phpinfo(INFO_GENERAL);
+<a name="line1050"></a>
+<a name="line1051"></a>        return self::$sigchild = false !== strpos(ob_get_clean(), '--enable-sigchild');
+<a name="line1052"></a>    }
+<a name="line1053"></a>
+<a name="line1054"></a>    /**
+<a name="line1055"></a>     * 验证是否超时
+<a name="line1056"></a>     * @param int|float|null $timeout
+<a name="line1057"></a>     * @return float|null
+<a name="line1058"></a>     */
+<a name="line1059"></a>    private function validateTimeout($timeout)
+<a name="line1060"></a>    {
+<a name="line1061"></a>        $timeout = (float)$timeout;
+<a name="line1062"></a>
+<a name="line1063"></a>        if (0.0 === $timeout) {
+<a name="line1064"></a>            $timeout = null;
+<a name="line1065"></a>        } elseif ($timeout < 0) {
+<a name="line1066"></a>            throw new \InvalidArgumentException('The timeout value must be a valid positive integer or float number.');
+<a name="line1067"></a>        }
+<a name="line1068"></a>
+<a name="line1069"></a>        return $timeout;
+<a name="line1070"></a>    }
+<a name="line1071"></a>
+<a name="line1072"></a>    /**
+<a name="line1073"></a>     * 读取pipes
+<a name="line1074"></a>     * @param bool $blocking
+<a name="line1075"></a>     * @param bool $close
+<a name="line1076"></a>     */
+<a name="line1077"></a>    private function readPipes($blocking, $close)
+<a name="line1078"></a>    {
+<a name="line1079"></a>        $result = $this->processPipes->readAndWrite($blocking, $close);
+<a name="line1080"></a>
+<a name="line1081"></a>        $callback = $this->callback;
+<a name="line1082"></a>        foreach ($result as $type => $data) {
+<a name="line1083"></a>            if (3 == $type) {
+<a name="line1084"></a>                $this->fallbackExitcode = (int)$data;
+<a name="line1085"></a>            } else {
+<a name="line1086"></a>                $callback($type === self::STDOUT ? self::OUT : self::ERR, $data);
+<a name="line1087"></a>            }
+<a name="line1088"></a>        }
+<a name="line1089"></a>    }
+<a name="line1090"></a>
+<a name="line1091"></a>    /**
+<a name="line1092"></a>     * 捕获退出码
+<a name="line1093"></a>     */
+<a name="line1094"></a>    private function captureExitCode()
+<a name="line1095"></a>    {
+<a name="line1096"></a>        if (isset($this->processInformation['exitcode']) && -1 != $this->processInformation['exitcode']) {
+<a name="line1097"></a>            $this->exitcode = $this->processInformation['exitcode'];
+<a name="line1098"></a>        }
+<a name="line1099"></a>    }
+<a name="line1100"></a>
+<a name="line1101"></a>    /**
+<a name="line1102"></a>     * 关闭资源
+<a name="line1103"></a>     * @return int 退出码
+<a name="line1104"></a>     */
+<a name="line1105"></a>    private function close()
+<a name="line1106"></a>    {
+<a name="line1107"></a>        $this->processPipes->close();
+<a name="line1108"></a>        if (is_resource($this->process)) {
+<a name="line1109"></a>            $exitcode = proc_close($this->process);
+<a name="line1110"></a>        } else {
+<a name="line1111"></a>            $exitcode = -1;
+<a name="line1112"></a>        }
+<a name="line1113"></a>
+<a name="line1114"></a>        $this->exitcode = -1 !== $exitcode ? $exitcode : (null !== $this->exitcode ? $this->exitcode : -1);
+<a name="line1115"></a>        $this->status   = self::STATUS_TERMINATED;
+<a name="line1116"></a>
+<a name="line1117"></a>        if (-1 === $this->exitcode && null !== $this->fallbackExitcode) {
+<a name="line1118"></a>            $this->exitcode = $this->fallbackExitcode;
+<a name="line1119"></a>        } elseif (-1 === $this->exitcode && $this->processInformation['signaled']
+<a name="line1120"></a>                  && 0 < $this->processInformation['termsig']
+<a name="line1121"></a>        ) {
+<a name="line1122"></a>            $this->exitcode = 128 + $this->processInformation['termsig'];
+<a name="line1123"></a>        }
+<a name="line1124"></a>
+<a name="line1125"></a>        return $this->exitcode;
+<a name="line1126"></a>    }
+<a name="line1127"></a>
+<a name="line1128"></a>    /**
+<a name="line1129"></a>     * 重置数据
+<a name="line1130"></a>     */
+<a name="line1131"></a>    private function resetProcessData()
+<a name="line1132"></a>    {
+<a name="line1133"></a>        $this->starttime                    = null;
+<a name="line1134"></a>        $this->callback                     = null;
+<a name="line1135"></a>        $this->exitcode                     = null;
+<a name="line1136"></a>        $this->fallbackExitcode             = null;
+<a name="line1137"></a>        $this->processInformation           = null;
+<a name="line1138"></a>        $this->stdout                       = null;
+<a name="line1139"></a>        $this->stderr                       = null;
+<a name="line1140"></a>        $this->process                      = null;
+<a name="line1141"></a>        $this->latestSignal                 = null;
+<a name="line1142"></a>        $this->status                       = self::STATUS_READY;
+<a name="line1143"></a>        $this->incrementalOutputOffset      = 0;
+<a name="line1144"></a>        $this->incrementalErrorOutputOffset = 0;
+<a name="line1145"></a>    }
+<a name="line1146"></a>
+<a name="line1147"></a>    /**
+<a name="line1148"></a>     * 将一个 POSIX 信号发送到进程中。
+<a name="line1149"></a>     * @param int  $signal
+<a name="line1150"></a>     * @param bool $throwException
+<a name="line1151"></a>     * @return bool
+<a name="line1152"></a>     */
+<a name="line1153"></a>    private function doSignal($signal, $throwException)
+<a name="line1154"></a>    {
+<a name="line1155"></a>        if (!$this->isRunning()) {
+<a name="line1156"></a>            if ($throwException) {
+<a name="line1157"></a>                throw new \LogicException('Can not send signal on a non running process.');
+<a name="line1158"></a>            }
+<a name="line1159"></a>
+<a name="line1160"></a>            return false;
+<a name="line1161"></a>        }
+<a name="line1162"></a>
+<a name="line1163"></a>        if ($this->isSigchildEnabled()) {
+<a name="line1164"></a>            if ($throwException) {
+<a name="line1165"></a>                throw new \RuntimeException('This PHP has been compiled with --enable-sigchild. The process can not be signaled.');
+<a name="line1166"></a>            }
+<a name="line1167"></a>
+<a name="line1168"></a>            return false;
+<a name="line1169"></a>        }
+<a name="line1170"></a>
+<a name="line1171"></a>        if (true !== @proc_terminate($this->process, $signal)) {
+<a name="line1172"></a>            if ($throwException) {
+<a name="line1173"></a>                throw new \RuntimeException(sprintf('Error while sending signal `%s`.', $signal));
+<a name="line1174"></a>            }
+<a name="line1175"></a>
+<a name="line1176"></a>            return false;
+<a name="line1177"></a>        }
+<a name="line1178"></a>
+<a name="line1179"></a>        $this->latestSignal = $signal;
+<a name="line1180"></a>
+<a name="line1181"></a>        return true;
+<a name="line1182"></a>    }
+<a name="line1183"></a>
+<a name="line1184"></a>    /**
+<a name="line1185"></a>     * 确保进程已经开启
+<a name="line1186"></a>     * @param string $functionName
+<a name="line1187"></a>     */
+<a name="line1188"></a>    private function requireProcessIsStarted($functionName)
+<a name="line1189"></a>    {
+<a name="line1190"></a>        if (!$this->isStarted()) {
+<a name="line1191"></a>            throw new \LogicException(sprintf('Process must be started before calling %s.', $functionName));
+<a name="line1192"></a>        }
+<a name="line1193"></a>    }
+<a name="line1194"></a>
+<a name="line1195"></a>    /**
+<a name="line1196"></a>     * 确保进程已经终止
+<a name="line1197"></a>     * @param string $functionName
+<a name="line1198"></a>     */
+<a name="line1199"></a>    private function requireProcessIsTerminated($functionName)
+<a name="line1200"></a>    {
+<a name="line1201"></a>        if (!$this->isTerminated()) {
+<a name="line1202"></a>            throw new \LogicException(sprintf('Process must be terminated before calling %s.', $functionName));
+<a name="line1203"></a>        }
+<a name="line1204"></a>    }
+<a name="line1205"></a>}</pre>
+<div class="header">
+<h1>ThinkPHP5</h1>
+<ul>
+<li><a href="../overview-summary.html">Overview</a></li>
+<li>Package</li><li>Class</li><li>Tree</li><li><a href="../overview-files.html">Files</a></li>
+<li><a href="../deprecated-list.html">Deprecated</a></li>
+<li><a href="../todo-list.html">Todo</a></li>
+<li><a href="../index-all.html">Index</a></li>
+</ul>
+</div>
+
+<div class="small_links">
+<a href="../index.html" target="_top">Frames</a>
+<a href="../source\library\think\process.php.html" target="_top">No frames</a>
+</div>
+<hr>
+
+<p id="footer">This document was generated by <a href="http://peej.github.com/phpdoctor/">PHPDoctor: The PHP Documentation Creator</a></p>
+
+</body>
+
+</html>
